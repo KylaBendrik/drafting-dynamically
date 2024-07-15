@@ -1,20 +1,34 @@
 const margin = 30;
 const pixelsPerInch = 32;
 
-// for use soon, to make the measurements dynamic instead of hardcoded. 
+// to make the measurements dynamic instead of hardcoded. 
 // some patterns will need different measurements
 
-// let measurements = [
-//   {id: 'backLength', label: "Back Length", value: 15},
-//   {id: 'frontLength', label: "Front Length", value: 18.25},
-//   {id: 'blade', label: "Blade", value: 10},
-//   {id: 'heightUnderArm', label: "Height Under Arm", value: 7.5},
-//   {id: 'breast', label: "Breast", value: 36},
-//   {id: 'waist', label: "Waist", value: 25},
-//   {id: 'lengthOfFront', label: "Length of Front", value: 23},
-//   {id: 'shoulder', label: "Desired Shoulder Width", value: 4},
-//   {id: 'neckline', label: "Neckline", value: 10}
-// ];
+let measurements = [
+  {id: 'backLength', label: "Back Length", value: 15},
+  {id: 'frontLength', label: "Front Length", value: 18.25},
+  {id: 'blade', label: "Blade", value: 10},
+  {id: 'heightUnderArm', label: "Height Under Arm", value: 7.5},
+  {id: 'breast', label: "Breast", value: 36},
+  {id: 'waist', label: "Waist", value: 25},
+  {id: 'lengthOfFront', label: "Length of Front", value: 23},
+  {id: 'shoulder', label: "Desired Shoulder Width", value: 4},
+  {id: 'neckline', label: "Neckline", value: 10}
+];
+
+const measurementsList = document.getElementById('measurementsList');
+measurements.forEach((measurement, index) => {
+  const input = document.createElement('input');
+  const label = document.createElement('label');
+  label.for = measurement.id;
+  label.textContent = measurement.label;
+  input.type = "number";
+  input.id = measurement.id;
+  input.value= `${measurement.value}`;
+  input.oninput = "updatePattern()";
+  measurementsList.appendChild(label);
+  measurementsList.appendChild(input);
+})
 
 let canvas = document.getElementById('canvas');
 let points = {
