@@ -1,0 +1,38 @@
+body {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            margin: 20px;
+            font-family: Arial, sans-serif;
+        }
+        #canvasContainer {
+            position: relative;
+        }
+        #canvas {
+            border: 2px solid black;
+            margin-top: 20px;
+        }
+        .controls {
+            margin: 10px 0;
+        }
+        .label {
+            position: absolute;
+            background-color: white;
+            padding: 2px;
+            border: 1px solid black;
+            font-size: 12px;
+        }
+        #stepsList {
+            margin-left: 20px;
+            padding-left: 20px;
+            list-style-type: none;
+        }
+        #stepsList li {
+            margin-bottom: 10px;
+        }
+        #stepsList li.current {
+            font-weight: bold;
+        }
+        .measurements {
+            margin-bottom: 20px;
+        }
