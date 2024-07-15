@@ -93,5 +93,11 @@ function definePoint(ctx, label, startPoint, direction, distanceInInches) {
   return { x: newX, y: newY };
 }
 
-
-
+module.exports = { 
+  formatLength, 
+  drawPoint, 
+  drawGuide, 
+  drawLine, 
+  findIntersectionPoint, 
+  definePoint 
+};
