@@ -34,11 +34,13 @@ body {
 }
 
 #measurementsList {
+  min-width: 120px;
+  min-height: 20px;
   display: flex;
   flex-flow: column wrap;
   justify-content: space-between;
   align-items: flex-end;
   margin-bottom: 20px;
-  background:    #E5E5E5;
+  background:    #d7d7d7;
   order: 3;
 }
