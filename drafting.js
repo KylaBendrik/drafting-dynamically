@@ -1,6 +1,21 @@
 const margin = 30;
 const pixelsPerInch = 32;
 
+// for use soon, to make the measurements dynamic instead of hardcoded. 
+// some patterns will need different measurements
+
+// let measurements = [
+//   {id: 'backLength', label: "Back Length", value: 15},
+//   {id: 'frontLength', label: "Front Length", value: 18.25},
+//   {id: 'blade', label: "Blade", value: 10},
+//   {id: 'heightUnderArm', label: "Height Under Arm", value: 7.5},
+//   {id: 'breast', label: "Breast", value: 36},
+//   {id: 'waist', label: "Waist", value: 25},
+//   {id: 'lengthOfFront', label: "Length of Front", value: 23},
+//   {id: 'shoulder', label: "Desired Shoulder Width", value: 4},
+//   {id: 'neckline', label: "Neckline", value: 10}
+// ];
+
 let canvas = document.getElementById('canvas');
 let points = {
     'O': { x: canvas.width - margin, y: margin },
