@@ -1,4 +1,14 @@
-import { measurements, steps, pattern, points } from './drafting.js';function highlightCurrentStep() {
+import { measurements, steps, pattern, points } from './drafting.js';
+import {
+  formatLength, 
+  drawPoint, 
+  drawGuide, 
+  drawLine, 
+  findIntersectionPoint, 
+  definePoint
+} from './drafting_tools.js';
+
+function highlightCurrentStep() {
   const stepsListItems = document.querySelectorAll('#stepsList li');
   stepsListItems.forEach((item, index) => {
     if (index === currentStep) {
@@ -9,8 +19,10 @@ import { measurements, steps, pattern, points } from './drafting.js';function hi
   });
 }
 
+//display measurements
+
 const measurementsList = document.getElementById('measurementsList');
-measurements.forEach((measurement, index) => {
+measurements.forEach((measurement) => {
   const input = document.createElement('input');
   const label = document.createElement('label');
   label.for = measurement.id;
@@ -23,13 +35,15 @@ measurements.forEach((measurement, index) => {
   measurementsList.appendChild(input);
 });
 
-// Populate the steps list
+//display steps
 const stepsList = document.getElementById('stepsList');
 steps.forEach((step, index) => {
   const li = document.createElement('li');
   li.textContent = `${index + 1}. ${step.description}`;
   stepsList.appendChild(li);
 });
+
+//display pattern info
 
 const patternInfo = document.getElementById('patternInfo');
 const title = document.createElement('h2');
@@ -56,6 +70,8 @@ function updatePattern() {
 }
 
 let canvas = document.getElementById('canvas');
+
+let currentStep = steps.length - 1; // Start at the last step
 
 function previousStep() {
   if (currentStep > 0) {

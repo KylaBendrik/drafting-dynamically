@@ -1,5 +1,3 @@
-import { measurements, steps, pattern, points } from './drafting.js';
-
 const margin = 30;
 const pixelsPerInch = 32;
 
@@ -36,7 +34,7 @@ function formatLength(length) {
   return `${inches} ${closestFraction.display}`;
 }
 
-let currentStep = steps.length - 1; // Start at the last step
+//canvas drawing functions
 
 function drawPoint(ctx, label, point) {
   ctx.fillStyle = 'black';
@@ -59,6 +57,8 @@ function drawLine(ctx, point1, point2) {
   ctx.lineTo(point2.x, point2.y);
   ctx.stroke();
 }
+
+//geometry functions
 
 function findIntersectionPoint(line1a, line1b, line2a, line2b) {
   //line 1
