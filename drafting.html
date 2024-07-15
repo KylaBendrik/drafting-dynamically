@@ -1,0 +1,51 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pattern Drafting</title>
+    </head>
+<body>
+<div class="container">
+    <div class="measurements">
+        <label for="backLength">Back Length: </label>
+        <input type="number" id="backLength" value="15" oninput="updatePattern()">
+        <br>
+        <label for="frontLength">Front Length: </label>
+        <input type="number" id="frontLength" value="18.25" oninput="updatePattern()">
+        <br>
+        <label for="blade">Blade: </label>
+        <input type="number" id="blade" value="10" oninput="updatePattern()">
+        <br>
+        <label for="heightUnderArm">Height Under Arm: </label>
+        <input type="number" id="heightUnderArm" value="7.5" oninput="updatePattern()">
+        <br>
+        <label for="breast">Breast: </label>
+        <input type="number" id="breast" value="36" oninput="updatePattern()">
+        <br>
+        <label for="waist">Waist: </label>
+        <input type="number" id="waist" value="25" oninput="updatePattern()">
+        <br>
+        <label for="lengthOfFront">Length of Front: </label>
+        <input type="number" id="lengthOfFront" value="23" oninput="updatePattern()">
+        <br>
+        <label for="shoulder">Desired Shoulder Width: </label>
+        <input type="number" id="shoulder" value="4" oninput="updatePattern()">
+        <br>
+        <label for="neckline">Neckline: </label>
+        <input type="number" id="neckline" value="10" oninput="updatePattern()">
+    </div>
+
+    <div id="canvasContainer" class="display">
+      <div class="controls">
+        <button onclick="previousStep()">Previous Step</button>
+        <button onclick="nextStep()">Next Step</button>
+      </div>
+        <canvas id="canvas" width="1000" height="1000"></canvas>
+        <div id="stepInstructions">
+            <h2>Drafting Steps</h2>
+            <ol id="stepsList"></ol>
+        </div>
+    </div>
+  </div>
+</body>
+</html>
