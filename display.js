@@ -1,4 +1,4 @@
-import { designs } from '/designs/design_list.js';
+import { designs } from './designs/design_list.js';
 
 
 

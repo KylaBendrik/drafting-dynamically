@@ -1,4 +1,4 @@
-import keystone_single from './designs/keystone_single-breasted-vest.js';
+import keystone_single from './keystone_single-breasted-vest.js';
 
 const designs = [
   keystone_single
