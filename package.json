@@ -2,9 +2,7 @@
   "name": "drafting-dynamically",
   "version": "0.0.1",
   "description": "A set of tools to help you use vintage and new sewing patterns",
-  "main": "index.js",
   "scripts": {
-    "start": "node index.js",
     "test": "jest"
   },
   "author": "Elizabeth Jackson",

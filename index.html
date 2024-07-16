@@ -11,6 +11,8 @@
   <div class="measurementsList" id="measurementsList"></div>
   <div id="canvasContainer" class="display">
     <div class="controls">
+      <select name="patternSelect" id="patternSelect">
+      </select>
       <button onclick="previousStep()">Previous Step</button>
       <button onclick="nextStep()">Next Step</button>
     </div>
@@ -18,11 +20,10 @@
       <h2>Drafting Steps</h2>
       <ol id="stepsList"></ol>
     </div>
-    <canvas id="canvas" width="500" height="500"></canvas>
-    
+    <canvas id="canvas" width="500" height="500"></canvas>  
   </div>
   <script src="/display.js" type="module"></script>
-  <script src="/drafting_tools.js" type="module"></script>
-  <script src="/patterns/keystone_single-breasted-vest.js" type="module"></script>
+  <!-- <script src="/drafting_tools.js" type="module"></script> -->
+  <!-- <script src="/patterns/keystone_single-breasted-vest.js" type="module"></script> -->
 </body>
 </html>

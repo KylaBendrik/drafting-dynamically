@@ -1,5 +1,5 @@
 const pattern = {
-  title: 'Single Breasted Vest',
+  title: 'Keystone - Single Breasted Vest',
   source: {
     link: 'https://archive.org/details/keystonejacketdr00heck/page/66/mode/2up',
     label: 'The Keystone Jacket and Dress Cutter'

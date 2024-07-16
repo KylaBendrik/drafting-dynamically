@@ -1,28 +1,57 @@
-import { measurements, steps, pattern, points } from 'patterns/keystone_single-breasted-vest.js';
-import {
-  formatLength, 
-  drawPoint, 
-  drawGuide, 
-  drawLine, 
-  findIntersectionPoint, 
-  definePoint
-} from '/drafting_tools.js';
+import { designs } from '/designs/design_list.js';
 
-function highlightCurrentStep() {
-  const stepsListItems = document.querySelectorAll('#stepsList li');
-  stepsListItems.forEach((item, index) => {
-    if (index === currentStep) {
-      item.classList.add('current');
-    } else {
-      item.classList.remove('current');
-    }
+
+
+//populate pattern select
+const patternSelect = document.getElementById('patternSelect');
+designs.forEach((design, index) => {
+  const option = document.createElement('option');
+  option.value = index;
+  option.textContent = design.title;
+  patternSelect.appendChild(option);
+});
+
+patternSelect.addEventListener('change', () => {
+  const selectedPatternIndex = patternSelect.value;
+  const selectedPattern = patterns[selectedPatternIndex];
+  updatePattern(selectedPattern);
+});
+
+function updatePattern(pattern) {
+  // Clear existing measurements
+  measurementsList.innerHTML = '';
+
+  // Display measurements
+  measurements.forEach((measurement) => {
+    const input = document.createElement('input');
+    const label = document.createElement('label');
+    label.for = measurement.id;
+    label.textContent = measurement.label;
+    input.type = "number";
+    input.id = measurement.id;
+    input.value = `${measurement.value}`;
+    input.oninput = updatePattern;
+    measurementsList.appendChild(label);
+    measurementsList.appendChild(input);
   });
+
+  // Display steps
+  stepsList.innerHTML = '';
+  steps.forEach((step, index) => {
+    const li = document.createElement('li');
+    li.textContent = `${index + 1}. ${step.description}`;
+    stepsList.appendChild(li);
+  });
+
+  // Display pattern info
+  title.textContent = pattern.title;
+  designer.textContent = pattern.designer;
+  source.textContent = pattern.source.label;
+  source.href = pattern.source.url;
+
+  // Adjust canvas drawing based on these values
+  redrawSteps(); // Ensure canvas redraws with updated values
 }
-
-//display measurements
-
-const measurementsList = document.getElementById('measurementsList');
-measurements.forEach((measurement) => {
   const input = document.createElement('input');
   const label = document.createElement('label');
   label.for = measurement.id;
@@ -59,6 +88,7 @@ patternInfo.appendChild(title);
 patternInfo.appendChild(designer);
 patternInfo.appendChild(source);
 
+
 function updatePattern() {
   const backLength = parseFloat(document.getElementById('backLength').value);
   const frontLength = parseFloat(document.getElementById('frontLength').value);
@@ -86,6 +116,16 @@ function nextStep() {
     redrawSteps();
   }
 }
+function highlightCurrentStep() {
+  const stepsListItems = document.querySelectorAll('#stepsList li');
+  stepsListItems.forEach((item, index) => {
+    if (index === currentStep) {
+      item.classList.add('current');
+    } else {
+      item.classList.remove('current');
+    }
+  });
+}
 
 function redrawSteps() {
   const ctx = canvas.getContext('2d');
@@ -95,6 +135,5 @@ function redrawSteps() {
   }
   highlightCurrentStep();
 }
-
 // Initial draw
 redrawSteps();
