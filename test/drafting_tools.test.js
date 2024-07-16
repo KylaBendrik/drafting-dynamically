@@ -11,5 +11,5 @@ import {
 } from '../drafting_tools.js';
 
 test('formatLength returns a string of a whole number', t => {
-  assert.strictEqual(formatLength(1), '0');
+  assert.strictEqual(formatLength(1), '1');
 });
