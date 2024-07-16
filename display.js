@@ -8,7 +8,8 @@ let measurements = design.measurements;
 document.getElementById('designDesigner').textContent = design.design_info.designer;
 document.getElementById('designSource').textContent = design.design_info.source.label;
 document.getElementById('designSource').href = design.design_info.source.link;
-
+let measurementsList = document.getElementById('measurementsList');
+let liMaxWidth = 0;
 //initialized measurements
 for (const measurement in measurements) {
   const li = document.createElement('li');
@@ -23,8 +24,40 @@ for (const measurement in measurements) {
   li.appendChild(label);
   li.appendChild(input);
   measurementsList.appendChild(li);
+  let liWidth = li.offsetWidth;
+  if (liWidth > liMaxWidth) {
+    liMaxWidth = liWidth;
+  }
 }
 
+function updateListLayout() {
+  console.log('updateListLayout');
+  const doc_measurementsList = document.querySelector('#measurementsList');
+  const liElements = doc_measurementsList.querySelectorAll('li');
+  const listStyle = window.getComputedStyle(doc_measurementsList);
+
+  //find the max width of the li elements
+  liElements.forEach((li) => {
+    const liWidth = li.offsetWidth;
+    if (liWidth > liMaxWidth) {
+      liMaxWidth = liWidth;
+    }
+  });
+
+  console.log(liMaxWidth);
+  console.log(doc_measurementsList.offsetWidth);
+  console.log(doc_measurementsList.offsetWidth < liMaxWidth);
+  if (doc_measurementsList.offsetWidth < liMaxWidth) {
+    doc_measurementsList.classList.add('narrow');
+    console.log('narrow');
+  } else {
+    doc_measurementsList.classList.remove('narrow');
+  }
+}
+
+window.addEventListener('resize', updateListLayout);
+
+updateListLayout();
 
 //populate design select
 const designSelect = document.getElementById('designSelect');
@@ -46,6 +79,7 @@ designSelect.addEventListener('change', () => {
 function updateDesign(design) {
   // Clear existing measurements
   measurementsList.innerHTML = '';
+  liMaxWidth = 0;
 
   // Display measurements
 
@@ -60,6 +94,10 @@ function updateDesign(design) {
     input.oninput = updateDesign;
     measurementsList.appendChild(label);
     measurementsList.appendChild(input);
+    let liWidth = li.offsetWidth;
+    if (liWidth > liMaxWidth) {
+      liMaxWidth = liWidth;
+    }
   }
 
   // Display steps
