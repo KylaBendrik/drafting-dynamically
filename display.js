@@ -4,7 +4,7 @@ console.log(designs);
 
 let design = designs[0];
 let measurements = design.measurements;
-
+document.getElementById('designTitle').textContent = design.design_info.title;
 
 //initialized measurements
 for (const measurement in measurements) {

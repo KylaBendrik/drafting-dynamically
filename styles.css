@@ -1,5 +1,5 @@
 body {
-  display: flex;
+  display: grid;
   justify-content: center;
   align-items: flex-start;
   margin: 20px;
@@ -42,7 +42,6 @@ body {
   align-items: flex-end;
   margin-bottom: 20px;
   background:    #e3c0d9;
-  order: 3;
   list-style-type: none;
   padding: 10px;
   gap: 5px;
