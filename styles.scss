@@ -1,7 +1,8 @@
 $brand-color: #950f6d;
-$brand-color-light: desaturate(lighten($brand-color, 50%),40%);
+$brand-color-light: desaturate(lighten($brand-color, 50%), 40%);
 $brand-color-dark: darken($brand-color, 20%);
-$input-color: desaturate(lighten($brand-color-light, 10%),10%);
+$input-color: desaturate(lighten($brand-color-light, 10%), 10%);
+
 body {
   display: grid;
   grid-template-columns: 3fr 2fr;
@@ -9,18 +10,16 @@ body {
   gap: 10px;
   justify-items: center;
   align-items: stretch;
-
   margin: 20px;
   font-family: serif;
 }
+
 #designInfo {
   grid-row: 1;
   grid-column: 1;
   justify-self: stretch;
   align-self: stretch;
-  
   font-family: serif;
-
   display: flex;
   flex-direction: column;
   align-items: end;
@@ -28,7 +27,8 @@ body {
   gap: 10px;
   margin: 5px;
 }
-#designSelect{
+
+#designSelect {
   font-size: 30px;
   flex-grow: 1;
   font-family: serif;
@@ -41,8 +41,7 @@ body {
 }
 
 #canvasContainer {
-  /* position: relative; */
-  grid-row: 2 /span 2;
+  grid-row: 2 / span 2;
   grid-column: 1;
 }
 
@@ -50,8 +49,9 @@ body {
   border: 2px solid black;
   margin-top: 20px;
 }
+
 #measurementsList {
-  grid-row: 1 /span 2;
+  grid-row: 1 / span 2;
   grid-column: 2;
   justify-self: stretch;
   min-width: 50px;
@@ -60,22 +60,23 @@ body {
   flex-flow: column wrap;
   justify-content: space-between;
   align-items: flex-end;
-  background:    $brand-color-light;
+  background: $brand-color-light;
   list-style-type: none;
   padding: 10px;
   gap: 5px;
 }
+
 #stepInstructions {
   grid-row-start: 3;
   grid-row-end: 3;
   grid-column-start: 2;
   align-self: stretch;
   justify-self: stretch;
-
   display: flex;
   flex-direction: column;
   align-items: center;
 }
+
 #stepsList {
   margin-left: 20px;
   padding-left: 20px;
@@ -93,6 +94,7 @@ body {
 #controls {
   margin: 10px 0;
 }
+
 #controls button {
   color: $brand-color-dark;
   background-color: $input-color;
@@ -104,8 +106,9 @@ body {
 
 input {
   width: 50px;
-  background:    $input-color;
+  background: $input-color;
 }
+
 label {
   font-size: 12px;
   padding: 5px;
