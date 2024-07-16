@@ -3,6 +3,8 @@
   "version": "0.0.1",
   "description": "A set of tools to help you use vintage and new sewing patterns",
   "scripts": {
+    "build": "node build.js",
+    "build:watch": "node build.js --watch",
     "start": "http-server .",
     "test": "node --test"
   },
