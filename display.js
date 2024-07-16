@@ -5,12 +5,10 @@ console.log(designs);
 let design = designs[0];
 let measurements = design.measurements;
 
-console.log(measurements);
 
 //initialized measurements
 for (const measurement in measurements) {
-  console.log(measurement);
-  console.log(measurements[measurement]);
+  const li = document.createElement('li');
   const input = document.createElement('input');
   const label = document.createElement('label');
   label.for = measurement;
@@ -19,8 +17,9 @@ for (const measurement in measurements) {
   input.id = measurement;
   input.value = `${measurements[measurement].value}`;
   input.oninput = updateDesign;
-  measurementsList.appendChild(label);
-  measurementsList.appendChild(input);
+  li.appendChild(label);
+  li.appendChild(input);
+  measurementsList.appendChild(li);
 }
 
 

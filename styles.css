@@ -43,4 +43,5 @@ body {
   margin-bottom: 20px;
   background:    #d7d7d7;
   order: 3;
+  list-style-type: none;
 }
