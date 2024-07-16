@@ -2,8 +2,25 @@ import { designs } from './designs/design_list.js';
 
 console.log(designs);
 
-let measurements = [];
 let design = designs[0];
+let measurements = design.measurements;
+
+console.log(measurements);
+
+//initialized measurements
+for (const measurement in measurements) {
+  const input = document.createElement('input');
+  const label = document.createElement('label');
+  label.for = measurement;
+  label.textContent = measurement.label;
+  input.type = "number";
+  input.id = measurement;
+  input.value = `${measurement.value}`;
+  input.oninput = updateDesign;
+  measurementsList.appendChild(label);
+  measurementsList.appendChild(input);
+}
+
 
 //populate design select
 const designSelect = document.getElementById('designSelect');
@@ -27,7 +44,8 @@ function updateDesign(design) {
   measurementsList.innerHTML = '';
 
   // Display measurements
-  measurements.forEach((measurement) => {
+
+  for (const measurement in measurements) {
     const input = document.createElement('input');
     const label = document.createElement('label');
     label.for = measurement.id;
@@ -38,7 +56,7 @@ function updateDesign(design) {
     input.oninput = updateDesign;
     measurementsList.appendChild(label);
     measurementsList.appendChild(input);
-  });
+  }
 
   // Display steps
   stepsList.innerHTML = '';
@@ -62,14 +80,14 @@ let canvas = document.getElementById('canvas');
 
 let currentStep = design.steps.length - 1; // Start at the last step
 
-function previousStep() {
+export function previousStep() {
   if (currentStep > 0) {
     currentStep--;
     redrawSteps();
   }
 }
 
-function nextStep() {
+export function nextStep() {
   if (currentStep < steps.length - 1) {
     currentStep++;
     redrawSteps();
@@ -87,14 +105,13 @@ function highlightCurrentStep() {
 }
 
 function redrawSteps() {
-
   // get measurements from inputs
-  measurements = measurements.map((measurement) => {
-    return {
-      ...measurement,
-      value: parseFloat(document.getElementById(measurement.id).value)
-    };
-  });
+
+  for (let key in measurements) {
+    let element = document.getElementById(key.label);
+    measurements[key].value = parseFloat(element.value);
+    console.log(measurements[key].value);
+  }
 
 
 
