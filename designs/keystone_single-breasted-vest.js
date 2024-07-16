@@ -98,4 +98,4 @@ const steps = [
   },
 ];
 
-export { design_info, measurements, points, steps };
+export default { design_info, measurements, points, steps };

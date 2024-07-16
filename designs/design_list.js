@@ -1,7 +1,15 @@
-import {design_info, measurements, points, steps} from './designs/keystone_single-breasted-vest.js';
+import keystone_single from './designs/keystone_single-breasted-vest.js';
 
 const designs = [
-  {label: design_info.title, design_info: design_info, measurements: measurements, points: points, steps: steps}
-]
+  keystone_single
+].map((design) => {
+  return {
+    label: design.title,
+    design_info: design.design_info,
+    measurements: design.measurements,
+    points: design.points,
+    steps: design.steps
+  };
+});
 
-export {designs};
+export { designs };
