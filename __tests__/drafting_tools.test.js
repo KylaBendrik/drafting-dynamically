@@ -5,7 +5,7 @@ const {
     drawLine, 
     findIntersectionPoint, 
     definePoint
-  } = require('./drafting_toolsjs');
+  } = require('./drafting_tools.js');
 
   describe('formatLength', () => {
     test('returns a string of a whole number', () => {
