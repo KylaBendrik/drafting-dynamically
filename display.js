@@ -1,13 +1,16 @@
 import { designs } from './designs/design_list.js';
 
+console.log(designs);
 
+let measurements = [];
+let design = designs[0];
 
 //populate design select
 const designSelect = document.getElementById('designSelect');
 designs.forEach((design, index) => {
   const option = document.createElement('option');
   option.value = index;
-  option.textContent = design.title;
+  option.textContent = design.label;
   designSelect.appendChild(option);
 });
 
@@ -41,7 +44,7 @@ function updateDesign(design) {
   stepsList.innerHTML = '';
   steps.forEach((step, index) => {
     const li = document.createElement('li');
-    li.textContent = `${index + 1}. ${step.description}`;
+    li.textContent = `${index + 1}. ${step.description(measurements)}`;
     stepsList.appendChild(li);
   });
 
@@ -55,19 +58,9 @@ function updateDesign(design) {
   redrawSteps(); // Ensure canvas redraws with updated values
 }
 
-function updateDesigns() {
-  const backLength = parseFloat(document.getElementById('backLength').value);
-  const frontLength = parseFloat(document.getElementById('frontLength').value);
-  const heightUnderArm = parseFloat(document.getElementById('heightUnderArm').value);
-
-
-  // Adjust canvas drawing based on these values
-  redrawSteps(); // Ensure canvas redraws with updated values
-}
-
 let canvas = document.getElementById('canvas');
 
-let currentStep = steps.length - 1; // Start at the last step
+let currentStep = design.steps.length - 1; // Start at the last step
 
 function previousStep() {
   if (currentStep > 0) {
@@ -94,10 +87,22 @@ function highlightCurrentStep() {
 }
 
 function redrawSteps() {
+
+  // get measurements from inputs
+  measurements = measurements.map((measurement) => {
+    return {
+      ...measurement,
+      value: parseFloat(document.getElementById(measurement.id).value)
+    };
+  });
+
+
+
+
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   for (let i = 0; i <= currentStep; i++) {
-    steps[i].action(ctx);
+    design.steps[i].action(ctx, measurements);
   }
   highlightCurrentStep();
 }
