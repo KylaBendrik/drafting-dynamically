@@ -1,5 +1,9 @@
 import {
-  formatLength, 
+  formatMeasure,
+  formatMeasureDiv,
+  formatMeasureMul,
+  formatMeasureAdd,
+  formatMeasureSub,
   drawPoint, 
   drawGuide, 
   drawLine, 
@@ -41,26 +45,26 @@ let points = {
 
 const steps = [
   {
-      description: (_userMeasurements) => {'Set point O in upper right of canvas'},
+      description: (_userMeasurements) => {return 'Set point O in upper right of canvas'},
       action: (ctx, _userMeasurements) => {
           drawPoint(ctx, 'O', points['O']);
       }
   },
   {
-      description: (_userMeasurements) => {'Create lines down and to the left from O'},
+      description: (_userMeasurements) => {return 'Create lines down and to the left from O'},
       action: (ctx, _userMeasurements) => {
           drawGuide(ctx, points['O'], { x: canvas.width - margin, y: canvas.height - margin });
           drawGuide(ctx, points['O'], { x: margin, y: margin });
       }
   },
   {
-      description: (_userMeasurements) => {'Point 1 is 3/4 inch down from O'},
+      description: (_userMeasurements) => {return 'Point 1 is 3/4 inch down from O'},
       action: (ctx, _userMeasurements) => {
           drawPoint(ctx, '1', points['1']);
       }
   },
   {
-      description: (_userMeasurements) => {'From point 1, go down the back length to define point B'},
+      description: (_userMeasurements) => {return 'From point 1, go down the back length to define point B'},
       action: (ctx, userMeasurements) => {
           const backLength = parseFloat(userMeasurements.backLength.value);
           const point1 = points['1'];
@@ -69,7 +73,7 @@ const steps = [
       }
   },
   {
-      description: (userMeasurements) => {`From point B, go up the height under arm (${formatLength(parseFloat(userMeasurements.heightUnderArm.value))} inches)to define point A`},
+      description: (userMeasurements) => {return `From point B, go up the height under arm ${formatMeasure(userMeasurements.heightUnderArm)} to define point A`},
       action: (ctx, userMeasurements) => {
           const heightUnderArm = parseFloat(userMeasurements.heightUnderArm.value);
           const pointB = points['B'];
@@ -78,14 +82,14 @@ const steps = [
       }
   },
   {
-      description: (_userMeasurements) => {'From points A and B, draw lines across'},
+      description: (_userMeasurements) => {return 'From points A and B, draw lines across'},
       action: (ctx, _userMeasurements) => {
           drawGuide(ctx, points['A'], { x: margin, y: points['A'].y });
           drawGuide(ctx, points['B'], { x: margin, y: points['B'].y });
       }
   },
   {
-      description: (userMeasurements) => {`B to D is 1/12 breast (${formatLength(parseFloat(userMeasurements.breast.value) / 12)} inches)`},
+      description: (userMeasurements) => {return `B to D is 1/12 breast ${formatMeasureDiv(userMeasurements.breast, 12, "(")}`},
       action: (ctx, userMeasurements) => {
           const breast = parseFloat(userMeasurements.breast.value);
           const pointB = points['B'];
@@ -94,13 +98,13 @@ const steps = [
       }
   },
   {
-      description: (_userMeasurements) => { 'Draw back line from 1 to D'},
+      description: (_userMeasurements) => {return 'Draw back line from 1 to D'},
       action: (ctx, _userMeasurements) => {
           drawLine(ctx, points['1'], points['D']);
       }
   },
   {
-      description: (_userMeasurements) => {'Point A1 is where the line 1-D crosses line extending left from A'},
+      description: (_userMeasurements) => {return 'Point A1 is where the line 1-D crosses line extending left from A'},
       action: (ctx, _userMeasurements) => {
           points['A1'] = findIntersectionPoint(points['1'], points['D'], points['A'], { x: margin, y: points['A'].y });
           drawPoint(ctx, 'A1', points['A1']);
