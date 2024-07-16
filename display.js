@@ -4,7 +4,10 @@ console.log(designs);
 
 let design = designs[0];
 let measurements = design.measurements;
-document.getElementById('designTitle').textContent = design.design_info.title;
+
+document.getElementById('designDesigner').textContent = design.design_info.designer;
+document.getElementById('designSource').textContent = design.design_info.source.label;
+document.getElementById('designSource').href = design.design_info.source.link;
 
 //initialized measurements
 for (const measurement in measurements) {

@@ -10,17 +10,18 @@
 
 <body>
   <div id="designInfo">
-    <h1 id="designTitle"></h1>
-  </div>
-  <div class="measurementsList" id="measurementsList"></div>
-  <div id="controls">
     <select name="designSelect" id="designSelect">
     </select>
-    <button onclick="previousStep()">Previous Step</button>
-    <button onclick="nextStep()">Next Step</button>
+    <class id="designDesigner"></class>
+    <a id="designSource"></a>
   </div>
+  <div class="measurementsList" id="measurementsList"></div>
   <div id="stepInstructions">
     <h2>Drafting Steps</h2>
+    <div id="controls">
+      <button onclick="previousStep()">Previous Step</button>
+      <button onclick="nextStep()">Next Step</button>
+    </div>
     <ol id="stepsList"></ol>
   </div>
   <div id="canvasContainer" class="display">
