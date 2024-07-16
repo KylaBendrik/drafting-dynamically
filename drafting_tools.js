@@ -1,7 +1,7 @@
-const margin = 30;
-const pixelsPerInch = 32;
+export const margin = 30;
+export const pixelsPerInch = 32;
 
-function formatLength(length) {
+export function formatLength(length) {
   const inches = Math.floor(length);
   const fraction = length - inches;
 
@@ -36,13 +36,13 @@ function formatLength(length) {
 
 //canvas drawing functions
 
-function drawPoint(ctx, label, point) {
+export function drawPoint(ctx, label, point) {
   ctx.fillStyle = 'black';
   ctx.fillRect(point.x - 2, point.y - 2, 4, 4);
   ctx.fillText(label, point.x + 5, point.y - 5);
 }
 
-function drawGuide(ctx, point1, point2) {
+export function drawGuide(ctx, point1, point2) {
   ctx.setLineDash([5, 5]);
   ctx.beginPath();
   ctx.moveTo(point1.x, point1.y);
@@ -51,7 +51,7 @@ function drawGuide(ctx, point1, point2) {
   ctx.setLineDash([]);
 }
 
-function drawLine(ctx, point1, point2) {
+export function drawLine(ctx, point1, point2) {
   ctx.beginPath();
   ctx.moveTo(point1.x, point1.y);
   ctx.lineTo(point2.x, point2.y);
@@ -60,7 +60,7 @@ function drawLine(ctx, point1, point2) {
 
 //geometry functions
 
-function findIntersectionPoint(line1a, line1b, line2a, line2b) {
+export function findIntersectionPoint(line1a, line1b, line2a, line2b) {
   //line 1
   const slope1 = (line1b.y - line1a.y) / (line1b.x - line1a.x);
   const y_intercept1 = line1a.y - slope1 * line1a.x;
@@ -86,14 +86,14 @@ function findIntersectionPoint(line1a, line1b, line2a, line2b) {
   return { x: intersectX, y: intersectY };
 }
 
-function definePoint(ctx, label, startPoint, direction, distanceInInches) {
+export function definePoint(ctx, label, startPoint, direction, distanceInInches) {
   const distanceInPixels = distanceInInches * pixelsPerInch;
   const newX = startPoint.x + direction.x * distanceInPixels;
   const newY = startPoint.y + direction.y * distanceInPixels;
   return { x: newX, y: newY };
 }
 
-module.exports = { 
+export default { 
   formatLength, 
   drawPoint, 
   drawGuide, 

@@ -4,7 +4,9 @@ import {
   drawGuide, 
   drawLine, 
   findIntersectionPoint, 
-  definePoint 
+  definePoint,
+  margin,
+  pixelsPerInch,
 } from '../drafting_tools.js';
 
 const design_info = {
