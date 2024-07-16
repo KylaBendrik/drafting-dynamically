@@ -4,6 +4,7 @@ console.log(designs);
 
 let design = designs[0];
 let measurements = design.measurements;
+let steps = design.steps;
 
 document.getElementById('designDesigner').textContent = design.design_info.designer;
 document.getElementById('designSource').textContent = design.design_info.source.label;
@@ -30,8 +31,17 @@ for (const measurement in measurements) {
   }
 }
 
+//initialize steps
+let stepsList = document.getElementById('stepsList');
+console.log(steps)
+for (const step in steps) {
+  console.log(`${parseInt(step) + 1}. ${steps[step].description(measurements)}`);
+  const li = document.createElement('li');
+  li.textContent = `${parseInt(step) + 1}. ${steps[step].description(measurements)}`;
+  stepsList.appendChild(li);
+}
+
 function updateListLayout() {
-  console.log('updateListLayout');
   const doc_measurementsList = document.querySelector('#measurementsList');
   const liElements = doc_measurementsList.querySelectorAll('li');
 
@@ -100,13 +110,13 @@ function updateDesign(design) {
     }
   }
 
-  // Display steps
-  stepsList.innerHTML = '';
-  steps.forEach((step, index) => {
-    const li = document.createElement('li');
-    li.textContent = `${index + 1}. ${step.description(measurements)}`;
-    stepsList.appendChild(li);
-  });
+  // // Display steps
+  // stepsList.innerHTML = '';
+  // steps.forEach((step, index) => {
+  //   const li = document.createElement('li');
+  //   li.textContent = `${index + 1}. ${step.description(measurements)}`;
+  //   stepsList.appendChild(li);
+  // });
 
   // Display design info
   title.textContent = design.title;
@@ -148,8 +158,9 @@ function highlightCurrentStep() {
 
 function redrawSteps() {
   // get measurements from inputs
-
+  console.log(measurements);
   for (let key in measurements) {
+    console.log(key)
     let element = document.getElementById(key.label);
     measurements[key].value = parseFloat(element.value);
     console.log(measurements[key].value);
@@ -165,5 +176,5 @@ function redrawSteps() {
   }
   highlightCurrentStep();
 }
-// Initial draw
-redrawSteps();
+// // Initial draw
+// redrawSteps();

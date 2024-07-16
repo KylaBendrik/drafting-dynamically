@@ -94,13 +94,13 @@ const steps = [
       }
   },
   {
-      description: 'Draw back line from 1 to D',
+      description: (_userMeasurements) => { 'Draw back line from 1 to D'},
       action: (ctx, _userMeasurements) => {
           drawLine(ctx, points['1'], points['D']);
       }
   },
   {
-      description: 'Point A1 is where the line 1-D crosses line extending left from A',
+      description: (_userMeasurements) => {'Point A1 is where the line 1-D crosses line extending left from A'},
       action: (ctx, _userMeasurements) => {
           points['A1'] = findIntersectionPoint(points['1'], points['D'], points['A'], { x: margin, y: points['A'].y });
           drawPoint(ctx, 'A1', points['A1']);
