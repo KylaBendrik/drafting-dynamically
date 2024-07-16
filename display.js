@@ -1,4 +1,4 @@
-import { designs } from '/designs/design_list.js';
+import { designs } from '/patterns/design_list.js';
 
 
 
@@ -52,6 +52,8 @@ function updatePattern(pattern) {
   // Adjust canvas drawing based on these values
   redrawSteps(); // Ensure canvas redraws with updated values
 }
+
+// Display measurements
   const input = document.createElement('input');
   const label = document.createElement('label');
   label.for = measurement.id;
@@ -62,7 +64,6 @@ function updatePattern(pattern) {
   input.oninput = updatePattern;
   measurementsList.appendChild(label);
   measurementsList.appendChild(input);
-});
 
 //display steps
 const stepsList = document.getElementById('stepsList');
