@@ -11,17 +11,17 @@
     <h1 id="designTitle"></h1>
   </div>
   <div class="measurementsList" id="measurementsList"></div>
+  <div id="controls">
+    <select name="designSelect" id="designSelect">
+    </select>
+    <button onclick="previousStep()">Previous Step</button>
+    <button onclick="nextStep()">Next Step</button>
+  </div>
+  <div id="stepInstructions">
+    <h2>Drafting Steps</h2>
+    <ol id="stepsList"></ol>
+  </div>
   <div id="canvasContainer" class="display">
-    <div class="controls">
-      <select name="designSelect" id="designSelect">
-      </select>
-      <button onclick="previousStep()">Previous Step</button>
-      <button onclick="nextStep()">Next Step</button>
-    </div>
-    <div id="stepInstructions">
-      <h2>Drafting Steps</h2>
-      <ol id="stepsList"></ol>
-    </div>
     <canvas id="canvas" width="500" height="500"></canvas>  
   </div>
   <script src="/display.js" type="module"></script>
