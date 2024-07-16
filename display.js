@@ -34,7 +34,10 @@ function updateListLayout() {
   console.log('updateListLayout');
   const doc_measurementsList = document.querySelector('#measurementsList');
   const liElements = doc_measurementsList.querySelectorAll('li');
+
+  //get style of measurementsList
   const listStyle = window.getComputedStyle(doc_measurementsList);
+  const listPadding = parseFloat(listStyle.paddingLeft) + parseFloat(listStyle.paddingRight);
 
   //find the max width of the li elements
   liElements.forEach((li) => {
@@ -43,11 +46,9 @@ function updateListLayout() {
       liMaxWidth = liWidth;
     }
   });
-
-  console.log(liMaxWidth);
-  console.log(doc_measurementsList.offsetWidth);
-  console.log(doc_measurementsList.offsetWidth < liMaxWidth);
-  if (doc_measurementsList.offsetWidth < liMaxWidth) {
+  
+  console.log(doc_measurementsList.offsetWidth < liMaxWidth + listPadding);
+  if (doc_measurementsList.offsetWidth < liMaxWidth + listPadding) {
     doc_measurementsList.classList.add('narrow');
     console.log('narrow');
   } else {
