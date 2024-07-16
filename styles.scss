@@ -1,22 +1,30 @@
 body {
   display: grid;
-  justify-content: center;
-  align-items: flex-start;
+  grid-template-columns: 3fr 2fr 2fr;
+  grid-template-rows: 1fr 2fr 4fr;
+
+
   margin: 20px;
   font-family: Arial, sans-serif;
 }
+#designInfo {
+  grid-row-start: 1;
+}
 
 #canvasContainer {
-  position: relative;
+  /* position: relative; */
+  grid-row-start: 3;
+  grid-column: 1;
 }
 
 #canvas {
   border: 2px solid black;
   margin-top: 20px;
 }
-
-.controls {
-  margin: 10px 0;
+#stepsInstructions {
+  grid-row-start: 1;
+  grid-row-end: 3;
+  grid-column-start: 3;
 }
 
 #stepsList {
@@ -34,6 +42,9 @@ body {
 }
 
 #measurementsList {
+  grid-row-start: 1;
+  grid-row-end: 2;
+  grid-column: 2;
   min-width: 50px;
   min-height: 20px;
   display: flex;
@@ -46,6 +57,13 @@ body {
   padding: 10px;
   gap: 5px;
 }
+
+#controls {
+  grid-row-start: 2;
+  grid-column: 1;
+  margin: 10px 0;
+}
+
 input {
   width: 50px;
   background:    #f3e6ef;
