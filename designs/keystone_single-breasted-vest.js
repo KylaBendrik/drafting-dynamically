@@ -1,4 +1,4 @@
-const pattern = {
+const design_info = {
   title: 'Keystone - Single Breasted Vest',
   source: {
     link: 'https://archive.org/details/keystonejacketdr00heck/page/66/mode/2up',
@@ -98,4 +98,4 @@ const steps = [
   },
 ];
 
-export { pattern, measurements, points, steps };
+export { design_info, measurements, points, steps };

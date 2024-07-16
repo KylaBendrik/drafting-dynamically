@@ -1,23 +1,23 @@
-import { designs } from '/patterns/design_list.js';
+import { designs } from '/designs/design_list.js';
 
 
 
-//populate pattern select
-const patternSelect = document.getElementById('patternSelect');
+//populate design select
+const designSelect = document.getElementById('designSelect');
 designs.forEach((design, index) => {
   const option = document.createElement('option');
   option.value = index;
   option.textContent = design.title;
-  patternSelect.appendChild(option);
+  designSelect.appendChild(option);
 });
 
-patternSelect.addEventListener('change', () => {
-  const selectedPatternIndex = patternSelect.value;
-  const selectedPattern = patterns[selectedPatternIndex];
-  updatePattern(selectedPattern);
+designSelect.addEventListener('change', () => {
+  const selectedDesignIndex = designSelect.value;
+  const selectedDesign = designs[selectedDesignIndex];
+  updateDesign(selectedDesign);
 });
 
-function updatePattern(pattern) {
+function updateDesign(design) {
   // Clear existing measurements
   measurementsList.innerHTML = '';
 
@@ -30,7 +30,7 @@ function updatePattern(pattern) {
     input.type = "number";
     input.id = measurement.id;
     input.value = `${measurement.value}`;
-    input.oninput = updatePattern;
+    input.oninput = updateDesign;
     measurementsList.appendChild(label);
     measurementsList.appendChild(input);
   });
@@ -43,54 +43,17 @@ function updatePattern(pattern) {
     stepsList.appendChild(li);
   });
 
-  // Display pattern info
-  title.textContent = pattern.title;
-  designer.textContent = pattern.designer;
-  source.textContent = pattern.source.label;
-  source.href = pattern.source.url;
+  // Display design info
+  title.textContent = design.title;
+  designer.textContent = design.designer;
+  source.textContent = design.source.label;
+  source.href = design.source.url;
 
   // Adjust canvas drawing based on these values
   redrawSteps(); // Ensure canvas redraws with updated values
 }
 
-// Display measurements
-  const input = document.createElement('input');
-  const label = document.createElement('label');
-  label.for = measurement.id;
-  label.textContent = measurement.label;
-  input.type = "number";
-  input.id = measurement.id;
-  input.value = `${measurement.value}`;
-  input.oninput = updatePattern;
-  measurementsList.appendChild(label);
-  measurementsList.appendChild(input);
-
-//display steps
-const stepsList = document.getElementById('stepsList');
-steps.forEach((step, index) => {
-  const li = document.createElement('li');
-  li.textContent = `${index + 1}. ${step.description}`;
-  stepsList.appendChild(li);
-});
-
-//display pattern info
-
-const patternInfo = document.getElementById('patternInfo');
-const title = document.createElement('h2');
-const designer = document.createElement('h3');
-const source = document.createElement('a');
-
-title.textContent = pattern.title;
-designer.textContent = pattern.designer;
-source.textContent = pattern.source.label;
-source.href = pattern.source.url;
-
-patternInfo.appendChild(title);
-patternInfo.appendChild(designer);
-patternInfo.appendChild(source);
-
-
-function updatePattern() {
+function updateDesigns() {
   const backLength = parseFloat(document.getElementById('backLength').value);
   const frontLength = parseFloat(document.getElementById('frontLength').value);
   const heightUnderArm = parseFloat(document.getElementById('heightUnderArm').value);
