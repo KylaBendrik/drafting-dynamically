@@ -1,3 +1,4 @@
+$brand-color: #950f6d;
 body {
   display: grid;
   grid-template-columns: 3fr 2fr 2fr;
@@ -52,7 +53,7 @@ body {
   justify-content: space-between;
   align-items: flex-end;
   margin-bottom: 20px;
-  background:    #e3c0d9;
+  background:    $brand-color;
   list-style-type: none;
   padding: 10px;
   gap: 5px;
