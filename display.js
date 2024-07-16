@@ -15,7 +15,7 @@ for (const measurement in measurements) {
   label.textContent = measurement.label;
   input.type = "number";
   input.id = measurement;
-  input.value = `${measurement.value}`;
+  input.value = `measurement.value}`;
   input.oninput = updateDesign;
   measurementsList.appendChild(label);
   measurementsList.appendChild(input);
