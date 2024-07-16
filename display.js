@@ -11,6 +11,8 @@ designs.forEach((design, index) => {
   designSelect.appendChild(option);
 });
 
+//when design is selected, update the display
+
 designSelect.addEventListener('change', () => {
   const selectedDesignIndex = designSelect.value;
   const selectedDesign = designs[selectedDesignIndex];
