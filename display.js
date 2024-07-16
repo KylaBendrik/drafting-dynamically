@@ -1,4 +1,4 @@
-import { measurements, steps, pattern, points } from './drafting.js';
+import { measurements, steps, pattern, points } from 'patterns/keystone_single-breasted-vest.js';
 import {
   formatLength, 
   drawPoint, 
@@ -6,7 +6,7 @@ import {
   drawLine, 
   findIntersectionPoint, 
   definePoint
-} from './drafting_tools.js';
+} from '/drafting_tools.js';
 
 function highlightCurrentStep() {
   const stepsListItems = document.querySelectorAll('#stepsList li');
@@ -95,7 +95,6 @@ function redrawSteps() {
   }
   highlightCurrentStep();
 }
-
 
 // Initial draw
 redrawSteps();
