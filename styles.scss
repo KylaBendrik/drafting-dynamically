@@ -23,14 +23,14 @@ body {
   margin-left: 20px;
   padding-left: 20px;
   list-style-type: none;
-}
 
-#stepsList li {
-  margin-bottom: 10px;
-}
+  li {
+    margin-bottom: 10px;
+  }
 
-#stepsList li.current {
-  font-weight: bold;
+  li.current {
+    font-weight: bold;
+  }
 }
 
 #measurementsList {
@@ -41,7 +41,7 @@ body {
   justify-content: space-between;
   align-items: flex-end;
   margin-bottom: 20px;
-  background:    #d7d7d7;
+  background: #d7d7d7;
   order: 3;
   list-style-type: none;
 }

@@ -1,4 +1,5 @@
 import esbuild from 'esbuild';
+import { sassPlugin } from 'esbuild-sass-plugin'
 
 const args = process.argv.slice(2);
 const watch = args.includes('--watch');
@@ -10,10 +11,11 @@ const loader = {
 
 const plugins = [
   // Add and configure plugins here
+  sassPlugin()
 ];
 
 const options = {
-  entryPoints: ['display.js'],
+  entryPoints: ['display.js', 'styles.scss'],
   bundle: true,
   format: 'esm',
   logLevel: 'info',
