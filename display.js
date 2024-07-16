@@ -50,7 +50,6 @@ function updateListLayout() {
   console.log(doc_measurementsList.offsetWidth < liMaxWidth + listPadding);
   if (doc_measurementsList.offsetWidth < liMaxWidth + listPadding) {
     doc_measurementsList.classList.add('narrow');
-    console.log('narrow');
   } else {
     doc_measurementsList.classList.remove('narrow');
   }
