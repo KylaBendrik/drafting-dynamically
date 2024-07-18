@@ -8,7 +8,8 @@ let status = {
   currentStep: design.steps.length - 1,
   measurements: design.measurements,
   steps: design.steps,
-  points: design.points
+  points: design.points,
+  furthestPoint: {x: 500, y: 500}
 }
 
 let liMaxWidth = 0;
@@ -97,11 +98,33 @@ function redrawStepsFromMeasure(input, inputVal){
 //draw steps and repaint canvas
 function drawSteps(steps) {
   const ctx = canvas.getContext('2d');
+  //let's see the points. 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   for (let i = 0; i <= status.currentStep; i++) {
     steps[i].action(ctx, status.measurements);
   }
+  console.log(status.points);
+  status.furthestPoint = findFurthestPoint(status.points);
+  console.log(status.furthestPoint);
+  if (canvas.width < status.furthestPoint.x || canvas.height < status.furthestPoint.y) {
+    console.log("resizing canvas");
+    resizeCanvas(status.furthestPoint);
+    drawSteps(status.steps);
+  }
   highlightCurrentStep();
+}
+
+function findFurthestPoint(points) {
+  let furthestPoint = status.furthestPoint;
+  for (const point in points) {
+    if (points[point].x > furthestPoint.x) {
+      furthestPoint.x = points[point].x;
+    }
+    if (points[point].y > furthestPoint.y) {
+      furthestPoint.y = points[point].y;
+    }
+  }
+  return furthestPoint;
 }
 
 //status functions
@@ -115,6 +138,10 @@ function resetStatus(design){
 //canvas info
 let canvas = document.getElementById('canvas');
 
+function resizeCanvas(newSize) {
+  canvas.width = newSize.x;
+  canvas.height = newSize.y;
+}
 //step controls
 
 export function previousStep() {
