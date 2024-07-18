@@ -158,6 +158,10 @@ function drawSteps(status) {
       drawSteps(status);
     }
     //drawSteps(status);
+  } else if (isPointLarger({x: canvas.width - status.canvasInfo.margin, y: canvas.height - status.canvasInfo.margin}, status.furthestPoint)){
+    console.log("dS: resizing canvas: status fP smaller than canvas - margin");
+    status = resizeCanvas(status);
+    drawSteps(status);
   } else {
     console.log("dS: not resizing canvas");
   }
