@@ -1,8 +1,15 @@
 import { designs } from './designs/design_list.js';
 
 let design = designs[0];
-let measurements = design.measurements;
-let steps = design.steps;
+// let measurements = design.measurements;
+// let steps = design.steps;
+
+let status = {
+  currentStep: design.steps.length - 1,
+  measurements: design.measurements,
+  steps: design.steps,
+  points: design.points
+}
 
 let liMaxWidth = 0;
 
@@ -12,7 +19,8 @@ let designer = document.getElementById('designDesigner');
 let designSource = document.getElementById('designSource');
 let designSelect = document.getElementById('designSelect');
 
-
+//we need to remake the steps process to use a "status" variable to pass over itself, 
+// so we have updated measurements and points to use
 
 //populate design select
 designs.forEach((design, index) => {
@@ -27,6 +35,8 @@ designSelect.addEventListener('change', () => {
   const selectedDesignIndex = designSelect.value;
   const selectedDesign = designs[selectedDesignIndex];
 
+  design = selectedDesign;
+  resetStatus(selectedDesign);
   //repopulate design info
   inputDesign(selectedDesign);
   //repopulate measurements
@@ -72,14 +82,14 @@ function inputMeasurements(measurements){
 function inputSteps(steps){
   for (const step in steps) {
     const li = document.createElement('li');
-    li.textContent = `${parseInt(step) + 1} ${steps[step].description(measurements)}`;
+    li.textContent = `${parseInt(step) + 1} ${steps[step].description(status.measurements)}`;
     stepsList.appendChild(li);
   }
 }
 
 //redraw steps when measurement is changed
 function redrawStepsFromMeasure(input, inputVal){
-  measurements[input.id].value = inputVal
+  status.measurements[input.id].value = inputVal
   stepsList.innerHTML = '';
   inputSteps(steps);
   drawSteps(steps);
@@ -89,34 +99,41 @@ function drawSteps(steps) {
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   steps.forEach((step) => {
-    step.action(ctx, measurements);
+    step.action(ctx, status.measurements);
   });
   highlightCurrentStep();
 }
+
+//status functions
+function resetStatus(design){
+  status.currentStep = design.steps.length - 1;
+  status.measurements = design.measurements;
+  status.steps = design.steps;
+  status.points = design.points;
+}
+
 //canvas info
 let canvas = document.getElementById('canvas');
 
 //step controls
 
-let currentStep = design.steps.length - 1; // Start at the last step
-
 export function previousStep() {
-  if (currentStep > 0) {
-    currentStep--;
+  if (status.currentStep > 0) {
+    status.currentStep--;
     drawSteps(steps);
   }
 }
 
 export function nextStep() {
-  if (currentStep < steps.length - 1) {
-    currentStep++;
+  if (status.currentStep < steps.length - 1) {
+    status.currentStep++;
     drawSteps(steps);
   }
 }
 function highlightCurrentStep() {
   const stepsListItems = document.querySelectorAll('#stepsList li');
   stepsListItems.forEach((item, index) => {
-    if (index === currentStep) {
+    if (index === status.currentStep) {
       item.classList.add('current');
     } else {
       item.classList.remove('current');
@@ -126,10 +143,11 @@ function highlightCurrentStep() {
 
 //initialize
 inputDesign(design);
-inputMeasurements(measurements);
-inputSteps(steps);
-drawSteps(steps);
+inputMeasurements(status.measurements);
+inputSteps(status.steps);
+drawSteps(status.steps);
 
+//VISUAL DESIGN
 //measurements list layout
 function updateListLayout() {
   const doc_measurementsList = document.querySelector('#measurementsList');
