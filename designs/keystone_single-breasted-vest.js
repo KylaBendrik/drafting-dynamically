@@ -98,14 +98,14 @@ const steps = [
           return status;
       }
   },
-  // {
-  //     description: (_status) => {return 'From points A and B, draw lines across'},
-  //     action: (ctx, status) => {
-  //         drawGuide(ctx, points['A'], { x: margin, y: points['A'].y });
-  //         drawGuide(ctx, points['B'], { x: margin, y: points['B'].y });
-  //         return status;
-  //     }
-  // },
+  {
+      description: (_status) => {return 'From points A and B, draw lines across'},
+      action: (ctx, status) => {
+          drawGuide(ctx, status.points['A'], { x: status.canvasInfo.margin, y: status.points['A'].y });
+          drawGuide(ctx, status.points['B'], { x: status.canvasInfo.margin, y: status.points['B'].y });
+          return status;
+      }
+  },
   // {
   //     description: (status) => {return `B to D is 1/12 breast ${formatMeasureDiv(status.measurements.breast, 12, "(")}`},
   //     action: (ctx, status) => {
