@@ -122,16 +122,15 @@ export function definePoint(status, startPoint, direction, distanceInInches) {
   return { x: newX, y: newY };
 }
 
-export function initPoints(pointsList) {
-  console.log('initPoints')
-  console.log(pointsList);
+export function initPoints(status, pointsList) {
   //returns points object
   let points = {};
   for (let point of pointsList) {
     points[point] = { x: 0, y: 0 };
   }
-  console.log(points)
-  return points;
+  console.log("initPoints: ", points)
+  status.points = points;
+  return status;
 }
 
 export default { 

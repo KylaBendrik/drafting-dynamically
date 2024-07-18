@@ -4,6 +4,9 @@ import { designs } from './designs/design_list.js';
 // export const pixelsPerInch = 32;
 
 let design = designs[0];
+const defaultCanvasSize = { x: 500, y: 500 };
+const defaultPixelsPerInch = 32;
+const defaultCanvasMargin = defaultPixelsPerInch / 2;
 // let measurements = design.measurements;
 // let steps = design.steps;
 
@@ -12,13 +15,18 @@ let status = {
   measurements: design.measurements,
   steps: design.steps,
   points: {},
-  furthestPoint: {x: 500, y: 500},
+  furthestPoint: {x: defaultCanvasSize.x - defaultCanvasMargin, y: defaultCanvasSize.x - defaultCanvasMargin},
   canvasInfo: {
-    size: {x: 500, y: 500},
-    margin: 30,
-    pixelsPerInch: 32
+    size: defaultCanvasSize,
+    margin: defaultCanvasMargin,
+    pixelsPerInch: defaultPixelsPerInch
   }
 }
+
+//when is canvas size used vs furthest point?
+//canvas size includes margin, furthest point does not. 
+//canvas size must be at least as large as furthest point + margin
+
 
 let liMaxWidth = 0;
 
@@ -105,37 +113,39 @@ function redrawStepsFromMeasure(input, inputVal){
 }
 //draw steps and repaint canvas
 function drawSteps(status) {
-  console.log('drawSteps');
-  console.log("status: ", status)
+  
+  let canvas = document.getElementById('canvas');
   const ctx = canvas.getContext('2d');
   //let's see the points. 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   for (let i = 0; i <= status.currentStep; i++) {
     status = status.steps[i].action(ctx, status);
   }
-  status.furthestPoint = findFurthestPoint(status.points);
-  console.log(status.furthestPoint);
-  if (canvas.width < status.furthestPoint.x || canvas.height < status.furthestPoint.y) {
+  status = findFurthestPoint(status);
+  console.log(`furthest point x (${status.furthestPoint.x}) > than canvas width (${canvas.width})? `, status.furthestPoint.x > canvas.width);
+  console.log(`furthest point y (${status.furthestPoint.y}) > than canvas height (${canvas.height})? `, status.furthestPoint.y > canvas.height);
+  console.log(`canvas: `, canvas)
+  if (status.furthestPoint.x > canvas.width || status.furthestPoint.y > canvas.height) {
     console.log("resizing canvas");
-    resizeCanvas(status.furthestPoint);
-    drawSteps(status.steps);
+    status = resizeCanvas(status);
+    drawSteps(status);
   } else {
     console.log("not resizing canvas");
   }
   highlightCurrentStep();
 }
 
-function findFurthestPoint(points) {
-  let furthestPoint = status.furthestPoint;
+function findFurthestPoint(status) {
+  let points = status.points;
   for (const point in points) {
-    if (points[point].x > furthestPoint.x) {
-      furthestPoint.x = points[point].x;
+    if (points[point].x > status.furthestPoint.x) {
+      status.furthestPoint.x = points[point].x;
     }
-    if (points[point].y > furthestPoint.y) {
-      furthestPoint.y = points[point].y;
+    if (points[point].y > status.furthestPoint.y) {
+      status.furthestPoint.y = points[point].y;
     }
   }
-  return furthestPoint;
+  return status;
 }
 
 //status functions
@@ -147,11 +157,15 @@ function resetStatus(design){
 }
 
 //canvas info
-let canvas = document.getElementById('canvas');
-
-function resizeCanvas(newSize) {
+function resizeCanvas(status) {
+  const newSize = {x: status.furthestPoint.x + status.canvasInfo.margin, y: status.furthestPoint.y + status.canvasInfo.margin};
+  let canvas = document.getElementById('canvas');
+  console.log(`canvas: `, canvas)
   canvas.width = newSize.x;
   canvas.height = newSize.y;
+  status.canvasInfo.size = newSize;
+  console.log("newsize: ", status.canvasInfo.size);
+  return status;
 }
 //step controls
 
