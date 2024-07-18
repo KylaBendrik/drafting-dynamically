@@ -91,16 +91,16 @@ function inputSteps(steps){
 function redrawStepsFromMeasure(input, inputVal){
   status.measurements[input.id].value = inputVal
   stepsList.innerHTML = '';
-  inputSteps(steps);
-  drawSteps(steps);
+  inputSteps(status.steps);
+  drawSteps(status.steps);
 }
 //draw steps and repaint canvas
 function drawSteps(steps) {
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  steps.forEach((step) => {
-    step.action(ctx, status.measurements);
-  });
+  for (let i = 0; i <= status.currentStep; i++) {
+    steps[i].action(ctx, status.measurements);
+  }
   highlightCurrentStep();
 }
 
@@ -118,16 +118,17 @@ let canvas = document.getElementById('canvas');
 //step controls
 
 export function previousStep() {
+  console.log('previous step');
   if (status.currentStep > 0) {
     status.currentStep--;
-    drawSteps(steps);
+    drawSteps(status.steps);
   }
 }
 
 export function nextStep() {
-  if (status.currentStep < steps.length - 1) {
+  if (status.currentStep < status.steps.length - 1) {
     status.currentStep++;
-    drawSteps(steps);
+    drawSteps(status.steps);
   }
 }
 function highlightCurrentStep() {
@@ -147,6 +148,11 @@ inputMeasurements(status.measurements);
 inputSteps(status.steps);
 drawSteps(status.steps);
 
+//step controls
+let previousStepButton = document.getElementById('previousStep');
+let nextStepButton = document.getElementById('nextStep');
+previousStepButton.onclick = function() {previousStep()};
+nextStepButton.onclick =  function() {nextStep()};
 //VISUAL DESIGN
 //measurements list layout
 function updateListLayout() {
