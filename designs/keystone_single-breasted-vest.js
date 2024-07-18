@@ -88,16 +88,16 @@ const steps = [
           return status;
       }
   },
-  // {
-  //     description: (status) => {return `From point B, go up the height under arm ${formatMeasure(status.measurements.heightUnderArm)} to define point A`},
-  //     action: (ctx, status) => {
-  //         const heightUnderArm = parseFloat(status.measurements.heightUnderArm.value);
-  //         const pointB = points['B'];
-  //         points['A'] = definePoint(status, pointB, { x: 0, y: -1 }, heightUnderArm);
-  //         drawPoint(ctx, 'A', points['A']);
-  //         return status;
-  //     }
-  // },
+  {
+      description: (status) => {return `From point B, go up the height under arm ${formatMeasure(status.measurements.heightUnderArm)} to define point A`},
+      action: (ctx, status) => {
+          const heightUnderArm = parseFloat(status.measurements.heightUnderArm.value);
+          const pointB = status.points['B'];
+          status.points['A'] = definePoint(status, pointB, { x: 0, y: -1 }, heightUnderArm);
+          drawPoint(ctx, 'A', status.points['A']);
+          return status;
+      }
+  },
   // {
   //     description: (_status) => {return 'From points A and B, draw lines across'},
   //     action: (ctx, status) => {
