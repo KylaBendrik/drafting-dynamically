@@ -7,15 +7,17 @@ let design = designs[0];
 const defaultCanvasSize = { x: 500, y: 500 };
 const defaultPixelsPerInch = 32;
 const defaultCanvasMargin = defaultPixelsPerInch / 2;
-// let measurements = design.measurements;
-// let steps = design.steps;
+
+function defaultFurthestPoint() {
+  return {x: defaultCanvasSize.x - defaultCanvasMargin, y: defaultCanvasSize.y - defaultCanvasMargin};
+}
 
 let status = {
   currentStep: design.steps.length - 1,
   measurements: design.measurements,
   steps: design.steps,
   points: {},
-  furthestPoint: {x: defaultCanvasSize.x - defaultCanvasMargin, y: defaultCanvasSize.x - defaultCanvasMargin},
+  furthestPoint: defaultFurthestPoint(),
   canvasInfo: {
     size: defaultCanvasSize,
     margin: defaultCanvasMargin,
@@ -121,30 +123,69 @@ function drawSteps(status) {
   for (let i = 0; i <= status.currentStep; i++) {
     status = status.steps[i].action(ctx, status);
   }
+  console.log("drawSteps status: ", status);
+
   status = findFurthestPoint(status);
-  console.log(`furthest point x (${status.furthestPoint.x}) > than canvas width (${canvas.width})? `, status.furthestPoint.x > canvas.width);
-  console.log(`furthest point y (${status.furthestPoint.y}) > than canvas height (${canvas.height})? `, status.furthestPoint.y > canvas.height);
-  console.log(`canvas: `, canvas)
-  if (status.furthestPoint.x > canvas.width || status.furthestPoint.y > canvas.height) {
-    console.log("resizing canvas");
+  let defaultFP = defaultFurthestPoint()
+
+  console.log(`dS: status fP ${printPoint(status.furthestPoint)} > canvas size? ${printPoint({x: canvas.width, y: canvas.height})}? `, isPointLarger(status.furthestPoint, {x: canvas.width, y: canvas.height}));
+  console.log(`dS: status fP ${printPoint(status.furthestPoint)} < default furthest point ${printPoint(defaultFP)}? `, isPointLarger(defaultFP, status.furthestPoint));
+  console.log(`dS: status canvas size == actual canvas size? ${printPoint(status.canvasInfo.size)} == ${printPoint({x: canvas.width, y: canvas.height})}? `, arePointsEqual(status.canvasInfo.size, {x: canvas.width, y: canvas.height}));
+  console.log(`dS: status fP ${printPoint(status.furthestPoint)} < canvas size - margin ${printPoint(pointSubMargin({x: canvas.width, y: canvas.height}, status.canvasInfo.margin))}?`, isPointLarger({x: canvas.width - status.canvasInfo.margin, y: canvas.height - status.canvasInfo.margin}, status.furthestPoint));
+  console.log(`dS: canvas: `, canvas)
+  if (isPointLarger(status.furthestPoint, {x: canvas.width, y: canvas.height})) {
+    console.log("dS: resizing canvas: status fP larger than canvas");
     status = resizeCanvas(status);
     drawSteps(status);
+  } else if (status.furthestPoint.x < defaultFP.x || status.furthestPoint.y < defaultFP.y ){
+    console.log("dS: resizing canvas: status FP smaller than default FP");
+    console.log(status)
+    //if the furthest point is less than the default furthest point, resize the canvas to the default size on that axis
+    if (status.furthestPoint.x < defaultFP.x) {
+      console.log(`dS: resizing canvas x to ${defaultCanvasSize.x}`);
+      status.canvasInfo.size.x = defaultCanvasSize.x;
+      console.log(`dS: status canvas size x set to default: ${printPoint(status.canvasInfo.size)}`);
+    }
+    if (status.furthestPoint.y < defaultFP.y) {
+      console.log(`dS: resizing canvas y to ${defaultCanvasSize.y}`);
+      status.canvasInfo.size.y = defaultCanvasSize.y;
+      console.log(`dS: status canvas size y set to default: ${printPoint(status.canvasInfo.size)}`);
+    }
+    //status.furthestPoint = defaultFP;
+    //status = resizeCanvas(status);
+    if (!arePointsEqual(status.canvasInfo.size, {x: canvas.width, y: canvas.height})) {
+      status = resizeCanvas(status);
+      drawSteps(status);
+    }
+    //drawSteps(status);
   } else {
-    console.log("not resizing canvas");
+    console.log("dS: not resizing canvas");
   }
   highlightCurrentStep();
 }
 
 function findFurthestPoint(status) {
+  console.log("findFP: points: ", status.points);
+  let defaultFP = defaultFurthestPoint();
   let points = status.points;
+  let currentFurthestPoint = {x: 0, y: 0};
   for (const point in points) {
-    if (points[point].x > status.furthestPoint.x) {
-      status.furthestPoint.x = points[point].x;
+    if (points[point].x > currentFurthestPoint.x) {
+      currentFurthestPoint.x = points[point].x;
+      console.log(`findFP: currentFurthestPoint x updated: ${printPoint(currentFurthestPoint)}`);
     }
-    if (points[point].y > status.furthestPoint.y) {
-      status.furthestPoint.y = points[point].y;
+    if (points[point].y > currentFurthestPoint.y) {
+      currentFurthestPoint.y = points[point].y;
+      console.log(`findFP: currentFurthestPoint y updated: ${printPoint(currentFurthestPoint)}`);
     }
   }
+  
+  console.log(`findFP: current furthest point: ${printPoint(currentFurthestPoint)}` );
+  console.log(`findFP: default furthest point:  ${printPoint(defaultFP)}`);
+  console.log(`findFP: status furthest point: ${printPoint(status.furthestPoint)}`);
+  console.log(`findFP: combinedLargestPoint: ${printPoint(returnCombinedLargestPoint(defaultFP, currentFurthestPoint))}`);
+  status.furthestPoint = returnCombinedLargestPoint(defaultFP, currentFurthestPoint);
+  console.log(`findFP: status furthest point after update: ${printPoint(status.furthestPoint)}`);
   return status;
 }
 
@@ -156,15 +197,62 @@ function resetStatus(design){
   status.points = design.points;
 }
 
+function printPoint(point){
+  return `(${point.x}, ${point.y})`;
+}
+function returnLargestPoint(pointa, pointb) {
+  if (isPointLarger(pointa, pointb)) {
+    console.log(`returnLargestPoint: A (${printPoint(pointa)} > ${printPoint(pointb)})`);
+    return pointa;
+  } else {
+    console.log(`returnLargestPoint: B (${printPoint(pointa)} < ${printPoint(pointb)})`);
+    return pointb;
+  }
+}
+function returnCombinedLargestPoint(pointa, pointb) {
+  let newPoint = {x: 0, y: 0};
+  newPoint.x = Math.max(pointa.x, pointb.x);
+  newPoint.y = Math.max(pointa.y, pointb.y);
+
+  return newPoint;
+}
+function isPointLarger(pointa, pointb) {
+  if (pointa.x > pointb.x) {
+    console.log(` - (x is larger: ${pointa.x} > ${pointb.x})`);
+    return true;
+  } else if (pointa.y > pointb.y){
+    console.log(` - (y is larger: ${pointa.y} > ${pointb.y})`);
+    return true;
+  } else {  
+    return false;
+  }
+}
+function arePointsEqual(pointa, pointb) {
+  if (pointa.x === pointb.x && pointa.y === pointb.y) {
+    return true; 
+  } else { 
+    return false;
+  }
+}
+
+
+function pointAddMargin(point, margin) {
+  return {x: point.x + margin, y: point.y + margin};
+}
+function pointSubMargin(point, margin) {
+  return {x: point.x - margin, y: point.y - margin};
+}
 //canvas info
 function resizeCanvas(status) {
-  const newSize = {x: status.furthestPoint.x + status.canvasInfo.margin, y: status.furthestPoint.y + status.canvasInfo.margin};
   let canvas = document.getElementById('canvas');
-  console.log(`canvas: `, canvas)
+  const newSize = returnCombinedLargestPoint({x: status.furthestPoint.x + status.canvasInfo.margin, y: status.furthestPoint.y + status.canvasInfo.margin}, defaultCanvasSize);
+  
+  //should always be bigger than or equal to default canvas size
+  console.log(`resizeCanvas: status canvas size == actual canvas size? ${printPoint(status.canvasInfo.size)} == ${printPoint({x: canvas.width, y: canvas.height})}? `, arePointsEqual(status.canvasInfo.size, {x: canvas.width, y: canvas.height}));
+  console.log(`resizeCanvas: new size: ${printPoint(newSize)}`);
   canvas.width = newSize.x;
   canvas.height = newSize.y;
   status.canvasInfo.size = newSize;
-  console.log("newsize: ", status.canvasInfo.size);
   return status;
 }
 //step controls

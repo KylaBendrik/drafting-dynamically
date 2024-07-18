@@ -53,7 +53,7 @@ const steps = [
           //in the first step, always initialize the points
           status = initPoints(status, pointLabels);
           const margin = status.canvasInfo.margin;
-          console.log('step 0 status: ', status);
+          // console.log('step 0 status: ', status);
           status.points['O'] = { x: status.furthestPoint.x, y: margin };
           drawPoint(ctx, 'O', status.points['O']);
           return status;
@@ -62,7 +62,7 @@ const steps = [
   {
       description: (_status) => {return 'Create lines down and to the left from O'},
       action: (ctx, status) => {
-          console.log('step 1 status: ', status);
+          // console.log('step 1 status: ', status);
           const margin = status.canvasInfo.margin;
           drawGuide(ctx, status.points['O'], { x: status.canvasInfo.size.x - margin, y: status.canvasInfo.size.y - margin });
           drawGuide(ctx, status.points['O'], { x: margin, y: margin });
@@ -84,7 +84,7 @@ const steps = [
           const point1 = status.points['1'];
           status.points['B'] = definePoint(status, point1, { x: 0, y: 1 }, backLength);
           drawPoint(ctx, 'B', status.points['B']);
-          console.log('step 3 status: ', status);
+          // console.log('step 3 status: ', status);
           return status;
       }
   },
