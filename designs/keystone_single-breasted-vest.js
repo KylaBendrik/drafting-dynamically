@@ -106,16 +106,16 @@ const steps = [
           return status;
       }
   },
-  // {
-  //     description: (status) => {return `B to D is 1/12 breast ${formatMeasureDiv(status.measurements.breast, 12, "(")}`},
-  //     action: (ctx, status) => {
-  //         const breast = parseFloat(status.measurements.breast.value);
-  //         const pointB = points['B'];
-  //         points['D'] = definePoint(status, pointB, { x: -1, y: 0 }, breast / 12);
-  //         drawPoint(ctx, 'D', points['D']);
-  //         return status;
-  //     }
-  // },
+  {
+      description: (status) => {return `B to D is 1/12 breast ${formatMeasureDiv(status.measurements.breast, 12, "(")}`},
+      action: (ctx, status) => {
+          const breast = parseFloat(status.measurements.breast.value);
+          const pointB = status.points['B'];
+          status.points['D'] = definePoint(status, pointB, { x: -1, y: 0 }, breast / 12);
+          drawPoint(ctx, 'D', status.points['D']);
+          return status;
+      }
+  },
   // {
   //     description: (_status) => {return 'Draw back line from 1 to D'},
   //     action: (ctx, status) => {
