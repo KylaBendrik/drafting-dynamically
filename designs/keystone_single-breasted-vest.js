@@ -165,14 +165,20 @@ const steps = [
     description: (_status) => {return 'Where the line down from K crosses the line left from B is point J'},
     action: (ctx, status) => {
       const pointK = status.points['K'];
-      const pointB = status.points['B'];\
+      const pointB = status.points['B'];
       status.points['J'] = findIntersectionPointofGuides(status, pointK, dir("d"), pointB, dir("l"));
       drawPoint(ctx, 'J', status.points['J']);
       return status;
     }
   },
   {
-    
+    description: (status) => {return `Point 2 is 3/16 of blade measurement ${formatMeasureDiv(status.measurements.blade, 3/16, "(")} left of O`},
+    action: (ctx, status) => {
+      const blade = parseFloat(status.measurements.blade.value);
+      const pointO = status.points['O'];
+      drawPoint(ctx, '2', status.points['2'] = definePoint(status, pointO, { x: -1, y: 0 }, blade * 3/16));
+      return status;
+    }
   }
 ];
 
