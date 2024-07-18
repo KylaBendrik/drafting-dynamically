@@ -67,12 +67,14 @@ const steps = [
           return status;
       }
   },
-  // {
-  //     description: (_status) => {return 'Point 1 is 3/4 inch down from O'},
-  //     action: (ctx, _status) => {
-  //         drawPoint(ctx, '1', points['1']);
-  //     }
-  // },
+  {
+      description: (_status) => {return 'Point 1 is 3/4 inch down from O'},
+      action: (ctx, status) => {
+          status.points['1'] = definePoint(status, status.points['O'], { x: 0, y: 1 }, 3/4);
+          drawPoint(ctx, '1', status.points['1']);
+          return status;
+      }
+  },
   // {
   //     description: (_status) => {return 'From point 1, go down the back length to define point B'},
   //     action: (ctx, status) => {
@@ -80,6 +82,7 @@ const steps = [
   //         const point1 = points['1'];
   //         points['B'] = definePoint(status, point1, { x: 0, y: 1 }, backLength);
   //         drawPoint(ctx, 'B', points['B']);
+  //         return status;
   //     }
   // },
   // {
@@ -89,13 +92,15 @@ const steps = [
   //         const pointB = points['B'];
   //         points['A'] = definePoint(status, pointB, { x: 0, y: -1 }, heightUnderArm);
   //         drawPoint(ctx, 'A', points['A']);
+  //         return status;
   //     }
   // },
   // {
   //     description: (_status) => {return 'From points A and B, draw lines across'},
-  //     action: (ctx, _status) => {
+  //     action: (ctx, status) => {
   //         drawGuide(ctx, points['A'], { x: margin, y: points['A'].y });
   //         drawGuide(ctx, points['B'], { x: margin, y: points['B'].y });
+  //         return status;
   //     }
   // },
   // {
@@ -105,19 +110,22 @@ const steps = [
   //         const pointB = points['B'];
   //         points['D'] = definePoint(status, pointB, { x: -1, y: 0 }, breast / 12);
   //         drawPoint(ctx, 'D', points['D']);
+  //         return status;
   //     }
   // },
   // {
   //     description: (_status) => {return 'Draw back line from 1 to D'},
-  //     action: (ctx, _status) => {
+  //     action: (ctx, status) => {
   //         drawLine(ctx, points['1'], points['D']);
+  //         return status;
   //     }
   // },
   // {
   //     description: (_status) => {return 'Point A1 is where the line 1-D crosses line extending left from A'},
-  //     action: (ctx, _status) => {
+  //     action: (ctx, status) => {
   //         points['A1'] = findIntersectionPoint(points['1'], points['D'], points['A'], { x: margin, y: points['A'].y });
   //         drawPoint(ctx, 'A1', points['A1']);
+  //         return status;
   //     }
   // },
 ];

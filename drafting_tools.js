@@ -114,7 +114,7 @@ export function findIntersectionPoint(line1a, line1b, line2a, line2b) {
 }
 
 export function definePoint(status, startPoint, direction, distanceInInches) {
-  const pixelsPerInch = status.canvasinfo.pixelsPerInch;
+  const pixelsPerInch = status.canvasInfo.pixelsPerInch;
   
   const distanceInPixels = distanceInInches * pixelsPerInch;
   const newX = startPoint.x + direction.x * distanceInPixels;
