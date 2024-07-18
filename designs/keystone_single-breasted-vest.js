@@ -10,13 +10,17 @@ import {
   findIntersectionPoint, 
   definePoint,
   initPoints,
+  findIntersectionPointofGuides,
+  dir,
+  printPoint,
+  printLine
 } from '../drafting_tools.js';
 
 const design_info = {
   title: 'Keystone - Single Breasted Vest',
   source: {
     link: 'https://archive.org/details/keystonejacketdr00heck/page/66/mode/2up',
-    label: 'The Keystone Jacket and Dress Cutter'
+    label: 'The Keystone Jacket and Dress Cutter (pg 66)'
   },
   designer: 'Charles Hecklinger'
 }
@@ -43,7 +47,7 @@ let measurements = {
 // };
 
 const pointLabels = [
-  'O', '1', 'A', 'B', 'D'
+  'O', '1', 'A', 'B', 'D', 'A1', 'K', 'L', 'J',
 ]
 
 const steps = [
@@ -131,6 +135,45 @@ const steps = [
           return status;
       }
   },
+  {
+    description: (status) => {return `Point K is the blade measure ${formatMeasure(status.measurements.blade, "(")} left from A1`},
+    action: (ctx, status) => {
+        const blade = parseFloat(status.measurements.blade.value);
+        const pointA1 = status.points['A1'];
+        drawPoint(ctx, 'K', status.points['K'] = definePoint(status, pointA1, { x: -1, y: 0 }, blade));
+        return status;
+    }
+  },
+  {
+    description: (status) => {return `Point L is 3/8 of the blade measure ${formatMeasureMul(status.measurements.blade, 3/8, "(")} right of K`},
+    action: (ctx, status) => {
+        const blade = parseFloat(status.measurements.blade.value);
+        const pointK = status.points['K'];
+        drawPoint(ctx, 'L', status.points['L'] = definePoint(status, pointK, { x: 1, y: 0 }, blade * 3/8));
+        return status;
+    }
+  },
+  {
+    description: (_status) => {return `Draw guide lines up and down from both K and L`},
+    action: (ctx, status) => {
+      drawGuide(ctx, { x: status.points['K'].x, y: status.canvasInfo.size.y - status.canvasInfo.margin }, { x: status.points['K'].x, y: status.canvasInfo.margin });
+      drawGuide(ctx, { x: status.points['L'].x, y: status.canvasInfo.size.y - status.canvasInfo.margin }, { x: status.points['L'].x, y: status.canvasInfo.margin });
+      return status;
+    }
+  },
+  {
+    description: (_status) => {return 'Where the line down from K crosses the line left from B is point J'},
+    action: (ctx, status) => {
+      const pointK = status.points['K'];
+      const pointB = status.points['B'];\
+      status.points['J'] = findIntersectionPointofGuides(status, pointK, dir("d"), pointB, dir("l"));
+      drawPoint(ctx, 'J', status.points['J']);
+      return status;
+    }
+  },
+  {
+    
+  }
 ];
 
 export default { design_info, measurements, steps };

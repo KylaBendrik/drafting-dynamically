@@ -71,6 +71,7 @@ function inputDesign(design){
   designer.textContent = design.design_info.designer;
   designSource.textContent = design.design_info.source.label;
   designSource.href = design.design_info.source.link;
+  designSource.target = "_blank";
 }
 
 function inputMeasurements(measurements){

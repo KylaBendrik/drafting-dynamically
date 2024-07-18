@@ -9,7 +9,9 @@ import {
   drawGuide,
   drawLine,
   findIntersectionPoint,
-  definePoint
+  definePoint,
+  returnGuide,
+  dir
 } from '../drafting_tools.js';
 
 test('formatNum returns a string of a number with no parentheses', t => {
@@ -51,6 +53,37 @@ test('formatMeasure returns a string of a measurement, even if the value is a st
   assert.strictEqual(formatMeasure(measure), '7 1/2 in.');
   assert.strictEqual(formatMeasure(measure, "("), '(7 1/2 in.)');
 })
+test('dir returns a point', t => {
+  assert.deepStrictEqual(dir('u'), {x: 0, y: 1});
+  assert.deepStrictEqual(dir('d'), {x: 0, y: -1});
+  assert.deepStrictEqual(dir('l'), {x: -1, y: 0});
+  assert.deepStrictEqual(dir('r'), {x: 1, y: 0});
+  assert.deepStrictEqual(dir({x: 0, y: 1}), {x: 0, y: 1});
+}
+)
+test('returnGuide returns a guide object', t => {
+  const status = { 
+    points: { 
+      A: { x: 50, y: 50 }
+    }, 
+    canvasInfo: { margin: 10, size: {x: 100, y: 100} } };
+  const guide = returnGuide(status, status.points['A'], 'd');
+  const goal = {
+    pointa: {x: 50, y: 50},
+    pointb: {x: 50, y: 90}
+  }
+  assert.deepStrictEqual(guide, goal);
+}
+)
 
+test('findIntersectionPoint returns a point', t => {
+  const pointA = { x: 116, y: 280 };
+  const pointB = { x: 116, y: 484 };
+  const pointC = { x: 484, y: 520 };
+  const pointD = { x: 16, y: 520 };
+  const intersection = findIntersectionPoint(pointA, pointB, pointC, pointD);
+  const goal = { x: 50, y: 70 };
+  assert.deepStrictEqual(intersection, goal);
+})
 
 
