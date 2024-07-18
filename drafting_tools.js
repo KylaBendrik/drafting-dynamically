@@ -1,6 +1,3 @@
-export const margin = 30;
-export const pixelsPerInch = 32;
-
 export function formatFraction(num) {
   const inches = Math.floor(num);
   const fraction = num - inches;
@@ -116,11 +113,25 @@ export function findIntersectionPoint(line1a, line1b, line2a, line2b) {
   return { x: intersectX, y: intersectY };
 }
 
-export function definePoint(ctx, label, startPoint, direction, distanceInInches) {
+export function definePoint(status, startPoint, direction, distanceInInches) {
+  const pixelsPerInch = status.canvasinfo.pixelsPerInch;
+  
   const distanceInPixels = distanceInInches * pixelsPerInch;
   const newX = startPoint.x + direction.x * distanceInPixels;
   const newY = startPoint.y + direction.y * distanceInPixels;
   return { x: newX, y: newY };
+}
+
+export function initPoints(pointsList) {
+  console.log('initPoints')
+  console.log(pointsList);
+  //returns points object
+  let points = {};
+  for (let point of pointsList) {
+    points[point] = { x: 0, y: 0 };
+  }
+  console.log(points)
+  return points;
 }
 
 export default { 

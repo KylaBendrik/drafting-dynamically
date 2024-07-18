@@ -9,8 +9,7 @@ import {
   drawLine, 
   findIntersectionPoint, 
   definePoint,
-  margin,
-  pixelsPerInch,
+  initPoints,
 } from '../drafting_tools.js';
 
 const design_info = {
@@ -34,82 +33,93 @@ let measurements = {
   neckline: {label: "Neckline", value: 10}
 };
 
-let points = {
-  'O': { x: canvas.width - margin, y: margin },
-  '1': { x: canvas.width - margin, y: margin + pixelsPerInch },
-  'A': { x: 0, y: 0 },
-  'B': { x: 0, y: 0 },
-  'D': { x: 0, y: 0 },
-  // Add more points as needed for your pattern drafting steps
-};
+// let points = {
+//   'O': { x: 0, y: 0 },
+//   '1': { x: 0, y: 0 },
+//   'A': { x: 0, y: 0 },
+//   'B': { x: 0, y: 0 },
+//   'D': { x: 0, y: 0 },
+//   // Add more points as needed for your pattern drafting steps
+// };
+
+const pointLabels = [
+  'O', '1', 'A', 'B', 'D'
+]
 
 const steps = [
   {
-      description: (_userMeasurements) => {return 'Set point O in upper right of canvas'},
-      action: (ctx, _userMeasurements) => {
-          drawPoint(ctx, 'O', points['O']);
+      description: (_status) => {return 'Set point O in upper right of canvas'},
+      action: (ctx, status) => {
+          //in the first step, always initialize the points
+          status.points = initPoints(pointLabels);
+          const margin = status.canvasInfo.margin;
+          status.points['O'] = { x: status.canvasInfo.size.x - margin, y: margin };
+          drawPoint(ctx, 'O', status.points['O']);
+          return status;
       }
   },
   {
-      description: (_userMeasurements) => {return 'Create lines down and to the left from O'},
-      action: (ctx, _userMeasurements) => {
-          drawGuide(ctx, points['O'], { x: canvas.width - margin, y: canvas.height - margin });
-          drawGuide(ctx, points['O'], { x: margin, y: margin });
+      description: (_status) => {return 'Create lines down and to the left from O'},
+      action: (ctx, status) => {
+          const margin = status.canvasInfo.margin;
+          drawGuide(ctx, status.points['O'], { x: status.canvasInfo.size.x - margin, y: status.canvasInfo.size.y - margin });
+          drawGuide(ctx, status.points['O'], { x: margin, y: margin });
+          return status;
       }
   },
-  {
-      description: (_userMeasurements) => {return 'Point 1 is 3/4 inch down from O'},
-      action: (ctx, _userMeasurements) => {
-          drawPoint(ctx, '1', points['1']);
-      }
-  },
-  {
-      description: (_userMeasurements) => {return 'From point 1, go down the back length to define point B'},
-      action: (ctx, userMeasurements) => {
-          const backLength = parseFloat(userMeasurements.backLength.value);
-          const point1 = points['1'];
-          points['B'] = definePoint(ctx, 'B', point1, { x: 0, y: 1 }, backLength);
-          drawPoint(ctx, 'B', points['B']);
-      }
-  },
-  {
-      description: (userMeasurements) => {return `From point B, go up the height under arm ${formatMeasure(userMeasurements.heightUnderArm)} to define point A`},
-      action: (ctx, userMeasurements) => {
-          const heightUnderArm = parseFloat(userMeasurements.heightUnderArm.value);
-          const pointB = points['B'];
-          points['A'] = definePoint(ctx, 'A', pointB, { x: 0, y: -1 }, heightUnderArm);
-          drawPoint(ctx, 'A', points['A']);
-      }
-  },
-  {
-      description: (_userMeasurements) => {return 'From points A and B, draw lines across'},
-      action: (ctx, _userMeasurements) => {
-          drawGuide(ctx, points['A'], { x: margin, y: points['A'].y });
-          drawGuide(ctx, points['B'], { x: margin, y: points['B'].y });
-      }
-  },
-  {
-      description: (userMeasurements) => {return `B to D is 1/12 breast ${formatMeasureDiv(userMeasurements.breast, 12, "(")}`},
-      action: (ctx, userMeasurements) => {
-          const breast = parseFloat(userMeasurements.breast.value);
-          const pointB = points['B'];
-          points['D'] = definePoint(ctx, 'D', pointB, { x: -1, y: 0 }, breast / 12);
-          drawPoint(ctx, 'D', points['D']);
-      }
-  },
-  {
-      description: (_userMeasurements) => {return 'Draw back line from 1 to D'},
-      action: (ctx, _userMeasurements) => {
-          drawLine(ctx, points['1'], points['D']);
-      }
-  },
-  {
-      description: (_userMeasurements) => {return 'Point A1 is where the line 1-D crosses line extending left from A'},
-      action: (ctx, _userMeasurements) => {
-          points['A1'] = findIntersectionPoint(points['1'], points['D'], points['A'], { x: margin, y: points['A'].y });
-          drawPoint(ctx, 'A1', points['A1']);
-      }
-  },
+  // {
+  //     description: (_status) => {return 'Point 1 is 3/4 inch down from O'},
+  //     action: (ctx, _status) => {
+  //         drawPoint(ctx, '1', points['1']);
+  //     }
+  // },
+  // {
+  //     description: (_status) => {return 'From point 1, go down the back length to define point B'},
+  //     action: (ctx, status) => {
+  //         const backLength = parseFloat(status.measurements.backLength.value);
+  //         const point1 = points['1'];
+  //         points['B'] = definePoint(status, point1, { x: 0, y: 1 }, backLength);
+  //         drawPoint(ctx, 'B', points['B']);
+  //     }
+  // },
+  // {
+  //     description: (status) => {return `From point B, go up the height under arm ${formatMeasure(status.measurements.heightUnderArm)} to define point A`},
+  //     action: (ctx, status) => {
+  //         const heightUnderArm = parseFloat(status.measurements.heightUnderArm.value);
+  //         const pointB = points['B'];
+  //         points['A'] = definePoint(status, pointB, { x: 0, y: -1 }, heightUnderArm);
+  //         drawPoint(ctx, 'A', points['A']);
+  //     }
+  // },
+  // {
+  //     description: (_status) => {return 'From points A and B, draw lines across'},
+  //     action: (ctx, _status) => {
+  //         drawGuide(ctx, points['A'], { x: margin, y: points['A'].y });
+  //         drawGuide(ctx, points['B'], { x: margin, y: points['B'].y });
+  //     }
+  // },
+  // {
+  //     description: (status) => {return `B to D is 1/12 breast ${formatMeasureDiv(status.measurements.breast, 12, "(")}`},
+  //     action: (ctx, status) => {
+  //         const breast = parseFloat(status.measurements.breast.value);
+  //         const pointB = points['B'];
+  //         points['D'] = definePoint(status, pointB, { x: -1, y: 0 }, breast / 12);
+  //         drawPoint(ctx, 'D', points['D']);
+  //     }
+  // },
+  // {
+  //     description: (_status) => {return 'Draw back line from 1 to D'},
+  //     action: (ctx, _status) => {
+  //         drawLine(ctx, points['1'], points['D']);
+  //     }
+  // },
+  // {
+  //     description: (_status) => {return 'Point A1 is where the line 1-D crosses line extending left from A'},
+  //     action: (ctx, _status) => {
+  //         points['A1'] = findIntersectionPoint(points['1'], points['D'], points['A'], { x: margin, y: points['A'].y });
+  //         drawPoint(ctx, 'A1', points['A1']);
+  //     }
+  // },
 ];
 
-export default { design_info, measurements, points, steps };
+export default { design_info, measurements, steps };

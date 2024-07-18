@@ -1,5 +1,8 @@
 import { designs } from './designs/design_list.js';
 
+// export const margin = 30;
+// export const pixelsPerInch = 32;
+
 let design = designs[0];
 // let measurements = design.measurements;
 // let steps = design.steps;
@@ -8,8 +11,13 @@ let status = {
   currentStep: design.steps.length - 1,
   measurements: design.measurements,
   steps: design.steps,
-  points: design.points,
-  furthestPoint: {x: 500, y: 500}
+  points: {},
+  furthestPoint: {x: 500, y: 500},
+  canvasInfo: {
+    size: {x: 500, y: 500},
+    margin: 30,
+    pixelsPerInch: 32
+  }
 }
 
 let liMaxWidth = 0;
@@ -83,7 +91,7 @@ function inputMeasurements(measurements){
 function inputSteps(steps){
   for (const step in steps) {
     const li = document.createElement('li');
-    li.textContent = `${parseInt(step) + 1} ${steps[step].description(status.measurements)}`;
+    li.textContent = `${parseInt(step) + 1} ${steps[step].description(status)}`;
     stepsList.appendChild(li);
   }
 }
@@ -93,23 +101,26 @@ function redrawStepsFromMeasure(input, inputVal){
   status.measurements[input.id].value = inputVal
   stepsList.innerHTML = '';
   inputSteps(status.steps);
-  drawSteps(status.steps);
+  drawSteps(status);
 }
 //draw steps and repaint canvas
-function drawSteps(steps) {
+function drawSteps(status) {
+  console.log('drawSteps');
+  console.log("status: ", status)
   const ctx = canvas.getContext('2d');
   //let's see the points. 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   for (let i = 0; i <= status.currentStep; i++) {
-    steps[i].action(ctx, status.measurements);
+    status = status.steps[i].action(ctx, status);
   }
-  console.log(status.points);
   status.furthestPoint = findFurthestPoint(status.points);
   console.log(status.furthestPoint);
   if (canvas.width < status.furthestPoint.x || canvas.height < status.furthestPoint.y) {
     console.log("resizing canvas");
     resizeCanvas(status.furthestPoint);
     drawSteps(status.steps);
+  } else {
+    console.log("not resizing canvas");
   }
   highlightCurrentStep();
 }
@@ -148,14 +159,14 @@ export function previousStep() {
   console.log('previous step');
   if (status.currentStep > 0) {
     status.currentStep--;
-    drawSteps(status.steps);
+    drawSteps(status);
   }
 }
 
 export function nextStep() {
   if (status.currentStep < status.steps.length - 1) {
     status.currentStep++;
-    drawSteps(status.steps);
+    drawSteps(status);
   }
 }
 function highlightCurrentStep() {
@@ -173,7 +184,7 @@ function highlightCurrentStep() {
 inputDesign(design);
 inputMeasurements(status.measurements);
 inputSteps(status.steps);
-drawSteps(status.steps);
+drawSteps(status);
 
 //step controls
 let previousStepButton = document.getElementById('previousStep');
