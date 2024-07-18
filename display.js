@@ -1,46 +1,136 @@
 import { designs } from './designs/design_list.js';
 
-console.log(designs);
-
 let design = designs[0];
 let measurements = design.measurements;
 let steps = design.steps;
 
-document.getElementById('designDesigner').textContent = design.design_info.designer;
-document.getElementById('designSource').textContent = design.design_info.source.label;
-document.getElementById('designSource').href = design.design_info.source.link;
-let measurementsList = document.getElementById('measurementsList');
 let liMaxWidth = 0;
-//initialized measurements
-for (const measurement in measurements) {
-  const li = document.createElement('li');
-  const input = document.createElement('input');
-  const label = document.createElement('label');
-  label.for = measurement;
-  label.textContent = measurements[measurement].label;
-  input.type = "number";
-  input.id = measurement;
-  input.value = `${measurements[measurement].value}`;
-  input.oninput = updateDesign;
-  li.appendChild(label);
-  li.appendChild(input);
-  measurementsList.appendChild(li);
-  let liWidth = li.offsetWidth;
-  if (liWidth > liMaxWidth) {
-    liMaxWidth = liWidth;
+
+let measurementsList = document.getElementById('measurementsList');
+let stepsList = document.getElementById('stepsList');
+let designer = document.getElementById('designDesigner');
+let designSource = document.getElementById('designSource');
+let designSelect = document.getElementById('designSelect');
+
+
+
+//populate design select
+designs.forEach((design, index) => {
+  const option = document.createElement('option');
+  option.value = index;
+  option.textContent = design.label;
+  designSelect.appendChild(option);
+});
+
+//when design is selected, update the display
+designSelect.addEventListener('change', () => {
+  const selectedDesignIndex = designSelect.value;
+  const selectedDesign = designs[selectedDesignIndex];
+
+  //repopulate design info
+  inputDesign(selectedDesign);
+  //repopulate measurements
+  measurementsList.innerHTML = '';
+  inputMeasurements(selectedDesign.measurements);
+  //repopulate steps
+  stepsList.innerHTML = '';
+  inputSteps(selectedDesign.steps);
+})
+
+//input design info to document
+function inputDesign(design){
+  designer.textContent = design.design_info.designer;
+  designSource.textContent = design.design_info.source.label;
+  designSource.href = design.design_info.source.link;
+}
+
+function inputMeasurements(measurements){
+  for (const measurement in measurements) {
+    const li = document.createElement('li');
+    const input = document.createElement('input');
+    const label = document.createElement('label');
+    label.for = measurement;
+    label.textContent = measurements[measurement].label;
+    input.type = "number";
+    input.id = measurement;
+    input.value = `${measurements[measurement].value}`;
+
+    input.addEventListener('input', function() {
+      redrawStepsFromMeasure(input, input.value);
+    });
+
+    li.appendChild(label);
+    li.appendChild(input);
+    measurementsList.appendChild(li);
+    let liWidth = li.offsetWidth;
+    if (liWidth > liMaxWidth) {
+      liMaxWidth = liWidth;
+    }
   }
 }
 
-//initialize steps
-let stepsList = document.getElementById('stepsList');
-console.log(steps)
-for (const step in steps) {
-  console.log(`${parseInt(step) + 1}. ${steps[step].description(measurements)}`);
-  const li = document.createElement('li');
-  li.textContent = `${parseInt(step) + 1}. ${steps[step].description(measurements)}`;
-  stepsList.appendChild(li);
+function inputSteps(steps){
+  for (const step in steps) {
+    const li = document.createElement('li');
+    li.textContent = `${parseInt(step) + 1} ${steps[step].description(measurements)}`;
+    stepsList.appendChild(li);
+  }
 }
 
+//redraw steps when measurement is changed
+function redrawStepsFromMeasure(input, inputVal){
+  measurements[input.id].value = inputVal
+  stepsList.innerHTML = '';
+  inputSteps(steps);
+  drawSteps(steps);
+}
+//draw steps and repaint canvas
+function drawSteps(steps) {
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  steps.forEach((step) => {
+    step.action(ctx, measurements);
+  });
+  highlightCurrentStep();
+}
+//canvas info
+let canvas = document.getElementById('canvas');
+
+//step controls
+
+let currentStep = design.steps.length - 1; // Start at the last step
+
+export function previousStep() {
+  if (currentStep > 0) {
+    currentStep--;
+    drawSteps(steps);
+  }
+}
+
+export function nextStep() {
+  if (currentStep < steps.length - 1) {
+    currentStep++;
+    drawSteps(steps);
+  }
+}
+function highlightCurrentStep() {
+  const stepsListItems = document.querySelectorAll('#stepsList li');
+  stepsListItems.forEach((item, index) => {
+    if (index === currentStep) {
+      item.classList.add('current');
+    } else {
+      item.classList.remove('current');
+    }
+  });
+}
+
+//initialize
+inputDesign(design);
+inputMeasurements(measurements);
+inputSteps(steps);
+drawSteps(steps);
+
+//measurements list layout
 function updateListLayout() {
   const doc_measurementsList = document.querySelector('#measurementsList');
   const liElements = doc_measurementsList.querySelectorAll('li');
@@ -57,124 +147,11 @@ function updateListLayout() {
     }
   });
   
-  console.log(doc_measurementsList.offsetWidth < liMaxWidth + listPadding);
   if (doc_measurementsList.offsetWidth < liMaxWidth + listPadding) {
     doc_measurementsList.classList.add('narrow');
   } else {
     doc_measurementsList.classList.remove('narrow');
   }
 }
-
 window.addEventListener('resize', updateListLayout);
-
 updateListLayout();
-
-//populate design select
-const designSelect = document.getElementById('designSelect');
-designs.forEach((design, index) => {
-  const option = document.createElement('option');
-  option.value = index;
-  option.textContent = design.label;
-  designSelect.appendChild(option);
-});
-
-//when design is selected, update the display
-
-designSelect.addEventListener('change', () => {
-  const selectedDesignIndex = designSelect.value;
-  const selectedDesign = designs[selectedDesignIndex];
-  updateDesign(selectedDesign);
-});
-
-function updateDesign(design) {
-  // Clear existing measurements
-  measurementsList.innerHTML = '';
-  liMaxWidth = 0;
-
-  // Display measurements
-
-  for (const measurement in measurements) {
-    const input = document.createElement('input');
-    const label = document.createElement('label');
-    label.for = measurement.id;
-    label.textContent = measurement.label;
-    input.type = "number";
-    input.id = measurement.id;
-    input.value = `${measurement.value}`;
-    input.oninput = updateDesign;
-    measurementsList.appendChild(label);
-    measurementsList.appendChild(input);
-    let liWidth = li.offsetWidth;
-    if (liWidth > liMaxWidth) {
-      liMaxWidth = liWidth;
-    }
-  }
-
-  // // Display steps
-  // stepsList.innerHTML = '';
-  // steps.forEach((step, index) => {
-  //   const li = document.createElement('li');
-  //   li.textContent = `${index + 1}. ${step.description(measurements)}`;
-  //   stepsList.appendChild(li);
-  // });
-
-  // Display design info
-  title.textContent = design.title;
-  designer.textContent = design.designer;
-  source.textContent = design.source.label;
-  source.href = design.source.url;
-
-  // Adjust canvas drawing based on these values
-  redrawSteps(); // Ensure canvas redraws with updated values
-}
-
-let canvas = document.getElementById('canvas');
-
-let currentStep = design.steps.length - 1; // Start at the last step
-
-export function previousStep() {
-  if (currentStep > 0) {
-    currentStep--;
-    redrawSteps();
-  }
-}
-
-export function nextStep() {
-  if (currentStep < steps.length - 1) {
-    currentStep++;
-    redrawSteps();
-  }
-}
-function highlightCurrentStep() {
-  const stepsListItems = document.querySelectorAll('#stepsList li');
-  stepsListItems.forEach((item, index) => {
-    if (index === currentStep) {
-      item.classList.add('current');
-    } else {
-      item.classList.remove('current');
-    }
-  });
-}
-
-function redrawSteps() {
-  // get measurements from inputs
-  console.log(measurements);
-  for (let key in measurements) {
-    console.log(key)
-    let element = document.getElementById(key.label);
-    measurements[key].value = parseFloat(element.value);
-    console.log(measurements[key].value);
-  }
-
-
-
-
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  for (let i = 0; i <= currentStep; i++) {
-    design.steps[i].action(ctx, measurements);
-  }
-  highlightCurrentStep();
-}
-// // Initial draw
-// redrawSteps();

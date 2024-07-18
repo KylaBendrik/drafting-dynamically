@@ -1,9 +1,9 @@
 export const margin = 30;
 export const pixelsPerInch = 32;
 
-export function formatLength(length) {
-  const inches = Math.floor(length);
-  const fraction = length - inches;
+export function formatFraction(num) {
+  const inches = Math.floor(num);
+  const fraction = num - inches;
 
   if (fraction === 0) {
     // whole number
@@ -31,7 +31,37 @@ export function formatLength(length) {
     }
   }
 
+  if (inches === 0) {
+    return `${closestFraction.display}`;
+  }
+
   return `${inches} ${closestFraction.display}`;
+}
+
+export function formatNum(num, style){
+  if (style === "(") {
+    return `(${formatFraction(num)} in.)`
+  } else {
+    return `${formatFraction(num)} in.`
+  }
+}
+
+export function formatMeasure(measure, style) {
+  return formatNum(parseFloat(measure.value), style)
+}
+export function formatMeasureDiv(measure, divisor, style) {
+  return formatNum(parseFloat(measure.value) / divisor, style)
+}
+export function formatMeasureMul(measure, multiplier, style) {
+  return formatNum(parseFloat(measure.value) * multiplier, style)
+}
+
+export function formatMeasureAdd(measure, addend, style) {
+  return formatNum(parseFloat(measure.value) + addend, style)
+}
+
+export function formatMeasureSub(measure, subtrahend, style) {
+  return formatNum(parseFloat(measure.value) - subtrahend, style)
 }
 
 //canvas drawing functions
@@ -94,7 +124,7 @@ export function definePoint(ctx, label, startPoint, direction, distanceInInches)
 }
 
 export default { 
-  formatLength, 
+  formatMeasure, 
   drawPoint, 
   drawGuide, 
   drawLine, 
