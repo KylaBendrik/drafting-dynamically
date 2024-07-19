@@ -146,10 +146,10 @@ export function returnGuide(status, point, dirInput){
   } else if (direction.x === 1 && direction.y === 0){
     //right: closer to x = size.x
     pointb = {x: size.x - margin, y: point.y};
-  } else if (direction.x === 0 && direction.y === 1){
+  } else if (direction.x === 0 && direction.y === -1){
     //up: closer to y = 0
     pointb = {x: point.x, y: margin};
-  } else if (direction.x === 0 && direction.y === -1){ 
+  } else if (direction.x === 0 && direction.y === 1){ 
     //down: closer to y = size.y
     console.log(`point: ${printPoint(point)} going down. size.y: ${size.y}, margin: ${margin}`);
     pointb = {x: point.x, y: size.y - margin};
@@ -253,9 +253,13 @@ function findVerticalLineIntersection(verticalLine, line){
 }
 
 export function findIntersectionPoint(line1a, line1b, line2a, line2b) {
-  const line1 = returnLine(line1a, line1b);
+console.log('findIntersectionPoint');
+console.log(line1a);
+console.log(line1b);
+console.log(line2a);
+console.log(line2b);
+const line1 = returnLine(line1a, line1b);
   const line2 = returnLine(line2a, line2b);
-  console.log(`findIntersectionPoint: ${printLine(line1)} and ${printLine(line2)}`);
 
   if (isLineVertical(line1) && isLineVertical(line2)) {
     console.log("both lines are vertical");
@@ -294,7 +298,25 @@ export function definePoint(status, startPoint, direction, distanceInInches) {
   // y gets smaller as you go up the canvas
   
 
-  return { x: newX, y: newY };
+  return { x: Math.round(newX), y: Math.round(newY) };
+}
+
+export function findPointAlongLine(status, startPoint, endPoint, distanceInInches) {
+  const pixelsPerInch = status.canvasInfo.pixelsPerInch;
+  const distanceInPixels = distanceInInches * pixelsPerInch;
+  console.log(`findPointAlongLine: startPoint: ${printPoint(startPoint)}, endPoint: ${printPoint(endPoint)}, distanceInInches: ${distanceInInches}`);
+  if (isLineVertical({ pointa: startPoint, pointb: endPoint })) {
+    if (startPoint.y > endPoint.y) {
+      return { x: startPoint.x, y: startPoint.y - distanceInPixels };
+    } else {
+      return { x: startPoint.x, y: startPoint.y + distanceInPixels };
+    }
+  } 
+  const slope = (endPoint.y - startPoint.y) / (endPoint.x - startPoint.x);
+  const angle = Math.atan(slope);
+  const newX = startPoint.x + Math.cos(angle) * distanceInPixels;
+  const newY = startPoint.y + Math.sin(angle) * distanceInPixels;
+  return { x: Math.round(newX), y: Math.round(newY) };
 }
 
 export function initPoints(status, pointsList) {

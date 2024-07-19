@@ -54,8 +54,8 @@ test('formatMeasure returns a string of a measurement, even if the value is a st
   assert.strictEqual(formatMeasure(measure, "("), '(7 1/2 in.)');
 })
 test('dir returns a point', t => {
-  assert.deepStrictEqual(dir('u'), {x: 0, y: 1});
-  assert.deepStrictEqual(dir('d'), {x: 0, y: -1});
+  assert.deepStrictEqual(dir('u'), {x: 0, y: -1});
+  assert.deepStrictEqual(dir('d'), {x: 0, y: 1});
   assert.deepStrictEqual(dir('l'), {x: -1, y: 0});
   assert.deepStrictEqual(dir('r'), {x: 1, y: 0});
   assert.deepStrictEqual(dir({x: 0, y: 1}), {x: 0, y: 1});
@@ -82,7 +82,7 @@ test('findIntersectionPoint returns a point', t => {
   const pointC = { x: 484, y: 520 };
   const pointD = { x: 16, y: 520 };
   const intersection = findIntersectionPoint(pointA, pointB, pointC, pointD);
-  const goal = { x: 50, y: 70 };
+  const goal = { x: 116, y: 520 };
   assert.deepStrictEqual(intersection, goal);
 })
 

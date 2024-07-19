@@ -11,6 +11,7 @@ import {
   definePoint,
   initPoints,
   findIntersectionPointofGuides,
+  //findPointAlongLine,
   fractionBetween,
   dir,
   printPoint,
@@ -35,7 +36,7 @@ let measurements = {
   breast: {label: "Breast", value: 36},
   waist: {label: "Waist", value: 25},
   lengthOfFront: {label: "Length of Front", value: 23},
-  shoulder: {label: "Desired Shoulder Width", value: 4},
+  shoulder: {label: "Desired Shoulder Width", value: 3},
   neckline: {label: "Neckline", value: 10}
 };
 
@@ -201,12 +202,55 @@ const steps = [
     action (ctx, status) {
       const pointL = status.points['L'];
       const pointO = status.points['O'];
-      console.log(`pointL: ${printPoint(pointL)}, pointO: ${printPoint(pointO)}`);
-      let distanceFromLtoO = fractionBetween(pointL.x, pointO.x, 1/2, "pix_to_inch", status.canvasInfo.pixelsPerInch);
-      const pointStar = definePoint(status, pointL, dir("u"), distanceFromLtoO);
-      console.log(`pointStar ${printPoint(pointStar)} should be (x: ${pointL.x}, y:${pointL.y - fractionBetween(pointL.y, pointO.y, 1/2)})`);
+      let distanceFromLtoStar = fractionBetween(pointL.y, pointO.y, 1/2, "pix_to_inch", status.canvasInfo.pixelsPerInch);
+      const pointStar = definePoint(status, pointL, dir("u"), distanceFromLtoStar);
       drawPoint(ctx, '*', pointStar);
-      status.points['*'] = pointStar;
+      let distanceFromStartoY = fractionBetween(pointO.y, pointStar.y, 1/2, "pix_to_inch", status.canvasInfo.pixelsPerInch);
+      const pointY = definePoint(status, pointStar, dir("u"), distanceFromStartoY);
+      drawPoint(ctx, 'Y', pointY);
+      status.points['Y'] = pointY;
+      let distanceFromStartoZ = fractionBetween(pointStar.y, pointY.y, 1/2, "pix_to_inch", status.canvasInfo.pixelsPerInch);
+      const pointZ = definePoint(status, pointStar, dir("u"), distanceFromStartoZ);
+      drawPoint(ctx, 'Z', pointZ);
+      status.points['Z'] = pointZ;
+      return status;
+    }
+  },
+  {
+    description: (status) => {return `Point 9 is 1/6 of the breast ${formatMeasureDiv(status.measurements.breast, 6, "(")} left of O. Square a guide down from 9`},
+    action: (ctx, status) => {
+      const breast = parseFloat(status.measurements.breast.value);
+      const pointO = status.points['O'];
+      const point9 = definePoint(status, pointO, dir("l"), breast / 6);
+      drawPoint(ctx, '9', point9);
+      drawGuide(ctx, point9, { x: point9.x, y: status.canvasInfo.size.y - status.canvasInfo.margin });
+      status.points['9'] = point9;
+      return status;
+    }
+  },
+  {
+    description: (_status) => {return 'Draw a line from 2 to Z. Where this line crosses the guide from 9 is point X'},
+    action: (ctx, status) => {
+      const point2 = status.points['2'];
+      const pointZ = status.points['Z'];
+      const point9 = status.points['9'];
+      const pointX = findIntersectionPoint(point2, pointZ, point9, { x: point9.x, y: status.canvasInfo.size.y - status.canvasInfo.margin });
+      drawPoint(ctx, 'X', pointX);
+      status.points['X'] = pointX;
+      return status;
+    }
+  },
+  {
+    description: (status) => {return `Draw a line from X to 2. Starting from 2, measure along this line the desired shoulder width ${formatMeasure(status.measurements.shoulder)}. This distance from 2 is point 3. Draw a solid line between 2 and 3 to form the back shoulder.`},
+    action: (ctx, status) => {
+      const point2 = status.points['2'];
+      const pointX = status.points['X'];
+      const shoulder = parseFloat(status.measurements.shoulder.value);
+      const point3 = findPointAlongLine(status, point2, pointX, shoulder); 
+
+      drawPoint(ctx, '3', point3);
+      drawLine(ctx, point2, point3);
+      status.points['3'] = point3;
       return status;
     }
   }
