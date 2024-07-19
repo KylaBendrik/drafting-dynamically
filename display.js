@@ -13,6 +13,7 @@ let status = {
   measurements: defaultDesign.measurements,
   precision: defaultPrecision, 
   canvasInfo: {
+    defaultSize: defaultCanvasSize,
     size: defaultCanvasSize,
     margin: defaultCanvasMargin,
     pixelsPerInch: defaultPixelsPerInch,
@@ -102,6 +103,7 @@ console.log(steps);
     li.appendChild(label);
     li.appendChild(instruction);
     stepsList.appendChild(li);
+    currentStep++;
   }
 }
 
@@ -142,12 +144,20 @@ inputMeasurements(status.design.measurements);
 status = makePattern(status);
 inputSteps(status.pattern.steps); //simply read the steps and put in document
 drawPattern(status);
+console.log('where is defaultSize changing? (1)')
+console.log(status.canvasInfo.defaultSize)
 //listen for new measurements
 function redrawStepsFromMeasure(input, value) {
+  stepsList.innerHTML = '';
   status.measurements[input.id].value = value;
   status = makePattern(status);
+  console.log('redrawStepsFromMeasure');
+  console.log(status);
   inputSteps(status.pattern.steps); //simply read the steps and put in document
   drawPattern(status);
+  
+console.log('where is defaultSize changing? (2)')
+console.log(status.canvasInfo.defaultSize)
 }
 //listen for new design
 designSelect.addEventListener('change', function() {
@@ -161,4 +171,7 @@ designSelect.addEventListener('change', function() {
   status = makePattern(status);
   inputSteps(status.pattern.steps); //simply read the steps and put in document
   drawPattern(status);
+  
+console.log('where is defaultSize changing? (3)')
+console.log(status.canvasInfo.defaultSize)
 });

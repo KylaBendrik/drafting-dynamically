@@ -4,7 +4,9 @@ export function makePixels(status) {
   const pattern = status.pattern;
   const margin = status.canvasInfo.margin;
   const pixelsPerInch = status.canvasInfo.pixelsPerInch;
-  const defaultSize = status.canvasInfo.size;
+  const defaultSize = status.canvasInfo.defaultSize;
+  console.log(`defaultSize:`);
+  console.log(defaultSize);
   const precision = status.precision;
   let pixelPattern = {
     points: {},
@@ -58,11 +60,19 @@ export function makePixels(status) {
 
   let width = newLargestX + margin;
   let height = newLargestY + margin;
+  
   if (width > defaultSize.x) {
+    
+    console.log(`width ${width} is greater than defaultSize.x ${defaultSize.x}`);
     pixelPattern.canvasSize.x = width;
+  } else {
+    console.log(`width ${width} is less than defaultSize.x ${defaultSize.x}`);
   }
   if (height > defaultSize.y) {
+    console.log(`height ${height} is greater than defaultSize.y ${defaultSize.y}`);
     pixelPattern.canvasSize.y = height;
+  } else {
+    console.log(`height ${height} is less than defaultSize.y ${defaultSize.y}`);
   }
   console.log('pixelPattern');
   console.log(pixelPattern);

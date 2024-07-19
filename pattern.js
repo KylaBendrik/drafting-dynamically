@@ -17,9 +17,45 @@ export function setPoint(x, y, guides){
   let point = {x: x, y: y, guides: guides};
   return point;
 }
+//convert numbers to printable strings
+
+function formatFraction(num){
+  //num can be a string or a number
+  //return a whole number and/or a fraction, using halves, quarters, or eighths
+  let whole = Math.floor(num);
+  let fraction = num - whole;
+  let fractionString = '';
+  if (fraction !== 0){
+    if (fraction === 0.5){
+      fractionString = '1/2';
+    } else if (fraction === 0.25){
+      fractionString = '1/4';
+    } else if (fraction === 0.125){
+      fractionString = '1/8';
+    } else if (fraction === 0.75){
+      fractionString = '3/4';
+    } else if (fraction === 0.375){
+      fractionString = '3/8';
+    } else if (fraction === 0.625){
+      fractionString = '5/8';
+    } else if (fraction === 0.875){
+      fractionString = '7/8';
+    }
+  }
+  if (whole === 0){
+    return fractionString;
+  } else if (fractionString === ''){
+    return `${whole}`;
+  } else {
+    return `${whole} ${fractionString}`;
+  }
+}
 
 function printPoint(point){
   return `(${point.x}, ${point.y})`;
+}
+export function printMeasure(measure){
+  return `(${formatFraction(measure.value)} in.)`;
 }
 
 //create shapes for pattern based on steps actions

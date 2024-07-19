@@ -1,6 +1,7 @@
 import {
   inchesToPrecision,
   setPoint,
+  printMeasure
 } from '../pattern.js';
 
 const design_info = {
@@ -42,17 +43,13 @@ const steps = [
           return status;
       }
   },
-  // {
-  //     description: (_status) => {return 'From point 1, go down the back length to define point B'},
-  //     action: (ctx, status) => {
-  //         const backLength = parseFloat(status.measurements.backLength.value);
-  //         const point1 = status.points['1'];
-  //         status.points['B'] = definePoint(status, point1, { x: 0, y: 1 }, backLength);
-  //         drawPoint(ctx, 'B', status.points['B']);
-  //         // console.log('step 3 status: ', status);
-  //         return status;
-  //     }
-  // },
+  {
+      description: (status) => {return `From point 1, go down the back length ${printMeasure(status.design.measurements.backLength)} to define point B`},
+      action: (status) => {
+          status.pattern.points['B'] = setPoint(0, inchesToPrecision(status, parseFloat(status.design.measurements.backLength.value)));
+          return status;
+      }
+  },
   // {
   //     description: (status) => {return `From point B, go up the height under arm ${formatMeasure(status.measurements.heightUnderArm)} to define point A`},
   //     action: (ctx, status) => {

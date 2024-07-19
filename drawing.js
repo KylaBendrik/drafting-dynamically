@@ -6,6 +6,8 @@ export function drawPattern(status){
   let pixelPattern = makePixels(status);
   let canvas = document.getElementById('canvas');
   let ctx = canvas.getContext('2d');
+  canvas.width = pixelPattern.canvasSize.x;
+  canvas.height = pixelPattern.canvasSize.y;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.font = '12px serif';
   ctx.fillStyle = 'black';
