@@ -6,7 +6,7 @@ $input-color: desaturate(lighten($brand-color-light, 10%), 10%);
 body {
   display: grid;
   grid-template-columns: 3fr 2fr;
-  grid-template-rows: 1fr 2fr 5fr;
+  grid-template-rows: 10% 20% 65%;
   gap: 10px;
   justify-items: center;
   align-items: stretch;
@@ -114,14 +114,17 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  
 }
 
 #stepsList {
-  margin-left: 20px;
-  padding-left: 20px;
+  background: $input-color;
   list-style-type: none;
+  overflow: auto;
+  padding: 10px;
 
   li {
+    
     margin-bottom: 10px;
   }
 

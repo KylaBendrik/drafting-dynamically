@@ -126,14 +126,24 @@ function drawSteps(status) {
   }
   console.log("drawSteps status: ", status);
 
-  status = findFurthestPoint(status);
+
   let defaultFP = defaultFurthestPoint()
 
   console.log(`dS: status fP ${printPoint(status.furthestPoint)} > canvas size? ${printPoint({x: canvas.width, y: canvas.height})}? `, isPointLarger(status.furthestPoint, {x: canvas.width, y: canvas.height}));
   console.log(`dS: status fP ${printPoint(status.furthestPoint)} < default furthest point ${printPoint(defaultFP)}? `, isPointLarger(defaultFP, status.furthestPoint));
   console.log(`dS: status canvas size == actual canvas size? ${printPoint(status.canvasInfo.size)} == ${printPoint({x: canvas.width, y: canvas.height})}? `, arePointsEqual(status.canvasInfo.size, {x: canvas.width, y: canvas.height}));
   console.log(`dS: status fP ${printPoint(status.furthestPoint)} < canvas size - margin ${printPoint(pointSubMargin({x: canvas.width, y: canvas.height}, status.canvasInfo.margin))}?`, isPointLarger({x: canvas.width - status.canvasInfo.margin, y: canvas.height - status.canvasInfo.margin}, status.furthestPoint));
-  console.log(`dS: canvas: `, canvas)
+  console.log(`dS: are there negative points? ${checkForNegativePoints(status)}`);
+  
+  if (checkForNegativePoints(status)) {
+    console.log("dS: moving points for negative");
+    status = movePointsForNegative(status);
+  } else {
+    console.log("dS: no negative points");
+  }
+
+  status = findFurthestPoint(status);
+
   if (isPointLarger(status.furthestPoint, {x: canvas.width, y: canvas.height})) {
     console.log("dS: resizing canvas: status fP larger than canvas");
     status = resizeCanvas(status);
@@ -167,6 +177,43 @@ function drawSteps(status) {
     console.log("dS: not resizing canvas");
   }
   highlightCurrentStep();
+}
+function checkForNegativePoints(status) {
+  let points = status.points;
+  let negativePointsExist = false;
+  for (const point in points) {
+    if (points[point].x < 0 || points[point].y < 0) {
+      console.log(`checkForNegativePoints: found negative point: ${point} ${printPoint(points[point])}`);
+      negativePointsExist = true;
+    }
+  }
+  return negativePointsExist
+}
+
+function movePointsForNegative(status) {
+  //returns status points moved so that all points are positive
+  let points = status.points;
+  let movedPoints = {};
+  let worstPoint = {x: 0, y: 0};
+  for (const point in points) {
+    if (points[point].x < 0 || points[point].y < 0) {
+      if (points[point].x < worstPoint.x) {
+        worstPoint.x = points[point].x;
+      }
+      if (points[point].y < worstPoint.y) {
+        worstPoint.y = points[point].y;
+      }
+    }
+  }
+  
+  console.log(`movePointsForNegative: worst point: ${printPoint(worstPoint)}`);
+  //now that we have our worst point, move all points by that amount
+  for (const point in points) {
+    console.log(`moving point ${point} ${printPoint(points[point])} by ${printPoint(worstPoint)}`);
+    movedPoints[point] = {x: (points[point].x - worstPoint.x) + status.canvasInfo.margin, y: (points[point].y - worstPoint.y) + status.canvasInfo.margin};
+  }
+  status.points = movedPoints;
+  return status
 }
 
 function findFurthestPoint(status) {
@@ -321,6 +368,10 @@ function updateListLayout() {
   } else {
     doc_measurementsList.classList.remove('narrow');
   }
+}
+window.onload = function() {
+  var stepsList = document.querySelector('#stepsList');
+  stepsList.scrollTop = stepsList.scrollHeight;
 }
 window.addEventListener('resize', updateListLayout);
 updateListLayout();
