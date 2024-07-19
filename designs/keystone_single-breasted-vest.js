@@ -212,6 +212,7 @@ const steps = [
       let distanceFromStartoZ = fractionBetween(pointStar.y, pointY.y, 1/2, "pix_to_inch", status.canvasInfo.pixelsPerInch);
       const pointZ = definePoint(status, pointStar, dir("u"), distanceFromStartoZ);
       drawPoint(ctx, 'Z', pointZ);
+<<<<<<< HEAD
       status.points['Z'] = pointZ;
       return status;
     }
@@ -251,6 +252,8 @@ const steps = [
       drawPoint(ctx, '3', point3);
       drawLine(ctx, point2, point3);
       status.points['3'] = point3;
+=======
+>>>>>>> 872948e49b24a0123d26907e0bbf8816fe500d85
       return status;
     }
   }
