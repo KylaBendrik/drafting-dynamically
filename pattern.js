@@ -2,6 +2,7 @@
 
 export function inchesToPrecision(status, inches){
   const precision = status.precision;
+  console.log(`inchesToPrecision: ${inches} * ${precision} = ${Math.round(inches * precision)}`);
 
   return Math.round(inches * precision);
 }
@@ -13,8 +14,7 @@ export function setPoint(x, y, guides){
   } else {
     guides = {...tempGuide, ...guides};
   }
-  point = {x: x, y: y, guides: guides};
-  console.log(`setPoint(${printPoint(point)} ${guides})`);
+  let point = {x: x, y: y, guides: guides};
   return point;
 }
 
@@ -24,13 +24,13 @@ function printPoint(point){
 
 //create shapes for pattern based on steps actions
 function createShapes(status){
-  let stepFuncs = status.steps_functions;
+  console.log(status)
+  let stepFuncs = status.design.steps;
+  console.log(stepFuncs);
 
-  stepFuncs.forEach(stepFunc => {
-    let action = stepFunc(status);
-    action.forEach(action => {
-      status = action(status);
-    });
+  stepFuncs.forEach(step => {
+    let action = step.action;
+    status = action(status);
   });
 
   return status;
@@ -39,11 +39,12 @@ function createShapes(status){
 //turn steps_functions into steps strings, populated with the necessary numbers
 function writeSteps(status){
   let steps = [];
-  status.steps_functions.forEach(step_function => {
-    steps.push(step_function(status.measurements));
+  status.design.steps.forEach(step => {
+    let description = step.description(status);
+    steps.push(description);
   });
   status.pattern.steps = steps;
-  console.log(`writeSteps(${steps})`);
+  return status;
 }
 
 export function makePattern(status){
@@ -58,6 +59,5 @@ export function makePattern(status){
   status = writeSteps(status);
   status = createShapes(status); //runs through steps.ations, populating points, lines, and curves
 
-  console.log(`makePattern(${pattern})`);
   return status
 }

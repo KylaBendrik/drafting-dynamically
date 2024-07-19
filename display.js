@@ -11,7 +11,6 @@ const defaultPrecision = 8; //1/8 of an inch
 let status = {
   design: defaultDesign,
   measurements: defaultDesign.measurements,
-  steps_functions: defaultDesign.steps, //functions that take measurements and return steps as strings
   precision: defaultPrecision, 
   canvasInfo: {
     size: defaultCanvasSize,
@@ -91,7 +90,9 @@ function inputMeasurements(measurements){
 }
 
 function inputSteps(steps){
- let currentStep = 1
+console.log('inputSteps');
+console.log(steps);
+ let currentStep = 1;
  for (const step of steps) {
     const li = document.createElement('li');
     const label = document.createElement('label');
@@ -138,16 +139,14 @@ updateListLayout();
 //start the process, populate the design, measurements, and steps
 inputDesign(status.design);
 inputMeasurements(status.design.measurements);
-status.pattern = makePattern(status);
+status = makePattern(status);
 inputSteps(status.pattern.steps); //simply read the steps and put in document
-translatePatternToPixels(status);
 drawPattern(status);
 //listen for new measurements
 function redrawStepsFromMeasure(input, value) {
   status.measurements[input.id].value = value;
-  status.pattern = makePattern(status);
+  status = makePattern(status);
   inputSteps(status.pattern.steps); //simply read the steps and put in document
-  translatePatternToPixels(status);
   drawPattern(status);
 }
 //listen for new design
@@ -159,7 +158,7 @@ designSelect.addEventListener('change', function() {
   stepsList.innerHTML = '';
   inputDesign(status.design);
   inputMeasurements(status.design.measurements);
-  status.pattern = makePattern(status);
+  status = makePattern(status);
   inputSteps(status.pattern.steps); //simply read the steps and put in document
   drawPattern(status);
 });

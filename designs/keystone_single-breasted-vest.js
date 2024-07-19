@@ -1,5 +1,6 @@
 import {
   inchesToPrecision,
+  setPoint,
 } from '../pattern.js';
 
 const design_info = {
@@ -30,19 +31,17 @@ const steps = [
   {
       description: (_status) => {return 'Set point O in upper right of canvas'},
       action: (status) => {
-          // console.log('step 0 status: ', status);
-          status.pattern.points['O'] = setPoint({ x: 0, y: 0, guides: { d: true, l: true }});
+          status.pattern.points['O'] = setPoint(0, 0,{ d: true, l: true });
           return status;
       }
   },
-  // {
-  //     description: (_status) => {return 'Point 1 is 3/4 inch down from O'},
-  //     action: (ctx, status) => {
-  //         status.points['1'] = definePoint(status, status.points['O'], { x: 0, y: 1 }, 3/4);
-  //         drawPoint(ctx, '1', status.points['1']);
-  //         return status;
-  //     }
-  // },
+  {
+      description: (_status) => {return 'Point 1 is 3/4 inch down from O'},
+      action: (status) => {
+          status.pattern.points['1'] = setPoint(0, inchesToPrecision(status, 3/4));
+          return status;
+      }
+  },
   // {
   //     description: (_status) => {return 'From point 1, go down the back length to define point B'},
   //     action: (ctx, status) => {

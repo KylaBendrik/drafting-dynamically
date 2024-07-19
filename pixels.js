@@ -1,4 +1,6 @@
 export function makePixels(status) {
+  console.log('makePixels');
+  console.log(status);
   const pattern = status.pattern;
   const margin = status.canvasInfo.margin;
   const pixelsPerInch = status.canvasInfo.pixelsPerInch;
@@ -11,8 +13,8 @@ export function makePixels(status) {
     canvasSize: defaultSize,
   };
 
-  let smallestX = margin.x;
-  let smallestY = margin.y;
+  let smallestX = margin;
+  let smallestY = margin;
   let largestX = margin;
   let largestY = margin;
 
@@ -62,12 +64,13 @@ export function makePixels(status) {
   if (height > defaultSize.y) {
     pixelPattern.canvasSize.y = height;
   }
-
+  console.log('pixelPattern');
+  console.log(pixelPattern);
   return pixelPattern;
 }
 
 function convertPoint(label, point, pixelsPerInch, precision) {
-  let x = point.x * precision * pixelsPerInch;
-  let y = point.y * precision * pixelsPerInch;
+  let x = (point.x / precision) * pixelsPerInch;
+  let y = (point.y / precision) * pixelsPerInch;
   return { label: label, x: x, y: y, guides: point.guides };
 }

@@ -21,16 +21,22 @@ export function drawPattern(status){
 
   //draw points and their guides
   for (let point in pixelPattern.points){
-    drawPoint(ctx, pixelPattern.points[point]);
+    console.log(`drawPattern point:`, point);
+    
+    drawPoint(ctx, status, pixelPattern, point);
   }
 
   status.canvasInfo.drawing = drawing;
-  console.log(`drawPattern(${status})`);
+  console.log(`drawPattern`);
   return status;
 }
 
 //draws a point on the canvas
-function drawPoint(ctx, status, point){
+function drawPoint(ctx, status, pixelPattern, pointLabel){
+  console.log('drawPoint pixelPattern');
+  console.log(pixelPattern);
+  let point = pixelPattern.points[pointLabel]
+  console.log(point);
   let pointSize = status.canvasInfo.pointSize;
   let margin = status.canvasInfo.margin;
   let x = point.x;
@@ -41,9 +47,11 @@ function drawPoint(ctx, status, point){
   ctx.arc(x, y, pointSize, 0, 2 * Math.PI);
   ctx.stroke();
   //draw point label
-  ctx.fillText(`(${point.label})`, x, y);
+  ctx.fillText(`${point.label}`, x, y);
 
   //draw guides
+  //guides are dashed
+  ctx.setLineDash([5, 5]);
   if (guides.u){
     ctx.moveTo(x, y);
     ctx.lineTo(x, margin);
