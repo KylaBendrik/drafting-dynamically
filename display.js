@@ -21,7 +21,8 @@ let status = {
       points: [], //list of ctx instructions to draw points
       lines: [],  //list of ctx instructions to draw lines
       curves: [] //list of ctx instructions to draw curves
-    }
+    },
+    pointSize: 2, //size of points in pixels
   },
   pattern: { //in inches * precision
     points: {}, //'label': {x: 0, y: 0, guides:{u: true or false, d: true or false, l: true or false, r: true or false}}
