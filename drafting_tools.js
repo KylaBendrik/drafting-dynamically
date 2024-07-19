@@ -91,6 +91,43 @@ export function drawLine(ctx, point1, point2) {
   ctx.lineTo(point2.x, point2.y);
   ctx.stroke();
 }
+export function drawQuarterEllipse(ctx, point1, point2, center){
+  console.log(`drawQuarterEllipse: point1: ${printPoint(point1)}, point2: ${printPoint(point2)}, center: ${printPoint(center)}`);
+  //calculate radii
+  const radiusX = Math.abs(center.x - point2.x);
+  const radiusY = Math.abs(center.y - point1.y);
+
+  //save context state
+  ctx.save();
+
+  //Move to center
+  ctx.translate(center.x, center.y);
+
+  if (radiusX > radiusY){
+    //horizontal ellipse
+    ctx.scale(1, radiusY / radiusX);
+    var radius = radiusX
+  } else {
+    //vertical ellipse
+    ctx.scale(radiusX / radiusY, 1);
+    var radius = radiusY
+  }
+  // Determine the start and end angles
+  const startAngle = 0.5 * Math.PI; // 180 degrees
+  const endAngle = Math.PI; // 270 degrees
+
+  //drawing style
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = 'black';
+
+  // Draw the ellipse
+  ctx.beginPath();
+  ctx.arc(0, 0, radius, startAngle, endAngle);
+  ctx.stroke();
+
+  // Restore the context
+  ctx.restore();
+}
 
 export function returnGuide(status, point, dirInput){
   console.log(status)

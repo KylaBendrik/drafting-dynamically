@@ -13,7 +13,8 @@ import {
   findIntersectionPointofGuides,
   dir,
   printPoint,
-  printLine
+  printLine,
+  drawQuarterEllipse
 } from '../drafting_tools.js';
 
 const design_info = {
@@ -176,7 +177,21 @@ const steps = [
     action: (ctx, status) => {
       const blade = parseFloat(status.measurements.blade.value);
       const pointO = status.points['O'];
-      drawPoint(ctx, '2', status.points['2'] = definePoint(status, pointO, { x: -1, y: 0 }, blade * 3/16));
+      const point1 = status.points['1'];
+      const point2 = definePoint(status, pointO, { x: -1, y: 0 }, blade * 3/16);
+      drawPoint(ctx, '2', point2 );
+      drawQuarterEllipse(ctx, point1, point2, pointO);
+      status.points['2'] = point2;
+      return status;
+    }
+  },
+  {
+    description: (status) => {return `Point G is 1/2 of the breast measurement ${formatMeasureDiv(status.measurements.breast, 2, "(")} left of A1`},
+    action: (ctx, status) => {
+      const breast = parseFloat(status.measurements.breast.value);
+      const pointA1 = status.points['A1'];
+      status.points['G'] = definePoint(status, pointA1, { x: -1, y: 0 }, breast / 2);
+      drawPoint(ctx, 'G', status.points['G']);
       return status;
     }
   }
