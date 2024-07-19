@@ -12,7 +12,7 @@ import {
   definePoint,
   returnGuide,
   dir
-} from '../drafting_tools.js';
+} from '../pattern.js';
 
 test('formatNum returns a string of a number with no parentheses', t => {
   assert.strictEqual(formatNum(1), '1 in.');

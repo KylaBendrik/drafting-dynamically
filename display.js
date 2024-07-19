@@ -1,35 +1,43 @@
 import { designs } from './designs/design_list.js';
 
-// export const margin = 30;
-// export const pixelsPerInch = 32;
-
-let design = designs[0];
 const defaultCanvasSize = { x: 500, y: 500 };
 const defaultPixelsPerInch = 32;
 const defaultCanvasMargin = defaultPixelsPerInch / 2;
-
-function defaultFurthestPoint() {
-  return {x: defaultCanvasSize.x - defaultCanvasMargin, y: defaultCanvasSize.y - defaultCanvasMargin};
-}
+const defaultDesign = designs[0];
+const defaultPrecision = 8; //1/8 of an inch
 
 let status = {
-  currentStep: design.steps.length - 1,
-  measurements: design.measurements,
-  steps: design.steps,
-  points: {},
-  furthestPoint: defaultFurthestPoint(),
+  design: defaultDesign,
+  measurements: defaultDesign.measurements,
+  steps_functions: defaultDesign.steps, //functions that take measurements and return steps as strings
+  precision: defaultPrecision, 
   canvasInfo: {
     size: defaultCanvasSize,
     margin: defaultCanvasMargin,
-    pixelsPerInch: defaultPixelsPerInch
+    pixelsPerInch: defaultPixelsPerInch,
+    drawing: { //in pixels, written as ctx instructions and moved to consider canvas size and margin
+      points: [], //list of ctx instructions to draw points
+      lines: [],  //list of ctx instructions to draw lines
+      curves: [] //list of ctx instructions to draw curves
+    }
+  },
+  pattern: { //in inches * precision
+    points: {}, //'label': {x: 0, y: 0, guides:{u: true or false, d: true or false, l: true or false, r: true or false}}
+    lines: [], //{start: 'pointName', end: 'pointName', style: 'solid' or 'dashed', length: 'determined' (default) or 'continuing' (extends beyond end point)}
+    curves: [], //{start: 'pointName', end: 'pointName', style: 'solid' or 'dashed', quarter: 1 or 2 or 3 or 4 (counting clockwise from 12)} treated as quarter of ellipse
+    steps: [] //strings of written instructions, populated with numbers
   }
 }
 
-//when is canvas size used vs furthest point?
-//canvas size includes margin, furthest point does not. 
-//canvas size must be at least as large as furthest point + margin
 
-
+//new proces
+//1. get design
+//2. get measurements
+//3. send measurements to design, get pattern object. Pattern contains points, lines, and curves. Pattern is in inches * precision (default 1/8s of an inch, or inch * 8)
+//4. write steps list
+//5. convert pattern to pixels
+//6. draw pattern on canvas
+//7. check for changed design or measurements
 let liMaxWidth = 0;
 
 let measurementsList = document.getElementById('measurementsList');
@@ -38,9 +46,6 @@ let designer = document.getElementById('designDesigner');
 let designSource = document.getElementById('designSource');
 let designSelect = document.getElementById('designSelect');
 
-//we need to remake the steps process to use a "status" variable to pass over itself, 
-// so we have updated measurements and points to use
-
 //populate design select
 designs.forEach((design, index) => {
   const option = document.createElement('option');
@@ -48,23 +53,6 @@ designs.forEach((design, index) => {
   option.textContent = design.label;
   designSelect.appendChild(option);
 });
-
-//when design is selected, update the display
-designSelect.addEventListener('change', () => {
-  const selectedDesignIndex = designSelect.value;
-  const selectedDesign = designs[selectedDesignIndex];
-
-  design = selectedDesign;
-  resetStatus(selectedDesign);
-  //repopulate design info
-  inputDesign(selectedDesign);
-  //repopulate measurements
-  measurementsList.innerHTML = '';
-  inputMeasurements(selectedDesign.measurements);
-  //repopulate steps
-  stepsList.innerHTML = '';
-  inputSteps(selectedDesign.steps);
-})
 
 //input design info to document
 function inputDesign(design){
@@ -100,251 +88,19 @@ function inputMeasurements(measurements){
 }
 
 function inputSteps(steps){
-  for (const step in steps) {
+ let currentStep = 1
+ for (const step of steps) {
     const li = document.createElement('li');
-    li.textContent = `${parseInt(step) + 1} ${steps[step].description(status)}`;
+    const label = document.createElement('label');
+    const instruction = document.createElement('p');
+    label.textContent = `Step ${currentStep}.)`;
+    instruction.textContent = step;
+    li.appendChild(label);
+    li.appendChild(instruction);
     stepsList.appendChild(li);
   }
 }
 
-//redraw steps when measurement is changed
-function redrawStepsFromMeasure(input, inputVal){
-  status.measurements[input.id].value = inputVal
-  stepsList.innerHTML = '';
-  inputSteps(status.steps);
-  drawSteps(status);
-}
-//draw steps and repaint canvas
-function drawSteps(status) {
-  
-  let canvas = document.getElementById('canvas');
-  const ctx = canvas.getContext('2d');
-  //let's see the points. 
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  for (let i = 0; i <= status.currentStep; i++) {
-    status = status.steps[i].action(ctx, status);
-  }
-  console.log("drawSteps status: ", status);
-
-
-  let defaultFP = defaultFurthestPoint()
-
-  console.log(`dS: status fP ${printPoint(status.furthestPoint)} > canvas size? ${printPoint({x: canvas.width, y: canvas.height})}? `, isPointLarger(status.furthestPoint, {x: canvas.width, y: canvas.height}));
-  console.log(`dS: status fP ${printPoint(status.furthestPoint)} < default furthest point ${printPoint(defaultFP)}? `, isPointLarger(defaultFP, status.furthestPoint));
-  console.log(`dS: status canvas size == actual canvas size? ${printPoint(status.canvasInfo.size)} == ${printPoint({x: canvas.width, y: canvas.height})}? `, arePointsEqual(status.canvasInfo.size, {x: canvas.width, y: canvas.height}));
-  console.log(`dS: status fP ${printPoint(status.furthestPoint)} < canvas size - margin ${printPoint(pointSubMargin({x: canvas.width, y: canvas.height}, status.canvasInfo.margin))}?`, isPointLarger({x: canvas.width - status.canvasInfo.margin, y: canvas.height - status.canvasInfo.margin}, status.furthestPoint));
-  console.log(`dS: are there negative points? ${checkForNegativePoints(status)}`);
-  
-  if (checkForNegativePoints(status)) {
-    console.log("dS: moving points for negative");
-    status = movePointsForNegative(status);
-  } else {
-    console.log("dS: no negative points");
-  }
-
-  status = findFurthestPoint(status);
-
-  if (isPointLarger(status.furthestPoint, {x: canvas.width, y: canvas.height})) {
-    console.log("dS: resizing canvas: status fP larger than canvas");
-    status = resizeCanvas(status);
-    drawSteps(status);
-  } else if (status.furthestPoint.x < defaultFP.x || status.furthestPoint.y < defaultFP.y ){
-    console.log("dS: resizing canvas: status FP smaller than default FP");
-    console.log(status)
-    //if the furthest point is less than the default furthest point, resize the canvas to the default size on that axis
-    if (status.furthestPoint.x < defaultFP.x) {
-      console.log(`dS: resizing canvas x to ${defaultCanvasSize.x}`);
-      status.canvasInfo.size.x = defaultCanvasSize.x;
-      console.log(`dS: status canvas size x set to default: ${printPoint(status.canvasInfo.size)}`);
-    }
-    if (status.furthestPoint.y < defaultFP.y) {
-      console.log(`dS: resizing canvas y to ${defaultCanvasSize.y}`);
-      status.canvasInfo.size.y = defaultCanvasSize.y;
-      console.log(`dS: status canvas size y set to default: ${printPoint(status.canvasInfo.size)}`);
-    }
-    //status.furthestPoint = defaultFP;
-    //status = resizeCanvas(status);
-    if (!arePointsEqual(status.canvasInfo.size, {x: canvas.width, y: canvas.height})) {
-      status = resizeCanvas(status);
-      drawSteps(status);
-    }
-    //drawSteps(status);
-  } else if (isPointLarger({x: canvas.width - status.canvasInfo.margin, y: canvas.height - status.canvasInfo.margin}, status.furthestPoint)){
-    console.log("dS: resizing canvas: status fP smaller than canvas - margin");
-    status = resizeCanvas(status);
-    drawSteps(status);
-  } else {
-    console.log("dS: not resizing canvas");
-  }
-  highlightCurrentStep();
-}
-function checkForNegativePoints(status) {
-  let points = status.points;
-  let negativePointsExist = false;
-  for (const point in points) {
-    if (points[point].x < 0 || points[point].y < 0) {
-      console.log(`checkForNegativePoints: found negative point: ${point} ${printPoint(points[point])}`);
-      negativePointsExist = true;
-    }
-  }
-  return negativePointsExist
-}
-
-function movePointsForNegative(status) {
-  //returns status points moved so that all points are positive
-  let points = status.points;
-  let movedPoints = {};
-  let worstPoint = {x: 0, y: 0};
-  for (const point in points) {
-    if (points[point].x < 0 || points[point].y < 0) {
-      if (points[point].x < worstPoint.x) {
-        worstPoint.x = points[point].x;
-      }
-      if (points[point].y < worstPoint.y) {
-        worstPoint.y = points[point].y;
-      }
-    }
-  }
-  
-  console.log(`movePointsForNegative: worst point: ${printPoint(worstPoint)}`);
-  //now that we have our worst point, move all points by that amount
-  for (const point in points) {
-    console.log(`moving point ${point} ${printPoint(points[point])} by ${printPoint(worstPoint)}`);
-    movedPoints[point] = {x: (points[point].x - worstPoint.x) + status.canvasInfo.margin, y: (points[point].y - worstPoint.y) + status.canvasInfo.margin};
-  }
-  status.points = movedPoints;
-  return status
-}
-
-function findFurthestPoint(status) {
-  console.log("findFP: points: ", status.points);
-  let defaultFP = defaultFurthestPoint();
-  let points = status.points;
-  let currentFurthestPoint = {x: 0, y: 0};
-  for (const point in points) {
-    if (points[point].x > currentFurthestPoint.x) {
-      currentFurthestPoint.x = points[point].x;
-      console.log(`findFP: currentFurthestPoint x updated: ${printPoint(currentFurthestPoint)}`);
-    }
-    if (points[point].y > currentFurthestPoint.y) {
-      currentFurthestPoint.y = points[point].y;
-      console.log(`findFP: currentFurthestPoint y updated: ${printPoint(currentFurthestPoint)}`);
-    }
-  }
-  
-  console.log(`findFP: current furthest point: ${printPoint(currentFurthestPoint)}` );
-  console.log(`findFP: default furthest point:  ${printPoint(defaultFP)}`);
-  console.log(`findFP: status furthest point: ${printPoint(status.furthestPoint)}`);
-  console.log(`findFP: combinedLargestPoint: ${printPoint(returnCombinedLargestPoint(defaultFP, currentFurthestPoint))}`);
-  status.furthestPoint = returnCombinedLargestPoint(defaultFP, currentFurthestPoint);
-  console.log(`findFP: status furthest point after update: ${printPoint(status.furthestPoint)}`);
-  return status;
-}
-
-//status functions
-function resetStatus(design){
-  status.currentStep = design.steps.length - 1;
-  status.measurements = design.measurements;
-  status.steps = design.steps;
-  status.points = design.points;
-}
-
-function printPoint(point){
-  return `(${point.x}, ${point.y})`;
-}
-function returnLargestPoint(pointa, pointb) {
-  if (isPointLarger(pointa, pointb)) {
-    console.log(`returnLargestPoint: A (${printPoint(pointa)} > ${printPoint(pointb)})`);
-    return pointa;
-  } else {
-    console.log(`returnLargestPoint: B (${printPoint(pointa)} < ${printPoint(pointb)})`);
-    return pointb;
-  }
-}
-function returnCombinedLargestPoint(pointa, pointb) {
-  let newPoint = {x: 0, y: 0};
-  newPoint.x = Math.max(pointa.x, pointb.x);
-  newPoint.y = Math.max(pointa.y, pointb.y);
-
-  return newPoint;
-}
-function isPointLarger(pointa, pointb) {
-  if (pointa.x > pointb.x) {
-    console.log(` - (x is larger: ${pointa.x} > ${pointb.x})`);
-    return true;
-  } else if (pointa.y > pointb.y){
-    console.log(` - (y is larger: ${pointa.y} > ${pointb.y})`);
-    return true;
-  } else {  
-    return false;
-  }
-}
-function arePointsEqual(pointa, pointb) {
-  if (pointa.x === pointb.x && pointa.y === pointb.y) {
-    return true; 
-  } else { 
-    return false;
-  }
-}
-
-
-function pointAddMargin(point, margin) {
-  return {x: point.x + margin, y: point.y + margin};
-}
-function pointSubMargin(point, margin) {
-  return {x: point.x - margin, y: point.y - margin};
-}
-//canvas info
-function resizeCanvas(status) {
-  let canvas = document.getElementById('canvas');
-  const newSize = returnCombinedLargestPoint({x: status.furthestPoint.x + status.canvasInfo.margin, y: status.furthestPoint.y + status.canvasInfo.margin}, defaultCanvasSize);
-  
-  //should always be bigger than or equal to default canvas size
-  console.log(`resizeCanvas: status canvas size == actual canvas size? ${printPoint(status.canvasInfo.size)} == ${printPoint({x: canvas.width, y: canvas.height})}? `, arePointsEqual(status.canvasInfo.size, {x: canvas.width, y: canvas.height}));
-  console.log(`resizeCanvas: new size: ${printPoint(newSize)}`);
-  canvas.width = newSize.x;
-  canvas.height = newSize.y;
-  status.canvasInfo.size = newSize;
-  return status;
-}
-//step controls
-
-export function previousStep() {
-  console.log('previous step');
-  if (status.currentStep > 0) {
-    status.currentStep--;
-    drawSteps(status);
-  }
-}
-
-export function nextStep() {
-  if (status.currentStep < status.steps.length - 1) {
-    status.currentStep++;
-    drawSteps(status);
-  }
-}
-function highlightCurrentStep() {
-  const stepsListItems = document.querySelectorAll('#stepsList li');
-  stepsListItems.forEach((item, index) => {
-    if (index === status.currentStep) {
-      item.classList.add('current');
-    } else {
-      item.classList.remove('current');
-    }
-  });
-}
-
-//initialize
-inputDesign(design);
-inputMeasurements(status.measurements);
-inputSteps(status.steps);
-drawSteps(status);
-
-//step controls
-let previousStepButton = document.getElementById('previousStep');
-let nextStepButton = document.getElementById('nextStep');
-previousStepButton.onclick = function() {previousStep()};
-nextStepButton.onclick =  function() {nextStep()};
 //VISUAL DESIGN
 //measurements list layout
 function updateListLayout() {
@@ -375,3 +131,33 @@ window.onload = function() {
 }
 window.addEventListener('resize', updateListLayout);
 updateListLayout();
+
+//start the process, populate the design, measurements, and steps
+inputDesign(status.design);
+inputMeasurements(status.design.measurements);
+status.pattern = makePattern(status);
+inputSteps(status.pattern.steps); //simply read the steps and put in document
+translatePatternToPixels(status);
+drawPattern(status);
+//listen for new measurements
+function redrawStepsFromMeasure(input, value) {
+  status.measurements[input.id].value = value;
+  status.pattern = makePattern(status);
+  inputSteps(status.pattern.steps); //simply read the steps and put in document
+  translatePatternToPixels(status);
+  drawPattern(status);
+}
+//listen for new design
+designSelect.addEventListener('change', function() {
+  status.design = designs[designSelect.value];
+  status.measurements = status.design.measurements;
+  status.steps_functions = status.design.steps;
+  measurementsList.innerHTML = '';
+  stepsList.innerHTML = '';
+  inputDesign(status.design);
+  inputMeasurements(status.design.measurements);
+  status.pattern = makePattern(status);
+  inputSteps(status.pattern.steps); //simply read the steps and put in document
+  translatePatternToPixels(status);
+  drawPattern(status);
+});
