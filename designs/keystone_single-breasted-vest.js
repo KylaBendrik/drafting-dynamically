@@ -198,7 +198,7 @@ const steps = [
     }
   },
   {
-    description: (status) => {return `There are three points in the line from L to the top: *, Z, and Y. * is halfway between L and the line from O, Y is halfway between * and the line from O, and Z is halfway between * and Y.`},
+    description: (_status) => {return `There are three points in the line from L to the top: *, Z, and Y. * is halfway between L and the line from O, Y is halfway between * and the line from O, and Z is halfway between * and Y.`},
     action (ctx, status) {
       const pointL = status.points['L'];
       const pointO = status.points['O'];
@@ -212,7 +212,6 @@ const steps = [
       let distanceFromStartoZ = fractionBetween(pointStar.y, pointY.y, 1/2, "pix_to_inch", status.canvasInfo.pixelsPerInch);
       const pointZ = definePoint(status, pointStar, dir("u"), distanceFromStartoZ);
       drawPoint(ctx, 'Z', pointZ);
-<<<<<<< HEAD
       status.points['Z'] = pointZ;
       return status;
     }
@@ -252,8 +251,6 @@ const steps = [
       drawPoint(ctx, '3', point3);
       drawLine(ctx, point2, point3);
       status.points['3'] = point3;
-=======
->>>>>>> 872948e49b24a0123d26907e0bbf8816fe500d85
       return status;
     }
   }
