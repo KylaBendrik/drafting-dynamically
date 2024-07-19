@@ -168,6 +168,25 @@ function returnLine(point1, point2){
 
 //geometry functions
 
+export function fractionBetween(num1, num2, fraction, style, pixelsPerInch){ 
+  console.log(`fractionBetween: num1: ${num1}, num2: ${num2}, fraction: ${fraction}, style: ${style}, pixelsPerInch: ${pixelsPerInch}`);
+  let distBetween = 0;
+  if (num1 > num2){
+    distBetween = (num1 - num2) * fraction;
+  } else {
+    distBetween = (num2 - num1) * fraction;
+  }
+  if (style === "pix_to_inch"){
+    console.log(`fractionBetween: ${distBetween / pixelsPerInch}`)
+    return distBetween / pixelsPerInch;
+  } else {
+    
+    console.log(`fractionBetween: ${distBetween}`)
+    return distBetween;
+  }
+  
+}
+
 export function dir(direction){
   console.log(`dir:`, direction);
   if (direction === "l"){
@@ -175,9 +194,9 @@ export function dir(direction){
   } else if (direction === "r"){
     return {x: 1, y: 0};
   } else if (direction === "u"){
-    return {x: 0, y: 1};  
+    return {x: 0, y: -1};  
   } else if (direction === "d"){
-    return {x: 0, y: -1};
+    return {x: 0, y: 1};
   } else {
     return direction;
   }
@@ -265,11 +284,16 @@ export function findIntersectionPoint(line1a, line1b, line2a, line2b) {
 }
 
 export function definePoint(status, startPoint, direction, distanceInInches) {
+  console.log(distanceInInches);
+  console.log(`definePoint: startPoint: ${printPoint(startPoint)}, direction: ${printPoint(direction)}, distanceInInches: ${distanceInInches}`);
   const pixelsPerInch = status.canvasInfo.pixelsPerInch;
   
   const distanceInPixels = distanceInInches * pixelsPerInch;
   const newX = startPoint.x + direction.x * distanceInPixels;
   const newY = startPoint.y + direction.y * distanceInPixels;
+  // y gets smaller as you go up the canvas
+  
+
   return { x: newX, y: newY };
 }
 

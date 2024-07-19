@@ -11,6 +11,7 @@ import {
   definePoint,
   initPoints,
   findIntersectionPointofGuides,
+  fractionBetween,
   dir,
   printPoint,
   printLine,
@@ -192,6 +193,20 @@ const steps = [
       const pointA1 = status.points['A1'];
       status.points['G'] = definePoint(status, pointA1, { x: -1, y: 0 }, breast / 2);
       drawPoint(ctx, 'G', status.points['G']);
+      return status;
+    }
+  },
+  {
+    description: (status) => {return `There are three points in the line from L to the top: *, Z, and Y. * is halfway between L and the line from O, Y is halfway between * and the line from O, and Z is halfway between * and Y.`},
+    action (ctx, status) {
+      const pointL = status.points['L'];
+      const pointO = status.points['O'];
+      console.log(`pointL: ${printPoint(pointL)}, pointO: ${printPoint(pointO)}`);
+      let distanceFromLtoO = fractionBetween(pointL.x, pointO.x, 1/2, "pix_to_inch", status.canvasInfo.pixelsPerInch);
+      const pointStar = definePoint(status, pointL, dir("u"), distanceFromLtoO);
+      console.log(`pointStar ${printPoint(pointStar)} should be (x: ${pointL.x}, y:${pointL.y - fractionBetween(pointL.y, pointO.y, 1/2)})`);
+      drawPoint(ctx, '*', pointStar);
+      status.points['*'] = pointStar;
       return status;
     }
   }
