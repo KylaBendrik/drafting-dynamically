@@ -14,33 +14,24 @@ let status = {
   precision: defaultPrecision, 
   canvasInfo: {
     defaultSize: defaultCanvasSize,
-    size: defaultCanvasSize,
+    size: {...defaultCanvasSize},
     margin: defaultCanvasMargin,
     pixelsPerInch: defaultPixelsPerInch,
-    drawing: { //in pixels, written as ctx instructions and moved to consider canvas size and margin
-      points: [], //list of ctx instructions to draw points
-      lines: [],  //list of ctx instructions to draw lines
-      curves: [] //list of ctx instructions to draw curves
+    drawing: {
+      points: [],
+      lines: [],
+      curves: []
     },
-    pointSize: 2, //size of points in pixels
+    pointSize: 2,
   },
-  pattern: { //in inches * precision
-    points: {}, //'label': {x: 0, y: 0, guides:{u: true or false, d: true or false, l: true or false, r: true or false}}
-    lines: [], //{start: 'pointName', end: 'pointName', style: 'solid' or 'dashed', length: 'determined' (default) or 'continuing' (extends beyond end point)}
-    curves: [], //{start: 'pointName', end: 'pointName', style: 'solid' or 'dashed', quarter: 1 or 2 or 3 or 4 (counting clockwise from 12)} treated as quarter of ellipse
-    steps: [] //strings of written instructions, populated with numbers
+  pattern: {
+    points: {},
+    lines: [],
+    curves: [],
+    steps: []
   }
 }
 
-
-//new proces
-//1. get design
-//2. get measurements
-//3. send measurements to design, get pattern object. Pattern contains points, lines, and curves. Pattern is in inches * precision (default 1/8s of an inch, or inch * 8)
-//4. write steps list
-//5. convert pattern to pixels
-//6. draw pattern on canvas
-//7. check for changed design or measurements
 let liMaxWidth = 0;
 
 let measurementsList = document.getElementById('measurementsList');
@@ -49,7 +40,6 @@ let designer = document.getElementById('designDesigner');
 let designSource = document.getElementById('designSource');
 let designSelect = document.getElementById('designSelect');
 
-//populate design select
 designs.forEach((design, index) => {
   const option = document.createElement('option');
   option.value = index;
@@ -57,7 +47,6 @@ designs.forEach((design, index) => {
   designSelect.appendChild(option);
 });
 
-//input design info to document
 function inputDesign(design){
   designer.textContent = design.design_info.designer;
   designSource.textContent = design.design_info.source.label;
@@ -91,10 +80,8 @@ function inputMeasurements(measurements){
 }
 
 function inputSteps(steps){
-console.log('inputSteps');
-console.log(steps);
- let currentStep = 1;
- for (const step of steps) {
+  let currentStep = 1;
+  for (const step of steps) {
     const li = document.createElement('li');
     const label = document.createElement('label');
     const instruction = document.createElement('p');
@@ -107,17 +94,13 @@ console.log(steps);
   }
 }
 
-//VISUAL DESIGN
-//measurements list layout
 function updateListLayout() {
   const doc_measurementsList = document.querySelector('#measurementsList');
   const liElements = doc_measurementsList.querySelectorAll('li');
 
-  //get style of measurementsList
   const listStyle = window.getComputedStyle(doc_measurementsList);
   const listPadding = parseFloat(listStyle.paddingLeft) + parseFloat(listStyle.paddingRight);
 
-  //find the max width of the li elements
   liElements.forEach((li) => {
     const liWidth = li.offsetWidth;
     if (liWidth > liMaxWidth) {
@@ -131,35 +114,29 @@ function updateListLayout() {
     doc_measurementsList.classList.remove('narrow');
   }
 }
+
 window.onload = function() {
   var stepsList = document.querySelector('#stepsList');
   stepsList.scrollTop = stepsList.scrollHeight;
 }
+
 window.addEventListener('resize', updateListLayout);
 updateListLayout();
 
-//start the process, populate the design, measurements, and steps
 inputDesign(status.design);
 inputMeasurements(status.design.measurements);
 status = makePattern(status);
-inputSteps(status.pattern.steps); //simply read the steps and put in document
+inputSteps(status.pattern.steps);
 drawPattern(status);
-console.log('where is defaultSize changing? (1)')
-console.log(status.canvasInfo.defaultSize)
-//listen for new measurements
+
 function redrawStepsFromMeasure(input, value) {
   stepsList.innerHTML = '';
   status.measurements[input.id].value = value;
   status = makePattern(status);
-  console.log('redrawStepsFromMeasure');
-  console.log(status);
-  inputSteps(status.pattern.steps); //simply read the steps and put in document
+  inputSteps(status.pattern.steps);
   drawPattern(status);
-  
-console.log('where is defaultSize changing? (2)')
-console.log(status.canvasInfo.defaultSize)
 }
-//listen for new design
+
 designSelect.addEventListener('change', function() {
   status.design = designs[designSelect.value];
   status.measurements = status.design.measurements;
@@ -169,9 +146,6 @@ designSelect.addEventListener('change', function() {
   inputDesign(status.design);
   inputMeasurements(status.design.measurements);
   status = makePattern(status);
-  inputSteps(status.pattern.steps); //simply read the steps and put in document
+  inputSteps(status.pattern.steps);
   drawPattern(status);
-  
-console.log('where is defaultSize changing? (3)')
-console.log(status.canvasInfo.defaultSize)
 });

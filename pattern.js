@@ -2,8 +2,6 @@
 
 export function inchesToPrecision(status, inches){
   const precision = status.precision;
-  console.log(`inchesToPrecision: ${inches} * ${precision} = ${Math.round(inches * precision)}`);
-
   return Math.round(inches * precision);
 }
 
@@ -17,6 +15,7 @@ export function setPoint(x, y, guides){
   let point = {x: x, y: y, guides: guides};
   return point;
 }
+
 //convert numbers to printable strings
 
 function formatFraction(num){
@@ -51,18 +50,13 @@ function formatFraction(num){
   }
 }
 
-function printPoint(point){
-  return `(${point.x}, ${point.y})`;
-}
 export function printMeasure(measure){
   return `(${formatFraction(measure.value)} in.)`;
 }
 
 //create shapes for pattern based on steps actions
 function createShapes(status){
-  console.log(status)
   let stepFuncs = status.design.steps;
-  console.log(stepFuncs);
 
   stepFuncs.forEach(step => {
     let action = step.action;
@@ -95,5 +89,5 @@ export function makePattern(status){
   status = writeSteps(status);
   status = createShapes(status); //runs through steps.ations, populating points, lines, and curves
 
-  return status
+  return status;
 }

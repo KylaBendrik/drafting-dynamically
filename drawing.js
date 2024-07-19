@@ -1,8 +1,6 @@
-import {makePixels} from './pixels.js';
-//turns pixel version of pattern into drawing instructions
+import { makePixels } from './pixels.js';
 
-export function drawPattern(status){
-//first, turn pattern into pixels
+export function drawPattern(status) {
   let pixelPattern = makePixels(status);
   let canvas = document.getElementById('canvas');
   let ctx = canvas.getContext('2d');
@@ -14,65 +12,52 @@ export function drawPattern(status){
   ctx.strokeStyle = 'black';
   ctx.lineWidth = 1;
 
-//then, turn pixels into drawing instructions
   let drawing = {
     points: [],
     lines: [],
     curves: []
   };
 
-  //draw points and their guides
-  for (let point in pixelPattern.points){
-    console.log(`drawPattern point:`, point);
-    
+  for (let point in pixelPattern.points) {
     drawPoint(ctx, status, pixelPattern, point);
   }
 
   status.canvasInfo.drawing = drawing;
-  console.log(`drawPattern`);
   return status;
 }
 
-//draws a point on the canvas
-function drawPoint(ctx, status, pixelPattern, pointLabel){
-  console.log('drawPoint pixelPattern');
-  console.log(pixelPattern);
-  let point = pixelPattern.points[pointLabel]
-  console.log(point);
+function drawPoint(ctx, status, pixelPattern, pointLabel) {
+  let point = pixelPattern.points[pointLabel];
   let pointSize = status.canvasInfo.pointSize;
   let margin = status.canvasInfo.margin;
   let x = point.x;
   let y = point.y;
   let guides = point.guides;
-  //draw point
+
   ctx.beginPath();
   ctx.arc(x, y, pointSize, 0, 2 * Math.PI);
   ctx.stroke();
-  //draw point label
   ctx.fillText(`${point.label}`, x, y);
 
-  //draw guides
-  //guides are dashed
   ctx.setLineDash([5, 5]);
-  if (guides.u){
+  if (guides.u) {
     ctx.moveTo(x, y);
     ctx.lineTo(x, margin);
     ctx.stroke();
   }
-  if (guides.d){
+  if (guides.d) {
     ctx.moveTo(x, y);
     ctx.lineTo(x, pixelPattern.canvasSize.y - margin);
     ctx.stroke();
   }
-  if (guides.l){
+  if (guides.l) {
     ctx.moveTo(x, y);
     ctx.lineTo(margin, y);
     ctx.stroke();
   }
-  if (guides.r){
+  if (guides.r) {
     ctx.moveTo(x, y);
     ctx.lineTo(pixelPattern.canvasSize.x - margin, y);
     ctx.stroke();
   }
-
 }
