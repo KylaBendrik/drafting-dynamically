@@ -201,12 +201,16 @@ const steps = [
     action (ctx, status) {
       const pointL = status.points['L'];
       const pointO = status.points['O'];
-      console.log(`pointL: ${printPoint(pointL)}, pointO: ${printPoint(pointO)}`);
-      let distanceFromLtoO = fractionBetween(pointL.x, pointO.x, 1/2, "pix_to_inch", status.canvasInfo.pixelsPerInch);
-      const pointStar = definePoint(status, pointL, dir("u"), distanceFromLtoO);
-      console.log(`pointStar ${printPoint(pointStar)} should be (x: ${pointL.x}, y:${pointL.y - fractionBetween(pointL.y, pointO.y, 1/2)})`);
+      let distanceFromLtoStar = fractionBetween(pointL.y, pointO.y, 1/2, "pix_to_inch", status.canvasInfo.pixelsPerInch);
+      const pointStar = definePoint(status, pointL, dir("u"), distanceFromLtoStar);
       drawPoint(ctx, '*', pointStar);
-      status.points['*'] = pointStar;
+      let distanceFromStartoY = fractionBetween(pointO.y, pointStar.y, 1/2, "pix_to_inch", status.canvasInfo.pixelsPerInch);
+      const pointY = definePoint(status, pointStar, dir("u"), distanceFromStartoY);
+      drawPoint(ctx, 'Y', pointY);
+      status.points['Y'] = pointY;
+      let distanceFromStartoZ = fractionBetween(pointStar.y, pointY.y, 1/2, "pix_to_inch", status.canvasInfo.pixelsPerInch);
+      const pointZ = definePoint(status, pointStar, dir("u"), distanceFromStartoZ);
+      drawPoint(ctx, 'Z', pointZ);
       return status;
     }
   }
