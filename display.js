@@ -1,5 +1,6 @@
 import { designs } from './designs/design_list.js';
 import { makePattern } from './pattern.js';
+import { drawPattern } from './drawing.js';
 
 const defaultCanvasSize = { x: 500, y: 500 };
 const defaultPixelsPerInch = 32;
@@ -159,6 +160,5 @@ designSelect.addEventListener('change', function() {
   inputMeasurements(status.design.measurements);
   status.pattern = makePattern(status);
   inputSteps(status.pattern.steps); //simply read the steps and put in document
-  translatePatternToPixels(status);
   drawPattern(status);
 });

@@ -36,16 +36,6 @@ const steps = [
       }
   },
   // {
-  //     description: (_status) => {return 'Create lines down and to the left from O'},
-  //     action: (ctx, status) => {
-  //         // console.log('step 1 status: ', status);
-  //         const margin = status.canvasInfo.margin;
-  //         drawGuide(ctx, status.points['O'], { x: status.canvasInfo.size.x - margin, y: status.canvasInfo.size.y - margin });
-  //         drawGuide(ctx, status.points['O'], { x: margin, y: margin });
-  //         return status;
-  //     }
-  // },
-  // {
   //     description: (_status) => {return 'Point 1 is 3/4 inch down from O'},
   //     action: (ctx, status) => {
   //         status.points['1'] = definePoint(status, status.points['O'], { x: 0, y: 1 }, 3/4);
