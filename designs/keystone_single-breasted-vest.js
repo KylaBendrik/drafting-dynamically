@@ -31,7 +31,7 @@ const steps = [
       description: (_status) => {return 'Set point O in upper right of canvas'},
       action: (status) => {
           // console.log('step 0 status: ', status);
-          status.points['O'] = setPoint({ x: 0, y: 0 });
+          status.pattern.points['O'] = setPoint({ x: 0, y: 0, guides: { d: true, l: true }});
           return status;
       }
   },

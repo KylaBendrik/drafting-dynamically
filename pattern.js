@@ -22,6 +22,20 @@ function printPoint(point){
   return `(${point.x}, ${point.y})`;
 }
 
+//create shapes for pattern based on steps actions
+function createShapes(status){
+  let stepFuncs = status.steps_functions;
+
+  stepFuncs.forEach(stepFunc => {
+    let action = stepFunc(status);
+    action.forEach(action => {
+      status = action(status);
+    });
+  });
+
+  return status;
+}
+
 //turn steps_functions into steps strings, populated with the necessary numbers
 function writeSteps(status){
   let steps = [];
@@ -41,8 +55,8 @@ export function makePattern(status){
     curves: [],
     steps: []
   };
-  writeSteps(status);
-  createShapes(status); //runs through steps.ations, populating points, lines, and curves
+  status = writeSteps(status);
+  status = createShapes(status); //runs through steps.ations, populating points, lines, and curves
 
   console.log(`makePattern(${pattern})`);
   return status

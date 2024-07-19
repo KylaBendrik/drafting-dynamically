@@ -1,4 +1,5 @@
 import { designs } from './designs/design_list.js';
+import { makePattern } from './pattern.js';
 
 const defaultCanvasSize = { x: 500, y: 500 };
 const defaultPixelsPerInch = 32;
