@@ -123,6 +123,14 @@ const steps = [
         status = setCurve(status, '1', '2', 3);
         return status;
     }
+  },
+  { 
+    description: (_status) => {return `Point G is 1/2 the bust measure ${printMeasure(_status.measurements.breast, 1/2)} to the left of A1`},
+    action: (status) => {
+        const pointA1 = status.pattern.points['A1'];
+        status.pattern.points['G'] = setPoint(pointA1.x - inchesToPrecision(status, parseFloat(status.measurements.breast.value) / 2), pointA1.y);
+        return status;
+    }
   }
 ];
 
