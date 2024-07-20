@@ -16,30 +16,74 @@ export function setPoint(x, y, guides){
   return point;
 }
 
+export function setLine(status, start, end, style = 'solid', length = 'defined'){
+  let line = {
+    start: start,
+    end: end,
+    style: style,
+    length: length //either defined or continued (extending past end point)
+  };
+  status.pattern.lines.push(line);
+  console.log('setLine');
+  console.log(status.pattern.lines);
+  console.log(line);
+
+  return status;
+}
+
+export function setPointLineY(status, point1, point2, y, guides){
+  //find x value where line between point1 and point2 crosses y
+
+  let x1 = point1.x;
+  let y1 = point1.y;
+  let x2 = point2.x;
+  let y2 = point2.y;
+
+  let x = Math.round(x1 + (x2 - x1) * (y - y1) / (y2 - y1));
+  console.log(`x ${x} = where line from ${x1}, ${y1} to ${x2}, ${y2} crosses y ${y}`);
+  status = setPoint(x, y, guides);
+
+  return status;
+}
+
+export function setCurve(status, startPoint, endPoint, quarter ){
+  //quarter 1, 2, 3, or 4, clockwise from 12 o'clock (so 1 is top right, 2 is bottom right, 3 is bottom left, 4 is top left)
+  let curve = {
+    start: startPoint,
+    end: endPoint,
+    quarter: quarter
+  };
+  status.pattern.curves.push(curve);
+  return status;
+
+}
 //convert numbers to printable strings
 
-function formatFraction(num){
+function formatFraction(numInput){
   //num can be a string or a number
+  let num = parseFloat(numInput);
   //return a whole number and/or a fraction, using halves, quarters, or eighths
   let whole = Math.floor(num);
   let fraction = num - whole;
   let fractionString = '';
+  const fractions = {
+    '1/8': 0.125,
+    '1/4': 0.25,
+    '3/8': 0.375,
+    '1/2': 0.5,
+    '5/8': 0.625,
+    '3/4': 0.75,
+    '7/8': 0.875
+  }
+
   if (fraction !== 0){
-    if (fraction === 0.5){
-      fractionString = '1/2';
-    } else if (fraction === 0.25){
-      fractionString = '1/4';
-    } else if (fraction === 0.125){
-      fractionString = '1/8';
-    } else if (fraction === 0.75){
-      fractionString = '3/4';
-    } else if (fraction === 0.375){
-      fractionString = '3/8';
-    } else if (fraction === 0.625){
-      fractionString = '5/8';
-    } else if (fraction === 0.875){
-      fractionString = '7/8';
+    let bestFraction = '1/8';
+    for (let key in fractions){
+      if (Math.abs(fraction - fractions[key]) < Math.abs(fraction - fractions[bestFraction])){
+        bestFraction = key;
+      }
     }
+    fractionString = bestFraction;
   }
   if (whole === 0){
     return fractionString;
@@ -50,8 +94,8 @@ function formatFraction(num){
   }
 }
 
-export function printMeasure(measure){
-  return `(${formatFraction(measure.value)} in.)`;
+export function printMeasure(measure, math = 1){
+  return `(${formatFraction(measure.value * math)} in.)`;
 }
 
 //create shapes for pattern based on steps actions

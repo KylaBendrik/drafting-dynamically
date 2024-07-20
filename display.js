@@ -22,7 +22,7 @@ let status = {
       lines: [],
       curves: []
     },
-    pointSize: 2,
+    pointSize: 5,
   },
   pattern: {
     points: {},
@@ -131,7 +131,7 @@ drawPattern(status);
 
 function redrawStepsFromMeasure(input, value) {
   stepsList.innerHTML = '';
-  status.measurements[input.id].value = value;
+  status.measurements[input.id].value = parseFloat(value);
   status = makePattern(status);
   inputSteps(status.pattern.steps);
   drawPattern(status);

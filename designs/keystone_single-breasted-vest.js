@@ -1,6 +1,9 @@
 import {
   inchesToPrecision,
   setPoint,
+  setLine,
+  setPointLineY,
+  setCurve,
   printMeasure
 } from '../pattern.js';
 
@@ -46,169 +49,81 @@ const steps = [
   {
       description: (status) => {return `From point 1, go down the back length ${printMeasure(status.design.measurements.backLength)} to define point B`},
       action: (status) => {
-          status.pattern.points['B'] = setPoint(0, inchesToPrecision(status, parseFloat(status.design.measurements.backLength.value)));
+          status.pattern.points['B'] = setPoint(0, inchesToPrecision(status, parseFloat(status.design.measurements.backLength.value)), { l: true });
           return status;
       }
   },
-  // {
-  //     description: (status) => {return `From point B, go up the height under arm ${formatMeasure(status.measurements.heightUnderArm)} to define point A`},
-  //     action: (ctx, status) => {
-  //         const heightUnderArm = parseFloat(status.measurements.heightUnderArm.value);
-  //         const pointB = status.points['B'];
-  //         status.points['A'] = definePoint(status, pointB, { x: 0, y: -1 }, heightUnderArm);
-  //         drawPoint(ctx, 'A', status.points['A']);
-  //         return status;
-  //     }
-  // },
-  // {
-  //     description: (_status) => {return 'From points A and B, draw lines across'},
-  //     action: (ctx, status) => {
-  //         drawGuide(ctx, status.points['A'], { x: status.canvasInfo.margin, y: status.points['A'].y });
-  //         drawGuide(ctx, status.points['B'], { x: status.canvasInfo.margin, y: status.points['B'].y });
-  //         return status;
-  //     }
-  // },
-  // {
-  //     description: (status) => {return `B to D is 1/12 breast ${formatMeasureDiv(status.measurements.breast, 12, "(")}`},
-  //     action: (ctx, status) => {
-  //         const breast = parseFloat(status.measurements.breast.value);
-  //         const pointB = status.points['B'];
-  //         status.points['D'] = definePoint(status, pointB, { x: -1, y: 0 }, breast / 12);
-  //         drawPoint(ctx, 'D', status.points['D']);
-  //         return status;
-  //     }
-  // },
-  // {
-  //     description: (_status) => {return 'Draw back line from 1 to D'},
-  //     action: (ctx, status) => {
-  //         drawLine(ctx, status.points['1'], status.points['D']);
-  //         return status;
-  //     }
-  // },
-  // {
-  //     description: (_status) => {return 'Point A1 is where the line 1-D crosses line extending left from A'},
-  //     action: (ctx, status) => {
-  //       status.points['A1'] = findIntersectionPoint(status.points['1'], status.points['D'], status.points['A'], { x: status.canvasInfo.margin, y: status.points['A'].y });
-  //         drawPoint(ctx, 'A1', status.points['A1']);
-  //         return status;
-  //     }
-  // },
-  // {
-  //   description: (status) => {return `Point K is the blade measure ${formatMeasure(status.measurements.blade, "(")} left from A1`},
-  //   action: (ctx, status) => {
-  //       const blade = parseFloat(status.measurements.blade.value);
-  //       const pointA1 = status.points['A1'];
-  //       drawPoint(ctx, 'K', status.points['K'] = definePoint(status, pointA1, { x: -1, y: 0 }, blade));
-  //       return status;
-  //   }
-  // },
-  // {
-  //   description: (status) => {return `Point L is 3/8 of the blade measure ${formatMeasureMul(status.measurements.blade, 3/8, "(")} right of K`},
-  //   action: (ctx, status) => {
-  //       const blade = parseFloat(status.measurements.blade.value);
-  //       const pointK = status.points['K'];
-  //       drawPoint(ctx, 'L', status.points['L'] = definePoint(status, pointK, { x: 1, y: 0 }, blade * 3/8));
-  //       return status;
-  //   }
-  // },
-  // {
-  //   description: (_status) => {return `Draw guide lines up and down from both K and L`},
-  //   action: (ctx, status) => {
-  //     drawGuide(ctx, { x: status.points['K'].x, y: status.canvasInfo.size.y - status.canvasInfo.margin }, { x: status.points['K'].x, y: status.canvasInfo.margin });
-  //     drawGuide(ctx, { x: status.points['L'].x, y: status.canvasInfo.size.y - status.canvasInfo.margin }, { x: status.points['L'].x, y: status.canvasInfo.margin });
-  //     return status;
-  //   }
-  // },
-  // {
-  //   description: (_status) => {return 'Where the line down from K crosses the line left from B is point J'},
-  //   action: (ctx, status) => {
-  //     const pointK = status.points['K'];
-  //     const pointB = status.points['B'];
-  //     status.points['J'] = findIntersectionPointofGuides(status, pointK, dir("d"), pointB, dir("l"));
-  //     drawPoint(ctx, 'J', status.points['J']);
-  //     return status;
-  //   }
-  // },
-  // {
-  //   description: (status) => {return `Point 2 is 3/16 of blade measurement ${formatMeasureDiv(status.measurements.blade, 3/16, "(")} left of O`},
-  //   action: (ctx, status) => {
-  //     const blade = parseFloat(status.measurements.blade.value);
-  //     const pointO = status.points['O'];
-  //     const point1 = status.points['1'];
-  //     const point2 = definePoint(status, pointO, { x: -1, y: 0 }, blade * 3/16);
-  //     drawPoint(ctx, '2', point2 );
-  //     drawQuarterEllipse(ctx, point1, point2, pointO);
-  //     status.points['2'] = point2;
-  //     return status;
-  //   }
-  // },
-  // {
-  //   description: (status) => {return `Point G is 1/2 of the breast measurement ${formatMeasureDiv(status.measurements.breast, 2, "(")} left of A1`},
-  //   action: (ctx, status) => {
-  //     const breast = parseFloat(status.measurements.breast.value);
-  //     const pointA1 = status.points['A1'];
-  //     status.points['G'] = definePoint(status, pointA1, { x: -1, y: 0 }, breast / 2);
-  //     drawPoint(ctx, 'G', status.points['G']);
-  //     return status;
-  //   }
-  // },
-  // {
-  //   description: (_status) => {return `There are three points in the line from L to the top: *, Z, and Y. * is halfway between L and the line from O, Y is halfway between * and the line from O, and Z is halfway between * and Y.`},
-  //   action (ctx, status) {
-  //     const pointL = status.points['L'];
-  //     const pointO = status.points['O'];
-  //     let distanceFromLtoStar = fractionBetween(pointL.y, pointO.y, 1/2, "pix_to_inch", status.canvasInfo.pixelsPerInch);
-  //     const pointStar = definePoint(status, pointL, dir("u"), distanceFromLtoStar);
-  //     drawPoint(ctx, '*', pointStar);
-  //     let distanceFromStartoY = fractionBetween(pointO.y, pointStar.y, 1/2, "pix_to_inch", status.canvasInfo.pixelsPerInch);
-  //     const pointY = definePoint(status, pointStar, dir("u"), distanceFromStartoY);
-  //     drawPoint(ctx, 'Y', pointY);
-  //     status.points['Y'] = pointY;
-  //     let distanceFromStartoZ = fractionBetween(pointStar.y, pointY.y, 1/2, "pix_to_inch", status.canvasInfo.pixelsPerInch);
-  //     const pointZ = definePoint(status, pointStar, dir("u"), distanceFromStartoZ);
-  //     drawPoint(ctx, 'Z', pointZ);
-  //     status.points['Z'] = pointZ;
-  //     return status;
-  //   }
-  // },
-  // {
-  //   description: (status) => {return `Point 9 is 1/6 of the breast ${formatMeasureDiv(status.measurements.breast, 6, "(")} left of O. Square a guide down from 9`},
-  //   action: (ctx, status) => {
-  //     const breast = parseFloat(status.measurements.breast.value);
-  //     const pointO = status.points['O'];
-  //     const point9 = definePoint(status, pointO, dir("l"), breast / 6);
-  //     drawPoint(ctx, '9', point9);
-  //     drawGuide(ctx, point9, { x: point9.x, y: status.canvasInfo.size.y - status.canvasInfo.margin });
-  //     status.points['9'] = point9;
-  //     return status;
-  //   }
-  // },
-  // {
-  //   description: (_status) => {return 'Draw a line from 2 to Z. Where this line crosses the guide from 9 is point X'},
-  //   action: (ctx, status) => {
-  //     const point2 = status.points['2'];
-  //     const pointZ = status.points['Z'];
-  //     const point9 = status.points['9'];
-  //     const pointX = findIntersectionPoint(point2, pointZ, point9, { x: point9.x, y: status.canvasInfo.size.y - status.canvasInfo.margin });
-  //     drawPoint(ctx, 'X', pointX);
-  //     status.points['X'] = pointX;
-  //     return status;
-  //   }
-  // },
-  // {
-  //   description: (status) => {return `Draw a line from X to 2. Starting from 2, measure along this line the desired shoulder width ${formatMeasure(status.measurements.shoulder)}. This distance from 2 is point 3. Draw a solid line between 2 and 3 to form the back shoulder.`},
-  //   action: (ctx, status) => {
-  //     const point2 = status.points['2'];
-  //     const pointX = status.points['X'];
-  //     const shoulder = parseFloat(status.measurements.shoulder.value);
-  //     const point3 = findPointAlongLine(status, point2, pointX, shoulder); 
-
-  //     drawPoint(ctx, '3', point3);
-  //     drawLine(ctx, point2, point3);
-  //     status.points['3'] = point3;
-  //     return status;
-  //   }
-  // }
+  {
+      description: (status) => {return `From point B, go up the height under arm ${printMeasure(status.measurements.heightUnderArm)} to define point A`},
+      action: (status) => {
+          let pointB = status.pattern.points['B'];
+          status.pattern.points['A'] = setPoint(0, pointB.y - inchesToPrecision(status, parseFloat(status.measurements.heightUnderArm.value)), { l: true });
+          return status;
+      }
+  },
+  {
+      description: (status) => {return `B to D is 1/12 breast ${printMeasure(status.measurements.breast, 1/12)} to the left of B`},
+      action: (status) => {
+          let pointB = status.pattern.points['B'];
+          status.pattern.points['D'] = setPoint(pointB.x - inchesToPrecision(status, parseFloat(status.measurements.breast.value) / 12), pointB.y);
+          return status;
+      }
+  },
+  {
+      description: (_status) => {return 'Draw back line from 1 to D'},
+      action: (status) => {
+          status = setLine(status, '1', 'D');
+          return status;
+      }
+  },
+  {
+      description: (_status) => {return 'Point A1 is where the line 1-D crosses line extending left from A'},
+      action: (status) => {
+          let point1 = status.pattern.points['1'];
+          let pointA = status.pattern.points['A'];
+          let pointD = status.pattern.points['D'];
+          status.pattern.points['A1'] = setPointLineY(status, point1, pointD, pointA.y);
+          return status;
+      }
+  },
+  {
+    description: (status) => {return `Point K is the blade measure ${printMeasure(status.measurements.blade)} left from A1`},
+    action: (status) => {
+        const blade = parseFloat(status.measurements.blade.value);
+        const pointA1 = status.pattern.points['A1'];
+        status.pattern.points['K'] = setPoint(pointA1.x - inchesToPrecision(status, blade), pointA1.y, {u: true, d: true});
+        return status;
+    }
+  },
+  {
+    description: (status) => {return `Point L is 3/8 of the blade measure ${printMeasure(status.measurements.blade, 3/8)} right of K`},
+    action: (status) => {
+        const blade = parseFloat(status.measurements.blade.value);
+        const pointK = status.pattern.points['K'];
+        status.pattern.points['L'] = setPoint(pointK.x + inchesToPrecision(status, blade * 3/8), pointK.y, {u: true, d: true});
+        return status;
+    }
+  },
+  {
+    description: (_status) => {return `Point J is at the intersection of the line down from K and the line left from B`},
+    action: (status) => {
+        const pointK = status.pattern.points['K'];
+        const pointB = status.pattern.points['B'];
+        status.pattern.points['J'] = setPoint(pointK.x, pointB.y);
+        return status;
+    }
+  },
+  {
+    description: (status) => {return `Point 2 is 3/16 of the blade measure ${printMeasure(status.measurements.blade, 3/16)} left from O`},
+    action: (status) => {
+        const blade = parseFloat(status.measurements.blade.value);
+        status.pattern.points['2'] = setPoint(0 - inchesToPrecision(status, blade * 3/16), 0);
+        //draw curve from 2 to 1, centered around O
+        console.log(status)
+        status = setCurve(status, '1', '2', 3);
+        return status;
+    }
+  }
 ];
 
 export default { design_info, measurements, steps };

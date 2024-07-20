@@ -6,8 +6,8 @@ export function makePixels(status) {
   const precision = status.precision;
   let pixelPattern = {
     points: {},
-    lines: pattern.lines,
-    curves: pattern.curves,
+    lines: [...pattern.lines],
+    curves: [...pattern.curves],
     canvasSize: defaultSize,
   };
 
