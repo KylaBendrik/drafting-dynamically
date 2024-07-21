@@ -146,8 +146,8 @@ const steps = [
     }
   },
   {
-    description: (s_tatus) => {
-      return `Point E is found by going up the front length - the width of top of back from 1 inch to the left of J up to mee the line up from P. E may be above the top line.`},
+    description: (_status) => {
+      return `Point E is found by going up the front length - the width of top of back from 1 inch to the left of J up to meet the line up from P. E may be above or below the top line.`},
     action: (status) => {
       const pointJ = status.pattern.points['J'];
       const pointP = status.pattern.points['P'];
@@ -286,7 +286,25 @@ const steps = [
       return status;
     }
   },
-
+  {
+    description: (status) => {return `To start making the darts, divide the distance from G to K into 3 parts ${printNum(((parseFloat(status.measurements.breast.value) / 2) - parseFloat(status.measurements.blade.value)) / 3)}, giving points S and T.`},
+    action: (status) => {
+      const pointG = status.pattern.points['G'];
+      const pointK = status.pattern.points['K'];
+      const dist = (pointG.x - pointK.x) / 3;
+      status.pattern.points['S'] = setPoint(pointG.x - dist, pointG.y);
+      status.pattern.points['T'] = setPoint(pointG.x - (dist * 2), pointG.y);
+      return status;
+    }
+  },
+  { 
+    description: (_status) => {return `Point U is 1/2 inch right of S`},
+    action: (status) => {
+      const pointS = status.pattern.points['S'];
+      status.pattern.points['U'] = setPoint(pointS.x + inchesToPrecision(status, 1), pointS.y);
+      return status;
+    }
+  }
 ];
 
 function widthTopBack(status){
@@ -304,25 +322,20 @@ function widthTopBack(status){
 function findPointE(status, pointJ, pointP){
   const pointj = setPoint(pointJ.x - (1 * status.precision), pointJ.y);
   const frontLength = parseFloat(status.design.measurements.frontLength.value) * status.precision;
-  const wtbe = widthTopBack(status);
-  const wtb = Math.abs(status.pattern.points['2'].x - status.pattern.points['1'].x);
-  console.log(`wtb: ${wtb}, wtbe: ${wtbe}`);
+
+  //the "width of top back" not clear in the instructions. But it seems that 1/12 of the breast value gets the right result
+  //I did try from O to 2, as well as finding the circumference of the ellipse, but neither seemed to work.
+  const wtb2 = Math.abs(parseFloat(status.design.measurements.breast.value) / 12 * status.precision);
   //we need to find the y for point E
   //we have a triangle, with lines a, b, and c.
   //a is along x, from pointj to pointP
   const a = Math.abs(pointP.x - pointj.x);
-  const c = frontLength - wtb;
+  const c = frontLength - wtb2;
   //b is along y, on x of point P.
   //a^2 + b^2 = c^2
   //b = sqrt(c^2 - a^2)
   const b = Math.round(Math.sqrt(c * c - a * a));
-  console.log(`pointj: ${pointj.x}, pointP: ${pointP.x}`);
-  console.log(`frontLength: ${frontLength}, widthTopBack: ${wtb}`);
-  console.log(`a: ${a}, b: ${b}, c: ${c}`);
-  console.log(`pointE.y = pointJ.y - b = ${pointJ.y} - ${b} = ${pointJ.y - b}`);
-  console.log(`distance from pointJ.y to pointE.y: ${b / status.precision}`);
   const ey = Math.round(pointJ.y - b);
-  console.log(`pointJ.y: ${pointJ.y}, pointE.y: ${ey}`);
   return setPoint(pointP.x, ey, {l: true});
 }
 
