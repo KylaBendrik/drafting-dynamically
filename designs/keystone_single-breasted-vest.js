@@ -3,6 +3,7 @@ import {
   setPoint,
   setLine,
   setPointLineY,
+  setPointAlongLine,
   setCurve,
   printMeasure,
   printNum,
@@ -152,6 +153,30 @@ const steps = [
       const pointJ = status.pattern.points['J'];
       const pointP = status.pattern.points['P'];
       status.pattern.points['E'] = findPointE(status, pointJ, pointP);
+      return status;
+    }
+  },
+  {
+    description: (status) => {return `Point F is 1/12 breast ${printMeasure(status.measurements.breast, 1/12)} to the left of E`},
+    action: (status) => {
+      const pointE = status.pattern.points['E'];
+      status.pattern.points['F'] = setPoint(pointE.x - inchesToPrecision(status, parseFloat(status.measurements.breast.value) / 12), pointE.y);
+      return status;
+    }
+  },
+  {
+    description: (_status) => {return `Draw line from F through G, extending below the waist line`},
+    action: (status) => {
+      status = setLine(status, 'F', 'G', 'dashed', 'continued');
+      return status;
+    }
+  },
+  {  description: (_status) => {return `Point N is on this line from F to G, 1/12 of the breast down from F`},
+    action: (status) => {
+      const pointF = status.pattern.points['F'];
+      const pointG = status.pattern.points['G'];
+      const dist = parseFloat(status.measurements.breast.value) / 12;
+      status.pattern.points['N'] = setPointAlongLine(status, pointF, pointG, dist, {d: true});
       return status;
     }
   }
