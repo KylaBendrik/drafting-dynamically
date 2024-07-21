@@ -145,9 +145,7 @@ const steps = [
     }
   },
   {
-    description: (status) => {
-      console.log('finding point E, we need front length and width of top of back');
-      console.log(status);
+    description: (s_tatus) => {
       return `Point E is found by going up the front length - the width of top of back from 1 inch to the left of J up to mee the line up from P. E may be above the top line.`},
     action: (status) => {
       const pointJ = status.pattern.points['J'];
@@ -177,6 +175,74 @@ const steps = [
       const pointG = status.pattern.points['G'];
       const dist = parseFloat(status.measurements.breast.value) / 12;
       status.pattern.points['N'] = setPointAlongLine(status, pointF, pointG, dist, {d: true});
+      return status;
+    }
+  },
+  {
+    description: (status) => {return `Point Y is 3/4 ${printNum(distOtoA(status) * 3/4)} of the way up from L to the line from O`},
+    action: (status) => {
+      const pointL = status.pattern.points['L'];
+      const pointO = status.pattern.points['O'];
+      const x = pointL.x;
+      const y = pointO.y + (pointL.y - pointO.y) * 1/4;
+      status.pattern.points['Y'] = setPoint(x, y);
+      return status;
+    }
+  },
+  {
+    description: (status) => {return `Point Z is 5/8 ${printNum(distOtoA(status) * 5/8)} of the way up from L to the line from O`},
+    action: (status) => {
+      const pointL = status.pattern.points['L'];
+      const pointO = status.pattern.points['O'];
+      const x = pointL.x;
+      const y = pointO.y + (pointL.y - pointO.y) * 3/8;
+      status.pattern.points['Z'] = setPoint(x, y);
+      return status;
+    }
+  },
+  {
+    description: (_status) => {return `Draw line from 2 to Z, and one from E to Y`},
+    action: (status) => {
+      status = setLine(status, '2', 'Z', 'dashed');
+      status = setLine(status, 'E', 'Y', 'dashed');
+      return status;
+    }
+  },
+  {
+    description: (status) => {return `Point 3 is the desired shoulder width ${printMeasure(status.measurements.shoulder)} from point 2 along the line from 2 to Z`},
+    action: (status) => {
+      const point2 = status.pattern.points['2'];
+      const pointZ = status.pattern.points['Z'];
+      status.pattern.points['3'] = setPointAlongLine(status, point2, pointZ, parseFloat(status.measurements.shoulder.value));
+      status = setLine(status, '2', '3');
+      return status;
+    }
+  },
+  {
+    description: (status) => {return `Point 14 is the desired shoulder width ${printMeasure(status.measurements.shoulder)} from point E along the line from E to Y`},
+    action: (status) => {
+      const pointE = status.pattern.points['E'];
+      const pointY = status.pattern.points['Y'];
+      status.pattern.points['14'] = setPointAlongLine(status, pointE, pointY, parseFloat(status.measurements.shoulder.value));
+      status = setLine(status, 'E', '14');
+      return status;
+    }
+  },
+  {
+    description: (status) => {return `Point 12 is 1/4 the breast measurement ${printMeasure(status.measurements.breast, 1/4)} from A1 to G`},
+    action: (status) => {
+      const pointA1 = status.pattern.points['A1'];
+      const pointG = status.pattern.points['G'];
+      const dist = parseFloat(status.measurements.breast.value) / 4;
+      status.pattern.points['12'] = setPointAlongLine(status, pointA1, pointG, dist);
+      return status;
+    }
+  },
+  {
+    description: (_status) => {return `curve the armhole from 3 to 12, and from 14 to 12`},
+    action: (status) => {
+      status = setCurve(status, '12', '3', 2);
+      status = setCurve(status, '14', '12', 3);
       return status;
     }
   }
@@ -217,6 +283,12 @@ function findPointE(status, pointJ, pointP){
   const ey = Math.round(pointJ.y - b);
   console.log(`pointJ.y: ${pointJ.y}, pointE.y: ${ey}`);
   return setPoint(pointP.x, ey, {l: true});
+}
+
+function distOtoA(status){
+  const b = status.measurements.backLength.value + 0.75;
+  const a = status.measurements.heightUnderArm.value;
+  return b - a;
 }
 
 export default { design_info, measurements, steps };

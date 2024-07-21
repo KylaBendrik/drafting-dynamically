@@ -75,6 +75,9 @@ export function drawPattern(status) {
       radiusY = Math.abs(center.y - start.y);
 
     } else if (quarter === 2) {
+      console.log('quarter 2');
+      console.log(`point1 ${point1.x}, ${point1.y}`);
+      console.log(`point2 ${point2.x}, ${point2.y}`);
       //center is to the left of the start point and above the end point
       //set start and end points, based on direction from center
       if (point1.x > point2.x) {
@@ -85,10 +88,12 @@ export function drawPattern(status) {
         start = point2;
         end = point1;
       }
-      startAngle = 1.5 * Math.PI;
-      endAngle = 2 * Math.PI;
+      console.log(`start ${start.x}, ${start.y}`);
+      console.log(`end ${end.x}, ${end.y}`);
+      startAngle = 2 * Math.PI;
+      endAngle = 0.5 * Math.PI;
       center = { x: end.x, y: start.y };
-      radiusX = Math.abs(center.x - end.x);
+      radiusX = Math.abs(center.x - start.x);
       radiusY = Math.abs(center.y - end.y);
     } else if (quarter === 3) {
       console.log('quarter 3');
