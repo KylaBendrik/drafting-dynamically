@@ -4,7 +4,9 @@ import {
   setLine,
   setPointLineY,
   setCurve,
-  printMeasure
+  printMeasure,
+  printNum,
+  perimeterEllipse
 } from '../pattern.js';
 
 const design_info = {
@@ -62,10 +64,10 @@ const steps = [
       }
   },
   {
-      description: (status) => {return `B to D is 1/12 breast ${printMeasure(status.measurements.breast, 1/12)} to the left of B`},
+      description: (status) => {return `B to D is 1/24 breast ${printMeasure(status.measurements.breast, 1/24)} to the left of B`},
       action: (status) => {
           let pointB = status.pattern.points['B'];
-          status.pattern.points['D'] = setPoint(pointB.x - inchesToPrecision(status, parseFloat(status.measurements.breast.value) / 12), pointB.y);
+          status.pattern.points['D'] = setPoint(pointB.x - inchesToPrecision(status, parseFloat(status.measurements.breast.value) / 24), pointB.y);
           return status;
       }
   },
@@ -125,13 +127,71 @@ const steps = [
     }
   },
   { 
-    description: (_status) => {return `Point G is 1/2 the bust measure ${printMeasure(_status.measurements.breast, 1/2)} to the left of A1`},
+    description: (_status) => {return `Point G is 1/2 the breast measure ${printMeasure(_status.measurements.breast, 1/2)} to the left of A1`},
     action: (status) => {
         const pointA1 = status.pattern.points['A1'];
         status.pattern.points['G'] = setPoint(pointA1.x - inchesToPrecision(status, parseFloat(status.measurements.breast.value) / 2), pointA1.y);
         return status;
     }
+  },
+  {
+    description: (_status) => {return `Point P is halfway between points G and K. Draw guide up from P`},
+    action: (status) => {
+        const pointG = status.pattern.points['G'];
+        const pointK = status.pattern.points['K'];
+        status.pattern.points['P'] = setPoint((pointG.x + pointK.x) / 2, pointG.y, {u: true});
+        return status;
+    }
+  },
+  {
+    description: (status) => {
+      console.log('finding point E, we need front length and width of top of back');
+      console.log(status);
+      return `Point E is found by going up the front length - the width of top of back from 1 inch to the left of J up to mee the line up from P. E may be above the top line.`},
+    action: (status) => {
+      const pointJ = status.pattern.points['J'];
+      const pointP = status.pattern.points['P'];
+      status.pattern.points['E'] = findPointE(status, pointJ, pointP);
+      return status;
+    }
   }
 ];
+
+function widthTopBack(status){
+  console.log(status);
+  //returns the width of the top of the back, the quarter ellipse 1-2 around O
+  const point1 = status.pattern.points['1'];
+
+  //const point1 = {x: 20, y: 0};
+  const point2 = status.pattern.points['2']; 
+  const center = status.pattern.points['O'];
+  const p = perimeterEllipse(status, center, point1, point2);
+  return p / 4;
+}
+
+function findPointE(status, pointJ, pointP){
+  const pointj = setPoint(pointJ.x - (1 * status.precision), pointJ.y);
+  const frontLength = parseFloat(status.design.measurements.frontLength.value) * status.precision;
+  const wtbe = widthTopBack(status);
+  const wtb = Math.abs(status.pattern.points['2'].x - status.pattern.points['1'].x);
+  console.log(`wtb: ${wtb}, wtbe: ${wtbe}`);
+  //we need to find the y for point E
+  //we have a triangle, with lines a, b, and c.
+  //a is along x, from pointj to pointP
+  const a = Math.abs(pointP.x - pointj.x);
+  const c = frontLength - wtb;
+  //b is along y, on x of point P.
+  //a^2 + b^2 = c^2
+  //b = sqrt(c^2 - a^2)
+  const b = Math.round(Math.sqrt(c * c - a * a));
+  console.log(`pointj: ${pointj.x}, pointP: ${pointP.x}`);
+  console.log(`frontLength: ${frontLength}, widthTopBack: ${wtb}`);
+  console.log(`a: ${a}, b: ${b}, c: ${c}`);
+  console.log(`pointE.y = pointJ.y - b = ${pointJ.y} - ${b} = ${pointJ.y - b}`);
+  console.log(`distance from pointJ.y to pointE.y: ${b / status.precision}`);
+  const ey = Math.round(pointJ.y - b);
+  console.log(`pointJ.y: ${pointJ.y}, pointE.y: ${ey}`);
+  return setPoint(pointP.x, ey, {l: true});
+}
 
 export default { design_info, measurements, steps };

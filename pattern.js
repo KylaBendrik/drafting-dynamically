@@ -57,6 +57,35 @@ export function setCurve(status, startPoint, endPoint, quarter ){
   return status;
 
 }
+
+export function perimeterEllipse(_status, center, point1, point2){
+  //calculates 1/4 of the ellipse circumference, based on the quarter
+  //quarter 1, 2, 3, or 4, clockwise from 12 o'clock (so 1 is top right, 2 is bottom right, 3 is bottom left, 4 is top left)
+  //calculate center from start, end, and quarter
+  //find semi major and semi minor axes, not sure if point1 or point2 is larger
+  console.log(point1);
+  console.log(point2);
+  console.log(center);
+  let dist1 = Math.abs((center.x - point1.x)) + Math.abs((center.y - point1.y));
+  let dist2 = Math.abs((center.x - point2.x)) + Math.abs((center.y - point2.y));
+  //a is semi-major, the larger distance
+  //b is semi-minor, the smaller distance
+  let a = 0;
+  let b = 0;
+  if (dist1 > dist2){ 
+    a = dist1;
+    b = dist2;
+  } else {
+    a = dist2;
+    b = dist1;
+  }
+  //h is the eccentricity
+  console.log(`a ${a}, b ${b}`);
+  let h = Math.abs(a - b) * (a - b) / (Math.abs(a + b) * (a + b));
+  let perimeter = Math.PI * (a + b) * (1 + 3 * h / (10 + Math.sqrt(4 - 3 * h)));
+  return perimeter;
+  //return 10;
+}
 //convert numbers to printable strings
 
 function formatFraction(numInput){
@@ -95,7 +124,11 @@ function formatFraction(numInput){
 }
 
 export function printMeasure(measure, math = 1){
-  return `(${formatFraction(measure.value * math)} in.)`;
+  return printNum(measure.value, math);
+}
+
+export function printNum(num, math = 1){
+  return `(${formatFraction(num * math)} in.)`;
 }
 
 //create shapes for pattern based on steps actions
