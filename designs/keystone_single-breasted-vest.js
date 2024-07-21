@@ -3,6 +3,7 @@ import {
   setPoint,
   setLine,
   setPointLineY,
+  setPointLineX,
   setPointAlongLine,
   setCurve,
   printMeasure,
@@ -27,7 +28,7 @@ let measurements = {
   breast: {label: "Breast", value: 36},
   waist: {label: "Waist", value: 25},
   lengthOfFront: {label: "Length of Front", value: 23},
-  shoulder: {label: "Desired Shoulder Width", value: 3},
+  shoulder: {label: "Desired Shoulder Change", value: 1},
   neckline: {label: "Neckline", value: 10}
 };
 
@@ -201,6 +202,13 @@ const steps = [
     }
   },
   {
+    description: (status) => {return `Point 9 is 1/6 of the breast ${printMeasure(status.measurements.breast, 1/6)} to the left of O`},
+    action: (status) => {
+      status.pattern.points['9'] = setPoint(-inchesToPrecision(status, parseFloat(status.measurements.breast.value) / 6), 0, {d: true});
+      return status;
+    }
+  },
+  {
     description: (_status) => {return `Draw line from 2 to Z, and one from E to Y`},
     action: (status) => {
       status = setLine(status, '2', 'Z', 'dashed');
@@ -209,22 +217,39 @@ const steps = [
     }
   },
   {
-    description: (status) => {return `Point 3 is the desired shoulder width ${printMeasure(status.measurements.shoulder)} from point 2 along the line from 2 to Z`},
+    description: (_status) => {return `Point X is where the line from 2 to Z crosses the line down from 9`},
     action: (status) => {
       const point2 = status.pattern.points['2'];
       const pointZ = status.pattern.points['Z'];
-      status.pattern.points['3'] = setPointAlongLine(status, point2, pointZ, parseFloat(status.measurements.shoulder.value));
+      const point9 = status.pattern.points['9'];
+      let x9 = 0 + point9.x;
+      status.pattern.points['X'] = setPointLineX(status, point2, pointZ, x9);
+      return status;
+    }
+  },
+  {
+    description: (status) => {return `Point 3 is the desired shoulder change ${printMeasure(status.measurements.shoulder)} closer to point 2 along the line from 2 to X`},
+    action: (status) => {
+      const point2 = status.pattern.points['2'];
+      const pointX = status.pattern.points['X'];
+      status.pattern.points['3'] = setPointAlongLine(status, pointX, point2, parseFloat(status.measurements.shoulder.value));
       status = setLine(status, '2', '3');
       return status;
     }
   },
   {
-    description: (status) => {return `Point 14 is the desired shoulder width ${printMeasure(status.measurements.shoulder)} from point E along the line from E to Y`},
+    description: (_status) => {return `Point 14 is along the line from E to Y, the same distance as 3 to 2`},
     action: (status) => {
       const pointE = status.pattern.points['E'];
       const pointY = status.pattern.points['Y'];
-      status.pattern.points['14'] = setPointAlongLine(status, pointE, pointY, parseFloat(status.measurements.shoulder.value));
-      status = setLine(status, 'E', '14');
+      const point2 = status.pattern.points['2'];
+      const point3 = status.pattern.points['3'];
+      const a = Math.abs(point3.x - point2.x);
+      const b = Math.abs(point3.y - point2.y);
+      const c = a * a + b * b;
+      const distance = Math.sqrt(c);
+      status.pattern.points['14'] = setPointAlongLine(status, pointY, pointE, distance / status.precision);
+      status = setLine(status, '14', 'E');
       return status;
     }
   },
@@ -239,13 +264,29 @@ const steps = [
     }
   },
   {
-    description: (_status) => {return `curve the armhole from 3 to 12, and from 14 to 12`},
+    description: (_status) => {return `Point 00 is the same distance as Z to X, left of K, and halfway between Z and K up from K`},
     action: (status) => {
-      status = setCurve(status, '12', '3', 2);
-      status = setCurve(status, '14', '12', 3);
+      const pointZ = status.pattern.points['Z'];
+      const pointX = status.pattern.points['X'];
+      const pointK = status.pattern.points['K'];
+      const a = Math.abs(pointZ.x - pointX.x);
+      const b = Math.abs(pointZ.y - pointX.y);
+      const c = a * a + b * b;
+      const xdistance = Math.sqrt(c);
+      status.pattern.points['00'] = setPoint(pointK.x - xdistance, (pointK.y + pointZ.y)/2, {u: true, d: true});
       return status;
     }
-  }
+  },
+  {
+    description: (_status) => {return `curve the armhole from 00 to 12, from 14 to 12, and from 00 to 3`},
+    action: (status) => {
+      status = setCurve(status, '12', '3', 2);
+      status = setCurve(status, '00', '12', 3);
+      status = setCurve(status, '14', '00', 4);
+      return status;
+    }
+  },
+
 ];
 
 function widthTopBack(status){

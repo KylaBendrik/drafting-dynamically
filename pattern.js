@@ -45,6 +45,23 @@ export function setPointLineY(status, point1, point2, y, guides){
 
   return status;
 }
+export function setPointLineX(status, point1, point2, x, guides){
+  //find x value where line between point1 and point2 crosses y
+  console.log('setPointLineX');
+  console.log(point1);
+  console.log(point2);
+  console.log(x);
+  let x1 = point1.x;
+  let y1 = point1.y;
+  let x2 = point2.x;
+  let y2 = point2.y;
+
+  let y = Math.round(y1 + (y2 - y1) * (x - x1) / (x2 - x1));
+  console.log(`y ${y} = where line from ${x1}, ${y1} to ${x2}, ${y2} crosses x ${x}`);
+  status = setPoint(x, y, guides);
+
+  return status;
+}
 
 export function setPointAlongLine(status, point1, point2, to3inInches, guides){
   //find point distance from point1 along line to point2
@@ -56,9 +73,6 @@ export function setPointAlongLine(status, point1, point2, to3inInches, guides){
   let dist1to2 = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
   let distance = (to3inInches * status.precision ) / dist1to2;
   //let distance = to3inInches * status.precision;
-  console.log(`x1 ${x1}, y1 ${y1}, x2 ${x2}, y2 ${y2}, dist1to2 ${dist1to2}`);
-  console.log(`x2 - x1 ${x2 - x1}, y2 - y1 ${y2 - y1}`);
-  console.log(`x = x1 + (x2 - x1) * distance = ${x1} + (${x2} - ${x1}) * ${distance} = ${x1 + (x2 - x1) * distance}`);
 
   let x = Math.round(x1 + (x2 - x1) * distance);
   let y = Math.round(y1 + (y2 - y1) * distance);

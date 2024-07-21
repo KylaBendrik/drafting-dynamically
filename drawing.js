@@ -75,9 +75,6 @@ export function drawPattern(status) {
       radiusY = Math.abs(center.y - start.y);
 
     } else if (quarter === 2) {
-      console.log('quarter 2');
-      console.log(`point1 ${point1.x}, ${point1.y}`);
-      console.log(`point2 ${point2.x}, ${point2.y}`);
       //center is to the left of the start point and above the end point
       //set start and end points, based on direction from center
       if (point1.x > point2.x) {
@@ -112,10 +109,6 @@ export function drawPattern(status) {
       center = { x: start.x, y: end.y };
       radiusX = Math.abs(center.x - end.x);
       radiusY = Math.abs(center.y - start.y);
-      
-      console.log(`start ${start.x}, ${start.y}`);
-      console.log(`end ${end.x}, ${end.y}`);
-      console.log(`center ${center.x}, ${center.y}`);
 
     } else if (quarter === 4) {
       //center is to the right of the start point and below the end point
@@ -128,11 +121,11 @@ export function drawPattern(status) {
         start = point2;
         end = point1;
       }
-      startAngle = 0;
-      endAngle = 0.5 * Math.PI;
-      center = { x: start.x, y: end.y };
+      startAngle = 1 * Math.PI;
+      endAngle = 1.5 * Math.PI;
+      center = { x: end.x, y: start.y };
       radiusX = Math.abs(center.x - start.x);
-      radiusY = Math.abs(center.y - start.y);
+      radiusY = Math.abs(center.y - end.y);
     }
       //draw quarter ellipse from start to end, centered on center
       ctx.beginPath();
