@@ -5,6 +5,7 @@ import {
   setPointLineY,
   setPointLineX,
   setPointAlongLine,
+  setPointLineCircle,
   setCurve,
   printMeasure,
   printNum,
@@ -248,7 +249,7 @@ const steps = [
       const b = Math.abs(point3.y - point2.y);
       const c = a * a + b * b;
       const distance = Math.sqrt(c);
-      status.pattern.points['14'] = setPointAlongLine(status, pointY, pointE, distance / status.precision);
+      status.pattern.points['14'] = setPointAlongLine(status, pointE, pointY, distance / status.precision);
       status = setLine(status, '14', 'E');
       return status;
     }
@@ -412,6 +413,42 @@ const steps = [
       const pointA1 = status.pattern.points['A1'];
       const pointV = status.pattern.points['V'];
       status.pattern.points['15'] = setPoint(pointA1.x - inchesToPrecision(status, blade * 3/8), pointV.y + inchesToPrecision(status, 0.5));
+      return status;
+    }
+  },
+  {
+    description: (status) => {return `Point M is along the line from F to H, where the length of the front ${printMeasure(status.measurements.lengthOfFront)} from E meets it.`},
+    action: (status) => {
+      const pointF = status.pattern.points['F'];
+      const pointH = status.pattern.points['H'];
+      const pointE = status.pattern.points['E'];
+      //make a line from pointE. we don't know the angle, but we know the length.
+      const dist = parseFloat(status.measurements.lengthOfFront.value) * status.precision;
+      status.pattern.points['M'] = setPointLineCircle(status, pointF, pointH, pointE, dist);
+      status = setLine(status, 'H', 'M', 'dashed');
+      return status;
+    }
+  },
+  {
+    description: (status) => {return `Point e is below point 12, 1/2 of the way between 8 and M's height`},
+    action: (status) => {
+      const point8 = status.pattern.points['8'];
+      const pointM = status.pattern.points['M'];
+      const point12 = status.pattern.points['12'];
+      const y = point8.y - (point8.y - pointM.y) / 2;
+      status.pattern.points['e'] = setPoint(point12.x, y, {r: true});
+      return status;
+    }
+  },
+  {
+    description: (_status) => {return `Lowest front point (M1) is 1/2 the distance between H and 4  to the right of M. Draw a dashed line from e to M1`},
+    action: (status) => {
+      const pointH = status.pattern.points['H'];
+      const point4 = status.pattern.points['4'];
+      const pointM = status.pattern.points['M'];
+      const x = pointM.x + Math.abs(pointH.x - point4.x) / 2;
+      status.pattern.points['M1'] = setPoint(x, pointM.y);
+      status = setLine(status, 'e', 'M1', 'dashed');
       return status;
     }
   }

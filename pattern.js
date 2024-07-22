@@ -81,6 +81,38 @@ export function setPointAlongLine(status, point1, point2, to3inInches, guides){
   return status;
 }
 
+export function setPointLineCircle(status, point1, point2, center, radius){
+  //first, find the slope of the line between point1 and point2
+  let x1 = point1.x;
+  let y1 = point1.y;
+  let x2 = point2.x;
+  let y2 = point2.y;
+  let m = (y2 - y1) / (x2 - x1);
+  //then, find the intercept
+  let b = y1 - m * x1;
+
+  //then, find the equation of the circle
+  let k = center.x;
+  let h = center.y;
+
+  //equation of circle is (x-h)^2 + (y-k)^2 = r^2
+  //where h and k are the center of the circle, and r is the radius
+  //substitute y = mx + b into the circle equation
+
+  let a = 1 + m * m;
+  let b2 = 2 * (m * (b - h) - k);
+  let c = k * k + (b - h) * (b - h) - radius * radius;
+
+  //solve for x
+  let x = (-b2 - Math.sqrt(b2 * b2 - 4 * a * c)) / (2 * a);
+  let y = m * x + b;
+  status = setPoint(x, y);
+  //there may be two solutions, but we'll just use the first one for now
+
+  return status;
+
+}
+
 export function setCurve(status, startPoint, endPoint, quarter ){
   //quarter 1, 2, 3, or 4, clockwise from 12 o'clock (so 1 is top right, 2 is bottom right, 3 is bottom left, 4 is top left)
   let curve = {
@@ -203,3 +235,5 @@ export function makePattern(status){
 
   return status;
 }
+
+
