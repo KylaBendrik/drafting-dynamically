@@ -44,6 +44,15 @@ jobs:
       - name: Build Assets
         run: npm run build
 
+      - name: Make site directory
+        run: mkdir _site
+
+      - name: Copy index.html to site directory
+        run: cp index.html _site
+
+      - name: Copy assets to site directory
+        run: cp dist _site
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
 
