@@ -7,8 +7,10 @@ import {
   setPointAlongLine,
   setPointLineCircle,
   setCurve,
-  printMeasure,
+  distPointToPoint,
+  distABC,
   printNum,
+  printMeasure,
   perimeterEllipse
 } from '../pattern.js';
 
@@ -302,7 +304,7 @@ const steps = [
     description: (_status) => {return `Point U is 1/2 inch right of S`},
     action: (status) => {
       const pointS = status.pattern.points['S'];
-      status.pattern.points['U'] = setPoint(pointS.x + inchesToPrecision(status, 1), pointS.y);
+      status.pattern.points['U'] = setPoint(pointS.x + inchesToPrecision(status, 0.5), pointS.y);
       return status;
     }
   },
@@ -348,9 +350,9 @@ const steps = [
       const waist = (parseFloat(status.measurements.waist.value) * status.precision) / 2;
       const diff = (dist - waist) / 4;
       console.log(`dist: ${dist}, waist: ${waist}, diff: ${diff}`);
-      status.pattern.points['4'] = setPoint(pointQ.x - diff, pointQ.y, {d: true});
+      status.pattern.points['4'] = setPoint(pointQ.x - diff, pointQ.y);
       status.pattern.points['5'] = setPoint(pointQ.x + diff, pointQ.y);
-      status.pattern.points['6'] = setPoint(pointR.x - diff, pointR.y, {d: true});
+      status.pattern.points['6'] = setPoint(pointR.x - diff, pointR.y);
       status.pattern.points['7'] = setPoint(pointR.x + diff, pointR.y);
       console.log(status);
       return status;
@@ -378,13 +380,13 @@ const steps = [
     }
   },
   {
-    description: (status) => {return `Point 9b is 1/4 of the waist ${printMeasure(status.measurements.waist,  - 1/4)} - 1 inch  to the left of D`},
+    description: (status) => {return `Point 9b is 1/4 of the waist ${printMeasure(status.measurements.waist,  - 1/4)} + 1 inch  to the left of D`},
     action: (status) => {
       const pointD = status.pattern.points['D'];
       const waist = parseFloat(status.measurements.waist.value) / 4;
-      const distD9 = inchesToPrecision(status, waist - 1)
+      const distD9 = inchesToPrecision(status, waist + 1)
       console.log(`distD9 = ${waist} + 1 = ${distD9}`);
-      status.pattern.points['9b'] = setPoint(pointD.x - distD9, pointD.y, {d: true});
+      status.pattern.points['9b'] = setPoint(pointD.x - distD9, pointD.y);
       return status;
     }
   },
@@ -398,21 +400,11 @@ const steps = [
       const point7 = status.pattern.points['7'];
       const distH4 = Math.abs(pointH.x - point4.x)
       const dist56 = Math.abs(point5.x - point6.x)
-      const waist = ((parseFloat(status.measurements.waist.value) / 4 - 1) * status.precision);
+      const waist = ((parseFloat(status.measurements.waist.value) / 4 - 1.5) * status.precision);
       const dist78 = Math.abs(waist - distH4 - dist56);
-      status.pattern.points['8'] = setPoint(point7.x + dist78, pointH.y, {d:true});
+      status.pattern.points['8'] = setPoint(point7.x + dist78, pointH.y);
       status = setLine(status, '12', '8');
       status = setLine(status, '12', '9b');
-      return status;
-    }
-  },
-  {
-    description: (_status) => {return `Point 15 is 3/8 of the blade measure left of A1 and 1/2 inch below V`},
-    action: (status) => {
-      const blade = parseFloat(status.measurements.blade.value);
-      const pointA1 = status.pattern.points['A1'];
-      const pointV = status.pattern.points['V'];
-      status.pattern.points['15'] = setPoint(pointA1.x - inchesToPrecision(status, blade * 3/8), pointV.y + inchesToPrecision(status, 0.5));
       return status;
     }
   },
@@ -437,6 +429,7 @@ const steps = [
       const point12 = status.pattern.points['12'];
       const y = point8.y - (point8.y - pointM.y) / 2;
       status.pattern.points['e'] = setPoint(point12.x, y, {r: true});
+      status = setLine(status, 'e', '12', 'dashed');
       return status;
     }
   },
@@ -451,9 +444,103 @@ const steps = [
       status = setLine(status, 'e', 'M1', 'dashed');
       return status;
     }
+  },
+  {
+    description: (_status) => {return `On the line from M1 to e, points B and D are at thirds.`},
+    action: (status) => {
+      const pointM1 = status.pattern.points['M1'];
+      const pointe = status.pattern.points['e'];
+      const dist = Math.round(distPointToPoint(pointM1, pointe) / 3) / status.precision;
+      status.pattern.points['b'] = setPointAlongLine(status, pointM1, pointe, dist);
+      status.pattern.points['d'] = setPointAlongLine(status, pointM1, pointe, dist * 2);
+      status = setLine(status, 'b', '5');
+      status = setLine(status, 'd', '7');
+      return status;
+    }
+  },
+  {
+    description: (_status) => {return `True up the other side of the dart from W to 6 to find c`},
+    action: (status) => {
+      let distdw = distABC(status, 'd', '7', 'W');
+      const pointW = status.pattern.points['W'];
+      const point6 = status.pattern.points['6'];
+      let disty = distdw - distPointToPoint(pointW, point6);
+      let y = point6.y + disty;
+      status.pattern.points['c'] = setPoint(point6.x, y);
+      status = setLine(status, '6', 'c');
+      status = setLine(status, 'b', 'c');
+      return status;
+    }
+  },
+  {
+    description: (_status) => {return `True up the other side of the dart from V to 4 to find a`},
+    action: (status) => {
+      let distbV = distABC(status, 'b', '5', 'V');
+      const pointV = status.pattern.points['V'];
+      const point4 = status.pattern.points['4'];
+      const disty = distbV - distPointToPoint(pointV, point4);
+      const y = point4.y + disty;
+      status.pattern.points['a'] = setPoint(point4.x, y);
+      status = setLine(status, '4', 'a');
+      status = setLine(status, 'M1', 'a');
+      return status;
+    }
+  },
+  {
+    description: (_status) => {return `Point f is 1/2 inch right of e`},
+    action: (status) => {
+      const pointe = status.pattern.points['e'];
+      status.pattern.points['f'] = setPoint(pointe.x + inchesToPrecision(status, 0.5), pointe.y);
+      status = setLine(status, '9b', 'f');
+      status = setLine(status, '8', 'e');
+      status = setLine(status, 'd', 'e');
+      return status;
+    }
+  },
+  {
+    description: (_status) => {return `Point 15 is 3/8 of the blade measure left of A1 and 1/2 inch below V`},
+    action: (status) => {
+      const blade = parseFloat(status.measurements.blade.value);
+      const pointA1 = status.pattern.points['A1'];
+      const pointV = status.pattern.points['V'];
+      status.pattern.points['15'] = setPoint(pointA1.x - inchesToPrecision(status, blade * 3/8), pointV.y + inchesToPrecision(status, 0.5));
+      return status;
+    }
+  },
+  {
+    description: (_status) => {return `Point 16 is 1/3 of the way from f to D`},
+    action: (status) => {
+      const pointf = status.pattern.points['f'];
+      const pointD = status.pattern.points['D'];
+      const dist = Math.abs(pointf.x - pointD.x) / 3;
+      status.pattern.points['16'] = setPoint(pointf.x + dist, pointf.y);
+      return status;
+    }
+  },
+  {
+    description: (_status) => {return `Point D1 is right below D. Point g is right of f. D to D1 and D1 to g are the same distance`},
+    action: (status) => {
+      const pointD = status.pattern.points['D'];
+      const pointf = status.pattern.points['f'];
+      
+      //D1 is in the center, g and D are on the circumference. the line from D1 to D is at 12 o'clock, the line from D1 to G is at 8 o'clock
+      let angle = 50;
+      const angleRad = angle * (Math.PI / 180);
+      let r = (pointD.y - pointf.y)/(1 + Math.sin(angleRad));
+      let xg = pointD.x + r * Math.cos(angleRad);
+
+      let pointD1 = {x: pointD.x, y: pointD.y - r};
+      let pointG = {x: xg, y: pointf.y};
+      status.pattern.points['D1'] = setPoint(pointD1.x, pointD1.y);
+      status.pattern.points['g'] = setPoint(pointG.x, pointG.y);
+      status = setLine(status, 'D', 'D1');
+      status = setLine(status, 'D1', 'g');
+      status = setLine(status, '15', '16', 'dashed');
+      status = setLine(status, 'g', 'f', 'dashed');
+      return status;
+    }
   }
 ];
-
 function widthTopBack(status){
   console.log(status);
   //returns the width of the top of the back, the quarter ellipse 1-2 around O
@@ -491,5 +578,7 @@ function distOtoA(status){
   const a = status.measurements.heightUnderArm.value;
   return b - a;
 }
+
+
 
 export default { design_info, measurements, steps };

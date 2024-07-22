@@ -24,9 +24,6 @@ export function setLine(status, start, end, style = 'solid', length = 'defined')
     length: length //either defined or continued (extending past end point)
   };
   status.pattern.lines.push(line);
-  console.log('setLine');
-  console.log(status.pattern.lines);
-  console.log(line);
 
   return status;
 }
@@ -40,24 +37,18 @@ export function setPointLineY(status, point1, point2, y, guides){
   let y2 = point2.y;
 
   let x = Math.round(x1 + (x2 - x1) * (y - y1) / (y2 - y1));
-  console.log(`x ${x} = where line from ${x1}, ${y1} to ${x2}, ${y2} crosses y ${y}`);
   status = setPoint(x, y, guides);
 
   return status;
 }
 export function setPointLineX(status, point1, point2, x, guides){
   //find x value where line between point1 and point2 crosses y
-  console.log('setPointLineX');
-  console.log(point1);
-  console.log(point2);
-  console.log(x);
   let x1 = point1.x;
   let y1 = point1.y;
   let x2 = point2.x;
   let y2 = point2.y;
 
   let y = Math.round(y1 + (y2 - y1) * (x - x1) / (x2 - x1));
-  console.log(`y ${y} = where line from ${x1}, ${y1} to ${x2}, ${y2} crosses x ${x}`);
   status = setPoint(x, y, guides);
 
   return status;
@@ -130,9 +121,6 @@ export function perimeterEllipse(_status, center, point1, point2){
   //quarter 1, 2, 3, or 4, clockwise from 12 o'clock (so 1 is top right, 2 is bottom right, 3 is bottom left, 4 is top left)
   //calculate center from start, end, and quarter
   //find semi major and semi minor axes, not sure if point1 or point2 is larger
-  console.log(point1);
-  console.log(point2);
-  console.log(center);
   let dist1 = Math.abs((center.x - point1.x)) + Math.abs((center.y - point1.y));
   let dist2 = Math.abs((center.x - point2.x)) + Math.abs((center.y - point2.y));
   //a is semi-major, the larger distance
@@ -147,11 +135,22 @@ export function perimeterEllipse(_status, center, point1, point2){
     b = dist1;
   }
   //h is the eccentricity
-  console.log(`a ${a}, b ${b}`);
   let h = Math.abs(a - b) * (a - b) / (Math.abs(a + b) * (a + b));
   let perimeter = Math.PI * (a + b) * (1 + 3 * h / (10 + Math.sqrt(4 - 3 * h)));
   return perimeter;
   //return 10;
+}
+export function distPointToPoint(point1, point2){
+  return Math.round(Math.sqrt((point1.x - point2.x) * (point1.x - point2.x) + (point1.y - point2.y) * (point1.y - point2.y)));
+}
+
+export function distABC(status, pointa, pointb, pointc){
+  const a = status.pattern.points[pointa];
+  const b = status.pattern.points[pointb];
+  const c = status.pattern.points[pointc];
+
+
+  return Math.abs(distPointToPoint(a, b) + distPointToPoint(b, c));
 }
 //convert numbers to printable strings
 

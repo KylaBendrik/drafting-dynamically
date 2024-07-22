@@ -40,93 +40,8 @@ export function drawPattern(status) {
   }
 
   for (let curve of pixelPattern.curves) {
-    //assume quarter of an ellipse
-    let point1 = pixelPattern.points[curve.start];
-    let point2 = pixelPattern.points[curve.end];
-    let quarter = curve.quarter;
-    //quarter 1, 2, 3, or 4, clockwise from 12 o'clock (so 1 is top right, 2 is bottom right, 3 is bottom left, 4 is top left)
-    //calculate center from start, end, and quarter
-    let start = { x: 0, y: 0 };
-    let end = { x: 0, y: 0 };
-    let center = { x: 0, y: 0 };
-    let startAngle = 0;
-    let endAngle = 0;
-    let radiusX = 0;
-    let radiusY = 0;
-
-
-
-    if (quarter === 1) {
-      //center is below the start point and to the left of the end point
-      //set start and end points, based on direction from center
-      if (point1.x < point2.x) {
-        //point1 is to the left of point2
-        start = point1;
-        end = point2;
-      } else {
-        start = point2;
-        end = point1;
-      }
-      startAngle = Math.PI;
-      endAngle = 1.5 * Math.PI;
-      center = { x: start.x, y: end.y };
-      radiusX = Math.abs(center.x - start.x);
-      radiusY = Math.abs(center.y - start.y);
-
-    } else if (quarter === 2) {
-      //center is to the left of the start point and above the end point
-      //set start and end points, based on direction from center
-      if (point1.x > point2.x) {
-        //point1 is to the right of point2
-        start = point1;
-        end = point2;
-      } else {
-        start = point2;
-        end = point1;
-      }
-      startAngle = 2 * Math.PI;
-      endAngle = 0.5 * Math.PI;
-      center = { x: end.x, y: start.y };
-      radiusX = Math.abs(center.x - start.x);
-      radiusY = Math.abs(center.y - end.y);
-    } else if (quarter === 3) {
-      //center is above the start point and to the right of the end point
-      //set start and end points, based on direction from center
-      if (point1.x > point2.x) {
-        //point1 is to the right of point2
-        start = point1;
-        end = point2;
-      } else {
-        start = point2;
-        end = point1;
-      }
-      startAngle = 0.5 * Math.PI;
-      endAngle = Math.PI;
-      center = { x: start.x, y: end.y };
-      radiusX = Math.abs(center.x - end.x);
-      radiusY = Math.abs(center.y - start.y);
-
-    } else if (quarter === 4) {
-      //center is to the right of the start point and below the end point
-      //set start and end points, based on direction from center
-      if (point1.x < point2.x) {
-        //point1 is to the left of point2
-        start = point1;
-        end = point2;
-      } else {
-        start = point2;
-        end = point1;
-      }
-      startAngle = 1 * Math.PI;
-      endAngle = 1.5 * Math.PI;
-      center = { x: end.x, y: start.y };
-      radiusX = Math.abs(center.x - start.x);
-      radiusY = Math.abs(center.y - end.y);
-    }
-      //draw quarter ellipse from start to end, centered on center
-      ctx.beginPath();
-      ctx.ellipse(center.x, center.y, radiusX, radiusY, 0, startAngle, endAngle);
-      ctx.stroke();
+    drawQuarterEllipse(ctx, status, pixelPattern, curve);
+    
   }
 
   status.canvasInfo.drawing = drawing;
@@ -179,7 +94,7 @@ function drawLine(ctx, start, end, continued = false) {
     let dx = end.x - start.x;
     let dy = end.y - start.y;
     let length = Math.sqrt(dx * dx + dy * dy);
-    let scale = 10 / length;
+    let scale = 400 / length;
     let offsetX = dx * scale;
     let offsetY = dy * scale;
     ctx.lineTo(end.x + offsetX, end.y + offsetY);
@@ -187,4 +102,99 @@ function drawLine(ctx, start, end, continued = false) {
     ctx.lineTo(end.x, end.y);
   }
   ctx.stroke();
+}
+
+function drawQuarterEllipse(ctx, _status, pixelPattern, curve, style = 'solid') {
+  //assume quarter of an ellipse
+  let point1 = pixelPattern.points[curve.start];
+  let point2 = pixelPattern.points[curve.end];
+  let quarter = curve.quarter;
+  //quarter 1, 2, 3, or 4, clockwise from 12 o'clock (so 1 is top right, 2 is bottom right, 3 is bottom left, 4 is top left)
+  //calculate center from start, end, and quarter
+  let start = { x: 0, y: 0 };
+  let end = { x: 0, y: 0 };
+  let center = { x: 0, y: 0 };
+  let startAngle = 0;
+  let endAngle = 0;
+  let radiusX = 0;
+  let radiusY = 0;
+
+
+
+  if (quarter === 1) {
+    //center is below the start point and to the left of the end point
+    //set start and end points, based on direction from center
+    if (point1.x < point2.x) {
+      //point1 is to the left of point2
+      start = point1;
+      end = point2;
+    } else {
+      start = point2;
+      end = point1;
+    }
+    startAngle = 1 * Math.PI;
+    endAngle = 0.5 * Math.PI;
+    center = { x: start.x, y: end.y };
+    radiusX = Math.abs(center.x - start.x);
+    radiusY = Math.abs(center.y - start.y);
+
+  } else if (quarter === 2) {
+    //center is to the left of the start point and above the end point
+    //set start and end points, based on direction from center
+    if (point1.x > point2.x) {
+      //point1 is to the right of point2
+      start = point1;
+      end = point2;
+    } else {
+      start = point2;
+      end = point1;
+    }
+    startAngle = 2 * Math.PI;
+    endAngle = 0.5 * Math.PI;
+    center = { x: end.x, y: start.y };
+    radiusX = Math.abs(center.x - start.x);
+    radiusY = Math.abs(center.y - end.y);
+  } else if (quarter === 3) {
+    //center is above the start point and to the right of the end point
+    //set start and end points, based on direction from center
+    if (point1.x > point2.x) {
+      //point1 is to the right of point2
+      start = point1;
+      end = point2;
+    } else {
+      start = point2;
+      end = point1;
+    }
+    startAngle = 0.5 * Math.PI;
+    endAngle = Math.PI;
+    center = { x: start.x, y: end.y };
+    radiusX = Math.abs(center.x - end.x);
+    radiusY = Math.abs(center.y - start.y);
+
+  } else if (quarter === 4) {
+    //center is to the right of the start point and below the end point
+    //set start and end points, based on direction from center
+    if (point1.x < point2.x) {
+      //point1 is to the left of point2
+      start = point1;
+      end = point2;
+    } else {
+      start = point2;
+      end = point1;
+    }
+    startAngle = 1 * Math.PI;
+    endAngle = 1.5 * Math.PI;
+    center = { x: end.x, y: start.y };
+    radiusX = Math.abs(center.x - start.x);
+    radiusY = Math.abs(center.y - end.y);
+  }
+    //draw quarter ellipse from start to end, centered on center
+    if (curve.style === 'dashed') {
+      ctx.setLineDash([5, 5]);
+    } else {  //solid
+      ctx.setLineDash([]);
+    }
+    ctx.beginPath();
+    ctx.ellipse(center.x, center.y, radiusX, radiusY, 0, startAngle, endAngle);
+    ctx.stroke();
 }
