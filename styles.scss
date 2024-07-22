@@ -6,12 +6,12 @@ $input-color: desaturate(lighten($brand-color-light, 10%), 10%);
 body {
   display: grid;
   grid-template-columns: 3fr 2fr;
-  grid-template-rows: 8% 10% 10% 72%;
-  gap: 10px;
+  grid-template-rows: 8% 10% 10% 68%;
+  gap: 0px;
   justify-items: center;
   align-items: stretch;
-  margin: 20px;
   font-family: serif;
+  margin: 0px;
 }
 
 h2 {
@@ -23,21 +23,32 @@ h2 {
 
 #websiteNav {
   background-color: $brand-color;
-  justify-self: stretch;
+  position:fixed;
+  width: 100%;
+  justify-content: space-between;
   grid-row: 1;
   grid-column: 1 / span 2;
-
+  display: flex;
+  flex-flow: row;
   img {
     height: 50px;
     margin: 10px;
   }
-  a {
-    color: white;
-    font-size: 20px;
-    margin: 10px;
-    text-decoration: none;
-  
+  #nav {
+    align-self: center;
+    flex-grow: 4;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    a {
+      color: white;
+      font-size: 20px;
+      margin: 10px;
+      text-decoration: none;
+      
+    }
   }
+  
 }
 
 #designInfo {
