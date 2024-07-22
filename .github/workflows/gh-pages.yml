@@ -51,7 +51,7 @@ jobs:
         run: cp index.html _site
 
       - name: Copy assets to site directory
-        run: cp dist _site
+        run: cp -r dist _site
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
