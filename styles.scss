@@ -4,7 +4,6 @@ $brand-color-dark: darken($brand-color, 20%);
 $input-color: desaturate(lighten($brand-color-light, 10%), 10%);
 
 body {
-  background-color: green;
   display: grid;
   grid-template-columns: 3fr 2fr;
   grid-template-rows: 10% 20% 65%;
