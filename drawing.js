@@ -44,7 +44,6 @@ export function drawPattern(status) {
     let point1 = pixelPattern.points[curve.start];
     let point2 = pixelPattern.points[curve.end];
     let quarter = curve.quarter;
-    console.log(`quarter ${quarter}`);
     //quarter 1, 2, 3, or 4, clockwise from 12 o'clock (so 1 is top right, 2 is bottom right, 3 is bottom left, 4 is top left)
     //calculate center from start, end, and quarter
     let start = { x: 0, y: 0 };
@@ -85,15 +84,12 @@ export function drawPattern(status) {
         start = point2;
         end = point1;
       }
-      console.log(`start ${start.x}, ${start.y}`);
-      console.log(`end ${end.x}, ${end.y}`);
       startAngle = 2 * Math.PI;
       endAngle = 0.5 * Math.PI;
       center = { x: end.x, y: start.y };
       radiusX = Math.abs(center.x - start.x);
       radiusY = Math.abs(center.y - end.y);
     } else if (quarter === 3) {
-      console.log('quarter 3');
       //center is above the start point and to the right of the end point
       //set start and end points, based on direction from center
       if (point1.x > point2.x) {
