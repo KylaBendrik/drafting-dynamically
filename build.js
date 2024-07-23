@@ -1,3 +1,5 @@
+/* global process */
+
 import esbuild from 'esbuild';
 import { sassPlugin } from 'esbuild-sass-plugin'
 

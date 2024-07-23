@@ -41,7 +41,6 @@ export function drawPattern(status) {
 
   for (let curve of pixelPattern.curves) {
     drawQuarterEllipse(ctx, status, pixelPattern, curve);
-    
   }
 
   status.canvasInfo.drawing = drawing;
@@ -104,7 +103,7 @@ function drawLine(ctx, start, end, continued = false) {
   ctx.stroke();
 }
 
-function drawQuarterEllipse(ctx, _status, pixelPattern, curve, style = 'solid') {
+function drawQuarterEllipse(ctx, _status, pixelPattern, curve) {
   //assume quarter of an ellipse
   let point1 = pixelPattern.points[curve.start];
   let point2 = pixelPattern.points[curve.end];
@@ -188,13 +187,13 @@ function drawQuarterEllipse(ctx, _status, pixelPattern, curve, style = 'solid') 
     radiusX = Math.abs(center.x - start.x);
     radiusY = Math.abs(center.y - end.y);
   }
-    //draw quarter ellipse from start to end, centered on center
-    if (curve.style === 'dashed') {
-      ctx.setLineDash([5, 5]);
-    } else {  //solid
-      ctx.setLineDash([]);
-    }
-    ctx.beginPath();
-    ctx.ellipse(center.x, center.y, radiusX, radiusY, 0, startAngle, endAngle);
-    ctx.stroke();
+  //draw quarter ellipse from start to end, centered on center
+  if (curve.style === 'dashed') {
+    ctx.setLineDash([5, 5]);
+  } else {  //solid
+    ctx.setLineDash([]);
+  }
+  ctx.beginPath();
+  ctx.ellipse(center.x, center.y, radiusX, radiusY, 0, startAngle, endAngle);
+  ctx.stroke();
 }

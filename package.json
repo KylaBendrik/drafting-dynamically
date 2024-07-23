@@ -12,8 +12,11 @@
   "license": "MIT",
   "type": "module",
   "devDependencies": {
+    "@eslint/js": "^9.7.0",
     "esbuild": "^0.23.0",
     "esbuild-sass-plugin": "^3.3.1",
+    "eslint": "^9.7.0",
+    "globals": "^15.8.0",
     "http-server": "^14.1.1"
   }
 }
