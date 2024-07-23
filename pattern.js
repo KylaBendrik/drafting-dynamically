@@ -37,9 +37,9 @@ export function setPointLineY(status, point1, point2, y, guides){
   let y2 = point2.y;
 
   let x = Math.round(x1 + (x2 - x1) * (y - y1) / (y2 - y1));
-  status = setPoint(x, y, guides);
+  let point = setPoint(x, y, guides);
 
-  return status;
+  return point;
 }
 export function setPointLineX(status, point1, point2, x, guides){
   //find x value where line between point1 and point2 crosses y
@@ -49,9 +49,9 @@ export function setPointLineX(status, point1, point2, x, guides){
   let y2 = point2.y;
 
   let y = Math.round(y1 + (y2 - y1) * (x - x1) / (x2 - x1));
-  status = setPoint(x, y, guides);
+  let point = setPoint(x, y, guides);
 
-  return status;
+  return point;
 }
 
 export function setPointAlongLine(status, point1, point2, to3inInches, guides){
