@@ -80,6 +80,9 @@ h2 {
   grid-row: 3 / span 2;
   grid-column: 1;
   align-self: center;
+  justify-self: stretch;
+  display:flex;
+  justify-content: center;
 }
 
 #canvas {
