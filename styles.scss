@@ -79,11 +79,11 @@ h2 {
   background-color: white;
   grid-row: 3 / span 2;
   grid-column: 1;
+  align-self: center;
 }
 
 #canvas {
   border: 2px solid black;
-  margin-top: 20px;
 }
 
   #measurementsList {
