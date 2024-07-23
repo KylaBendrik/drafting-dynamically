@@ -479,12 +479,26 @@ const steps = [
     action: (status) => {
       let distbV = distABC(status, 'b', '5', 'V');
       const pointV = status.pattern.points['V'];
+      const pointQ = status.pattern.points['Q'];
       const point4 = status.pattern.points['4'];
-      const disty = distbV - distPointToPoint(pointV, point4);
-      const y = point4.y + disty;
-      status.pattern.points['a'] = setPoint(point4.x, y);
+      const pointb = status.pattern.points['b'];
+      // const disty = distbV - distPointToPoint(pointV, point4);
+      // //const y = point4.y + disty;
+      // //isntead of straight down, use slope from line V_Q
+      // //y = mx + b
+      // //m is slope, b is y intercept
+      //a is across from 
+      const m = (pointV.y - pointQ.y) / (pointV.x - pointQ.x);
+      const b = point4.y - m * point4.x; //?
+      const y = pointb.y
+      const x = (y - b) / m;
+
+      
+      status.pattern.points['a'] = setPoint(x, y);
       status = setLine(status, '4', 'a');
       status = setLine(status, 'M1', 'a');
+
+    
       //front mysterious point
       status.pattern.points['M2'] = setPointLineY(status, status.pattern.points['M'], status.pattern.points['H'], (status.pattern.points['b'].y + status.pattern.points['c'].y) / 2);
       status = setLine(status, 'M1', 'M2');
