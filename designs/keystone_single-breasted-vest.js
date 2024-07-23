@@ -6,6 +6,7 @@ import {
   setPointLineX,
   setPointAlongLine,
   setPointLineCircle,
+  setPointLineLine,
   setCurve,
   distPointToPoint,
   distABC,
@@ -183,7 +184,7 @@ const steps = [
       const pointG = status.pattern.points['G'];
       const dist = parseFloat(status.measurements.breast.value) / 12;
       status.pattern.points['N'] = setPointAlongLine(status, pointF, pointG, dist);
-      status = setCurve(status, 'E', 'N', 2);
+      
       return status;
     }
   },
@@ -565,21 +566,67 @@ const steps = [
       return status;
     }
   },
+
+  {
+    description:  (_status) => {return `Go left from G to the front 1/2 inch to find G1 and shape the front from N, passing the G1, and touching at H.`},
+    action: (status) => {
+      const pointG = status.pattern.points['G'];
+      const pointN = status.pattern.points['N'];
+      const pointH = status.pattern.points['H'];
+      const dist = inchesToPrecision(status, 0.5);
+      status.pattern.points['G1'] = setPoint(pointG.x - dist, pointG.y);
+      
+      return status;
+    }
+  },
   {
     description: (_status) => {return `The form from E to N is for a front to button up to the neck, and usually has a standing collar. If, however, it is desired to have an open front, measure from E down the front line to point 20, the opening wanted, which may be 10, 12 or 14 inches, always remembering that the width of the top of the back must be subtracted.`},
     action: (status) => {
       const pointE = status.pattern.points['E'];
       const pointF = status.pattern.points['F'];
       const pointH = status.pattern.points['H'];
+      const pointN = status.pattern.points['N'];
+      const pointG1 = status.pattern.points['G1'];
       const wtb = widthTopBack(status);
       //const point20 = setPoint(pointE.x, pointE.y - inchesToPrecision(status, parseFloat(status.design.measurements.neckline.value)));
       const necklineLength = parseFloat(status.design.measurements.neckline.value) * status.precision - wtb;
       const point20 = setPointLineCircle(status, pointF, pointH, pointE, necklineLength);
       status.pattern.points['20'] = point20;
-      status = setLine(status, 'E', '20', 'dashed');
+      console.log('point 20 and G1')
+      console.log(point20);
+      console.log(pointG1);
+      const point21a = setPointLineLine(status, point20, pointE, pointN, pointG1)
+      const point21b = setPointLineLine(status, point20, pointE, pointH, pointG1)
+
+      //if neckline extends below G1, don't connect to G1
+      if(point21a.y < pointG1.y && point20.y > pointN.y){  
+
+        status.pattern.points[`21`] = point21a;
+        
+        status = setLine(status, '21', 'G1');
+        status = setLine(status, 'H', 'G1');
+        
+        status = setCurve(status, 'E', 'N', 2, 'dashed');
+        status = setLine(status, 'E', '21', 'dashed');
+      } else if (point20.y <= pointN.y){
+
+        status = setLine(status, 'H', 'G1');
+        status = setLine(status, 'N', 'G1')
+        
+        status = setCurve(status, 'E', 'N', 2);
+      } else {
+
+        status.pattern.points[`21`] = point21b;
+
+        status = setLine(status, '21', 'H');
+        
+        status = setCurve(status, 'E', 'N', 2, 'dashed');
+        status = setLine(status, 'E', '21', 'dashed');
+      }
+      
       return status;
     }
-  }
+  },
 ];
 function widthTopBack(status){
   console.log(status);
