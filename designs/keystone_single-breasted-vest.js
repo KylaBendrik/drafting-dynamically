@@ -183,6 +183,7 @@ const steps = [
       const pointG = status.pattern.points['G'];
       const dist = parseFloat(status.measurements.breast.value) / 12;
       status.pattern.points['N'] = setPointAlongLine(status, pointF, pointG, dist);
+      status = setCurve(status, 'E', 'N', 2);
       return status;
     }
   },
@@ -561,6 +562,21 @@ const steps = [
       status = setLine(status, 'D1', 'g');
       status = setLine(status, '15', '16', 'dashed');
       status = setLine(status, 'g', 'f', 'dashed');
+      return status;
+    }
+  },
+  {
+    description: (_status) => {return `The form from E to N is for a front to button up to the neck, and usually has a standing collar. If, however, it is desired to have an open front, measure from E down the front line to point 20, the opening wanted, which may be 10, 12 or 14 inches, always remembering that the width of the top of the back must be subtracted.`},
+    action: (status) => {
+      const pointE = status.pattern.points['E'];
+      const pointF = status.pattern.points['F'];
+      const pointH = status.pattern.points['H'];
+      const wtb = widthTopBack(status);
+      //const point20 = setPoint(pointE.x, pointE.y - inchesToPrecision(status, parseFloat(status.design.measurements.neckline.value)));
+      const necklineLength = parseFloat(status.design.measurements.neckline.value) * status.precision - wtb;
+      const point20 = setPointLineCircle(status, pointF, pointH, pointE, necklineLength);
+      status.pattern.points['20'] = point20;
+      status = setLine(status, 'E', '20', 'dashed');
       return status;
     }
   }
