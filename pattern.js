@@ -37,9 +37,9 @@ export function setPointLineY(status, point1, point2, y, guides){
   let y2 = point2.y;
 
   let x = Math.round(x1 + (x2 - x1) * (y - y1) / (y2 - y1));
-  status = setPoint(x, y, guides);
+  let point = setPoint(x, y, guides);
 
-  return status;
+  return point;
 }
 export function setPointLineX(status, point1, point2, x, guides){
   //find x value where line between point1 and point2 crosses y
@@ -49,9 +49,9 @@ export function setPointLineX(status, point1, point2, x, guides){
   let y2 = point2.y;
 
   let y = Math.round(y1 + (y2 - y1) * (x - x1) / (x2 - x1));
-  status = setPoint(x, y, guides);
+  let point = setPoint(x, y, guides);
 
-  return status;
+  return point;
 }
 
 export function setPointAlongLine(status, point1, point2, to3inInches, guides){
@@ -95,8 +95,8 @@ export function setPointLineCircle(status, point1, point2, center, radius){
   let c = k * k + (b - h) * (b - h) - radius * radius;
 
   //solve for x
-  let x = (-b2 - Math.sqrt(b2 * b2 - 4 * a * c)) / (2 * a);
-  let y = m * x + b;
+  let x = Math.round((-b2 - Math.sqrt(b2 * b2 - 4 * a * c)) / (2 * a));
+  let y = Math.round(m * x + b);
   status = setPoint(x, y);
   //there may be two solutions, but we'll just use the first one for now
 
@@ -104,12 +104,37 @@ export function setPointLineCircle(status, point1, point2, center, radius){
 
 }
 
-export function setCurve(status, startPoint, endPoint, quarter ){
+export function setPointLineLine(status, point1, point2, point3, point4){
+  //find the intersection of two lines, defined by points 1 and 2, and points 3 and 4
+  let x1 = point1.x;
+  let y1 = point1.y;
+  let x2 = point2.x;
+  let y2 = point2.y;
+  let x3 = point3.x;
+  let y3 = point3.y;
+  let x4 = point4.x;
+  let y4 = point4.y;
+
+  let m1 = (y2 - y1) / (x2 - x1);
+  let m2 = (y4 - y3) / (x4 - x3);
+  let b1 = y1 - m1 * x1;
+  let b2 = y3 - m2 * x3;
+
+  let x = (b2 - b1) / (m1 - m2);
+  let y = m1 * x + b1;
+  status = setPoint(x, y);
+
+  return status;
+
+}
+
+export function setCurve(status, startPoint, endPoint, quarter, style = 'solid'){
   //quarter 1, 2, 3, or 4, clockwise from 12 o'clock (so 1 is top right, 2 is bottom right, 3 is bottom left, 4 is top left)
   let curve = {
     start: startPoint,
     end: endPoint,
-    quarter: quarter
+    quarter: quarter,
+    style: style
   };
   status.pattern.curves.push(curve);
   return status;

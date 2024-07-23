@@ -6,6 +6,7 @@ import {
   setPointLineX,
   setPointAlongLine,
   setPointLineCircle,
+  setPointLineLine,
   setCurve,
   distPointToPoint,
   distABC,
@@ -54,11 +55,13 @@ const steps = [
     }
   },
   {
-    description: (status) => { return `From point 1, go down the back length ${printMeasure(status.design.measurements.backLength)} to define point B` },
-    action: (status) => {
-      status.pattern.points['B'] = setPoint(0, inchesToPrecision(status, parseFloat(status.design.measurements.backLength.value)), { l: true });
-      return status;
-    }
+      description: (status) => {return `From point 1, go down the back length ${printMeasure(status.design.measurements.backLength)} to define point B`},
+      action: (status) => {
+          let point1 = status.pattern.points['1'];
+          let pointb_y = point1.y + inchesToPrecision(status, parseFloat(status.design.measurements.backLength.value));
+          status.pattern.points['B'] = setPoint(0, pointb_y, { l: true });
+          return status;
+      }
   },
   {
     description: (status) => { return `From point B, go up the height under arm ${printMeasure(status.measurements.heightUnderArm)} to define point A` },
@@ -142,10 +145,12 @@ const steps = [
   {
     description: (_status) => { return `Point P is halfway between points G and K. Draw guide up from P` },
     action: (status) => {
-      const pointG = status.pattern.points['G'];
-      const pointK = status.pattern.points['K'];
-      status.pattern.points['P'] = setPoint((pointG.x + pointK.x) / 2, pointG.y, { u: true });
-      return status;
+        const pointG = status.pattern.points['G'];
+        const pointK = status.pattern.points['K'];
+        const diffGK = Math.abs(pointG.x - pointK.x);
+        
+        status.pattern.points['P'] = setPoint((pointG.x + pointK.x) / 2, pointG.y, {u: true});
+        return status;
     }
   },
   {
@@ -181,6 +186,7 @@ const steps = [
       const pointG = status.pattern.points['G'];
       const dist = parseFloat(status.measurements.breast.value) / 12;
       status.pattern.points['N'] = setPointAlongLine(status, pointF, pointG, dist);
+      
       return status;
     }
   },
@@ -269,16 +275,13 @@ const steps = [
     }
   },
   {
-    description: (_status) => { return `Point 00 is the same distance as Z to X, left of K, and halfway between Z and K up from K` },
+    description: (_status) => {return `Point 00 is the same distance as Z.x to X.x, left of K, and halfway between Z and K up from K`},
     action: (status) => {
       const pointZ = status.pattern.points['Z'];
       const pointX = status.pattern.points['X'];
       const pointK = status.pattern.points['K'];
-      const a = Math.abs(pointZ.x - pointX.x);
-      const b = Math.abs(pointZ.y - pointX.y);
-      const c = a * a + b * b;
-      const xdistance = Math.sqrt(c);
-      status.pattern.points['00'] = setPoint(pointK.x - xdistance, (pointK.y + pointZ.y) / 2, { u: true, d: true });
+      const xdistance = Math.abs(pointZ.x - pointX.x);
+      status.pattern.points['00'] = setPoint(pointK.x - xdistance, (pointK.y + pointZ.y)/2, {u: true, d: true});
       return status;
     }
   },
@@ -287,7 +290,7 @@ const steps = [
     action: (status) => {
       status = setCurve(status, '12', '3', 2);
       status = setCurve(status, '00', '12', 3);
-      status = setCurve(status, '14', '00', 4);
+      status = setLine(status, '14', '00');
       return status;
     }
   },
@@ -417,7 +420,8 @@ const steps = [
       const pointH = status.pattern.points['H'];
       const pointE = status.pattern.points['E'];
       //make a line from pointE. we don't know the angle, but we know the length.
-      const dist = parseFloat(status.measurements.lengthOfFront.value) * status.precision;
+      const wtb = widthTopBack(status);
+      const dist = parseFloat(status.measurements.lengthOfFront.value) * status.precision - wtb;
       status.pattern.points['M'] = setPointLineCircle(status, pointF, pointH, pointE, dist);
       status = setLine(status, 'H', 'M', 'dashed');
       return status;
@@ -475,16 +479,33 @@ const steps = [
     }
   },
   {
-    description: (_status) => { return `True up the other side of the dart from V to 4 to find a` },
+    description: (_status) => {return `True up the other side of the dart from V to 4 to find a. M2 is along the line from M to H, at the height halfway between b and c`},
     action: (status) => {
       let distbV = distABC(status, 'b', '5', 'V');
       const pointV = status.pattern.points['V'];
+      const pointQ = status.pattern.points['Q'];
       const point4 = status.pattern.points['4'];
-      const disty = distbV - distPointToPoint(pointV, point4);
-      const y = point4.y + disty;
-      status.pattern.points['a'] = setPoint(point4.x, y);
+      const pointb = status.pattern.points['b'];
+      // const disty = distbV - distPointToPoint(pointV, point4);
+      // //const y = point4.y + disty;
+      // //isntead of straight down, use slope from line V_Q
+      // //y = mx + b
+      // //m is slope, b is y intercept
+      //a is across from 
+      const m = (pointV.y - pointQ.y) / (pointV.x - pointQ.x);
+      const b = point4.y - m * point4.x; //?
+      const y = pointb.y
+      const x = (y - b) / m;
+
+      
+      status.pattern.points['a'] = setPoint(x, y);
       status = setLine(status, '4', 'a');
       status = setLine(status, 'M1', 'a');
+
+    
+      //front mysterious point
+      status.pattern.points['M2'] = setPointLineY(status, status.pattern.points['M'], status.pattern.points['H'], (status.pattern.points['b'].y + status.pattern.points['c'].y) / 2);
+      status = setLine(status, 'M1', 'M2');
       return status;
     }
   },
@@ -500,12 +521,17 @@ const steps = [
     }
   },
   {
-    description: (_status) => { return `Point 15 is 3/8 of the blade measure left of A1 and 1/2 inch below V` },
+    description: (_status) => {return `Point 15 is 12 of the blade measure left of A1 and 1/2 inch below V`},
     action: (status) => {
       const blade = parseFloat(status.measurements.blade.value);
       const pointA1 = status.pattern.points['A1'];
+      const pointD = status.pattern.points['D'];
+      const point12 = status.pattern.points['12'];
+      const point9b = status.pattern.points['9b'];
       const pointV = status.pattern.points['V'];
-      status.pattern.points['15'] = setPoint(pointA1.x - inchesToPrecision(status, blade * 3 / 8), pointV.y + inchesToPrecision(status, 0.5));
+      const point12_9bIntersect = setPointLineY(status, point12, point9b, pointV.y);
+      const pointA1_DIntersect = setPointLineY(status, pointA1, pointD, pointV.y);
+      status.pattern.points['15'] = setPoint((pointA1_DIntersect.x + point12_9bIntersect.x) / 2, pointV.y + inchesToPrecision(status, 0.5));
       return status;
     }
   },
@@ -541,10 +567,70 @@ const steps = [
       status = setLine(status, 'g', 'f', 'dashed');
       return status;
     }
-  }
-];
+  },
 
-function widthTopBack(status) {
+  {
+    description:  (_status) => {return `Go left from G to the front 1/2 inch to find G1 and shape the front from N, passing the G1, and touching at H.`},
+    action: (status) => {
+      const pointG = status.pattern.points['G'];
+      const pointN = status.pattern.points['N'];
+      const pointH = status.pattern.points['H'];
+      const dist = inchesToPrecision(status, 0.5);
+      status.pattern.points['G1'] = setPoint(pointG.x - dist, pointG.y);
+      
+      return status;
+    }
+  },
+  {
+    description: (_status) => {return `The form from E to N is for a front to button up to the neck, and usually has a standing collar. If, however, it is desired to have an open front, measure from E down the front line to point 20, the opening wanted, which may be 10, 12 or 14 inches, always remembering that the width of the top of the back must be subtracted.`},
+    action: (status) => {
+      const pointE = status.pattern.points['E'];
+      const pointF = status.pattern.points['F'];
+      const pointH = status.pattern.points['H'];
+      const pointN = status.pattern.points['N'];
+      const pointG1 = status.pattern.points['G1'];
+      const wtb = widthTopBack(status);
+      //const point20 = setPoint(pointE.x, pointE.y - inchesToPrecision(status, parseFloat(status.design.measurements.neckline.value)));
+      const necklineLength = parseFloat(status.design.measurements.neckline.value) * status.precision - wtb;
+      const point20 = setPointLineCircle(status, pointF, pointH, pointE, necklineLength);
+      status.pattern.points['20'] = point20;
+      console.log('point 20 and G1')
+      console.log(point20);
+      console.log(pointG1);
+      const point21a = setPointLineLine(status, point20, pointE, pointN, pointG1)
+      const point21b = setPointLineLine(status, point20, pointE, pointH, pointG1)
+
+      //if neckline extends below G1, don't connect to G1
+      if(point21a.y < pointG1.y && point20.y > pointN.y){  
+
+        status.pattern.points[`21`] = point21a;
+        
+        status = setLine(status, '21', 'G1');
+        status = setLine(status, 'H', 'G1');
+        
+        status = setCurve(status, 'E', 'N', 2, 'dashed');
+        status = setLine(status, 'E', '21', 'dashed');
+      } else if (point20.y <= pointN.y){
+
+        status = setLine(status, 'H', 'G1');
+        status = setLine(status, 'N', 'G1')
+        
+        status = setCurve(status, 'E', 'N', 2);
+      } else {
+
+        status.pattern.points[`21`] = point21b;
+
+        status = setLine(status, '21', 'H');
+        
+        status = setCurve(status, 'E', 'N', 2, 'dashed');
+        status = setLine(status, 'E', '21', 'dashed');
+      }
+      
+      return status;
+    }
+  },
+];
+function widthTopBack(status){
   console.log(status);
   //returns the width of the top of the back, the quarter ellipse 1-2 around O
   const point1 = status.pattern.points['1'];
@@ -562,12 +648,17 @@ function findPointE(status, pointJ, pointP) {
 
   //the "width of top back" not clear in the instructions. But it seems that 1/12 of the breast value gets the right result
   //I did try from O to 2, as well as finding the circumference of the ellipse, but neither seemed to work.
-  const wtb2 = Math.abs(parseFloat(status.design.measurements.breast.value) / 12 * status.precision);
+  //const wtb = Math.abs(parseFloat(status.design.measurements.breast.value) / 12 * status.precision);
+  
+  //o-2 is the width of the top back
+  const wtb = widthTopBack(status);
+  
+  
   //we need to find the y for point E
   //we have a triangle, with lines a, b, and c.
   //a is along x, from pointj to pointP
   const a = Math.abs(pointP.x - pointj.x);
-  const c = frontLength - wtb2;
+  const c = frontLength - wtb;
   //b is along y, on x of point P.
   //a^2 + b^2 = c^2
   //b = sqrt(c^2 - a^2)
