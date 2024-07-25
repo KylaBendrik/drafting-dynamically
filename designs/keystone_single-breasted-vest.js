@@ -357,12 +357,10 @@ const steps = [
 
       const waist = (parseFloat(status.measurements.waist.value) * status.precision) / 2;
       const diff = (dist - waist) / 4;
-      console.log(`dist: ${dist}, waist: ${waist}, diff: ${diff}`);
       status.pattern.points['4'] = setPoint(pointQ.x - diff, pointQ.y);
       status.pattern.points['5'] = setPoint(pointQ.x + diff, pointQ.y);
       status.pattern.points['6'] = setPoint(pointR.x - diff, pointR.y);
       status.pattern.points['7'] = setPoint(pointR.x + diff, pointR.y);
-      console.log(status);
       return status;
     }
   },
@@ -380,10 +378,6 @@ const steps = [
       const wY = status.pattern.points['V'].y - inchesToPrecision(status, 0.5);
       status.pattern.points['W'] = setPointLineY(status, pointT, pointR, wY);
 
-      status = setLine(status, 'V', '4');
-      status = setLine(status, 'V', '5');
-      status = setLine(status, 'W', '6');
-      status = setLine(status, 'W', '7');
       return status;
     }
   },
@@ -393,7 +387,6 @@ const steps = [
       const pointD = status.pattern.points['D'];
       const waist = parseFloat(status.measurements.waist.value) / 4;
       const distD9 = inchesToPrecision(status, waist + 1)
-      console.log(`distD9 = ${waist} + 1 = ${distD9}`);
       status.pattern.points['9b'] = setPoint(pointD.x - distD9, pointD.y);
       return status;
     }
@@ -411,8 +404,7 @@ const steps = [
       const waist = ((parseFloat(status.measurements.waist.value) / 4 - 1.5) * status.precision);
       const dist78 = Math.abs(waist - distH4 - dist56);
       status.pattern.points['8'] = setPoint(point7.x + dist78, pointH.y);
-      status = setLine(status, '12', '8');
-      status = setLine(status, '12', '9b');
+
       return status;
     }
   },
@@ -426,7 +418,6 @@ const steps = [
       const wtb = widthTopBack(status);
       const dist = parseFloat(status.measurements.lengthOfFront.value) * status.precision - wtb;
       status.pattern.points['M'] = setPointLineCircle(status, pointF, pointH, pointE, dist);
-      status = setLine(status, 'H', 'M', 'dashed');
       return status;
     }
   },
@@ -462,8 +453,6 @@ const steps = [
       const dist = Math.round(distPointToPoint(pointM1, pointe) / 3) / status.precision;
       status.pattern.points['b'] = setPointAlongLine(status, pointM1, pointe, dist);
       status.pattern.points['d'] = setPointAlongLine(status, pointM1, pointe, dist * 2);
-      status = setLine(status, 'b', '5');
-      status = setLine(status, 'd', '7');
       return status;
     }
   },
@@ -476,8 +465,6 @@ const steps = [
       let disty = distdw - distPointToPoint(pointW, point6);
       let y = point6.y + disty;
       status.pattern.points['c'] = setPoint(point6.x, y);
-      status = setLine(status, '6', 'c');
-      status = setLine(status, 'b', 'c');
       return status;
     }
   },
@@ -502,7 +489,6 @@ const steps = [
 
       
       status.pattern.points['a'] = setPoint(x, y);
-      status = setLine(status, '4', 'a');
       status = setLine(status, 'M1', 'a');
 
     
@@ -517,9 +503,7 @@ const steps = [
     action: (status) => {
       const pointe = status.pattern.points['e'];
       status.pattern.points['f'] = setPoint(pointe.x + inchesToPrecision(status, 0.5), pointe.y);
-      status = setLine(status, '9b', 'f');
-      status = setLine(status, '8', 'e');
-      status = setLine(status, 'd', 'e');
+
       return status;
     }
   },
@@ -600,9 +584,6 @@ const steps = [
       const necklineLength = parseFloat(status.design.measurements.neckline.value) * status.precision - wtb;
       const point20 = setPointLineCircle(status, pointF, pointH, pointE, necklineLength);
       status.pattern.points['20'] = point20;
-      console.log('point 20 and G1')
-      console.log(point20);
-      console.log(pointG1);
       const point21a = setPointLineLine(status, point20, pointE, pointN, pointG1)
       const point21b = setPointLineLine(status, point20, pointE, pointH, pointG1)
 
@@ -641,6 +622,22 @@ const steps = [
       }
 
       status = setLine(status, 'M2', 'H');
+
+      //side seam curves
+      status = setCurve(status, {start: '12', touch: '8', end: 'e'}, 0, 'bezier');
+      status = setCurve(status, {start: '12', touch: '9b', end: 'e'}, 0, 'bezier');
+
+      //dart 1 curves
+      status = setCurve(status, {start: 'W', touch: '6', end: 'c'}, 0, 'bezier');
+      status = setCurve(status, {start: 'W', touch: '7', end: 'd'}, 0, 'bezier');
+
+      //dart 2 curves
+      status = setCurve(status, {start: 'V', touch: '4', end: 'a'}, 0, 'bezier');
+      status = setCurve(status, {start: 'V', touch: '5', end: 'b'}, 0, 'bezier');
+
+      //lower edge curves     
+      status = setCurve(status, {start: 'b', end: 'c'}, 0, 'bezier');
+      status = setCurve(status, {start: 'd', end: 'e'}, 0, 'bezier');
       return status;
     }
   },

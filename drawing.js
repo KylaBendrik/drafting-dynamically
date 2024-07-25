@@ -227,8 +227,8 @@ function drawBezier(ctx, _status, pixelPattern, curve) {
   
     if (touch === undefined) {
       //if there is no touch point, control point is at the corner of start and end points
-      cx = start.x
-      cy = end.y
+      cx = (start.x + end.x)/2
+      cy = (start.y + end.y)/2
     } else {
       //if there is a touch point, control point is calculated so the line should be close to the touch point
       cx = 2 * touch.x - 0.5 * (start.x + end.x)
