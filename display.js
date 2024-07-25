@@ -5,7 +5,7 @@ import { drawPattern } from './drawing.js';
 const defaultCanvasSize = { x: 500, y: 500 };
 const defaultPixelsPerInch = 32;
 const defaultCanvasMargin = defaultPixelsPerInch / 2;
-const defaultDesign = designs[0];
+const defaultDesign = designs[1];
 const defaultPrecision = 8; //1/8 of an inch
 
 let status = {
@@ -64,6 +64,10 @@ function inputMeasurements(measurements){
     input.type = "number";
     input.id = measurement;
     input.value = `${measurements[measurement].value}`;
+
+    if (measurements[measurement].step) {
+      input.step = measurements[measurement].step;
+    }
 
     input.addEventListener('input', function() {
       redrawStepsFromMeasure(input, input.value);
@@ -129,6 +133,8 @@ status = makePattern(status);
 inputSteps(status.pattern.steps);
 drawPattern(status);
 
+console.log(status);
+
 function redrawStepsFromMeasure(input, value) {
   stepsList.innerHTML = '';
   status.measurements[input.id].value = parseFloat(value);
@@ -138,14 +144,24 @@ function redrawStepsFromMeasure(input, value) {
 }
 
 designSelect.addEventListener('change', function() {
-  status.design = designs[designSelect.value];
-  status.measurements = status.design.measurements;
-  status.steps_functions = status.design.steps;
+  let design = designs[designSelect.value];
+  console.log(design);
+
+  status.design = design;
+  status.measurements = design.measurements;
+  status.pattern = {
+    points: {},
+    lines: [],
+    curves: [],
+    steps: []
+  }
+
   measurementsList.innerHTML = '';
   stepsList.innerHTML = '';
   inputDesign(status.design);
   inputMeasurements(status.design.measurements);
   status = makePattern(status);
+  console.log('after makePattern', status);
   inputSteps(status.pattern.steps);
   drawPattern(status);
 });

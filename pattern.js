@@ -224,10 +224,14 @@ export function printNum(num, math = 1){
 //create shapes for pattern based on steps actions
 function createShapes(status){
   let stepFuncs = status.design.steps;
+  console.log('createShapes', status);
+  console.log('createShapes stepFuncs', stepFuncs);
 
   stepFuncs.forEach(step => {
     let action = step.action;
     status = action(status);
+
+    console.log('createShapes after action', status);
   });
 
   return status;
@@ -253,9 +257,11 @@ export function makePattern(status){
     curves: [],
     steps: []
   };
+  console.log('makePattern', status);
   status = writeSteps(status);
+  console.log('makePattern after writeSteps', status);
   status = createShapes(status); //runs through steps.ations, populating points, lines, and curves
-
+  console.log('makePattern after createShapes', status);
   return status;
 }
 

@@ -32,7 +32,7 @@ let measurements = {
   breast: { label: "Breast", value: 36 },
   waist: { label: "Waist", value: 25 },
   lengthOfFront: { label: "Length of Front", value: 23 },
-  shoulder: { label: "Desired Shoulder Change", value: 1 },
+  shoulder: { label: "Desired Shoulder Change", value: 1, step: 0.25 },
   neckline: { label: "Neckline", value: 10 }
 };
 
@@ -128,8 +128,6 @@ const steps = [
     action: (status) => {
       const blade = parseFloat(status.measurements.blade.value);
       status.pattern.points['2'] = setPoint(0 - inchesToPrecision(status, blade * 3 / 16), 0);
-      //draw curve from 2 to 1, centered around O
-      console.log(status)
       
       status = setCurve(status, {start: '1', end: '2'}, 3, 'ellipse');
       return status;
@@ -583,15 +581,12 @@ const steps = [
       return status;
     }
   },
-
   {
     description:  (_status) => {return `Go left from G to the front 1/2 inch to find G1 and shape the front from N, passing the G1, and touching at H.`},
     action: (status) => {
       const pointG = status.pattern.points['G'];
       const dist = inchesToPrecision(status, 0.5);
       status.pattern.points['G1'] = setPoint(pointG.x - dist, pointG.y);
-      console.log('point G1');
-      console.log(status.pattern.points['G1']);
       
       return status;
     }
@@ -613,7 +608,6 @@ const steps = [
       const point21b = setPointLineLine(status, point20, pointE, pointH, pointG1)
 
       if(point20.y <= pointN.y){
-        console.log(`point 20: ${point20.y} is less than or equal to pointN: ${pointN.y}`);
 
         status = setCurve(status, {start: 'E', end: 'N'}, 2, 'ellipse', 'dashed');
         status = setCurve(status, {start: 'N', touch: 'G1', end: 'H'}, 0, 'bezier');
@@ -626,19 +620,14 @@ const steps = [
       
             //if neckline extends below G1, don't connect to G1
             if(point21a.y < pointG1.y){  
-              console.log(`point 21a: ${point21a.y} is less than pointG1: ${pointG1.y}, and point20: ${point20.y} is greater than pointN: ${pointN.y}`);
-              
+
               status.pattern.points[`21`] = point21a;
               
               status = setLine(status, 'E', '21');
-              // console.log('set line 21 to G1');
                status = setCurve(status, {start: '21', touch: 'G1', end: 'H'}, 0, 'bezier');
-              // status = setLine(status, '21', 'G1');
-              // status = setLine(status, 'G1', 'H');
+
             } else {
       
-              console.log(`point 21b: ${point21b.y} is greater than pointG1: ${pointG1.y}`);  
-              
               status.pattern.points[`21`] = point21b;
               
               status = setLine(status, 'E', '21');
@@ -751,7 +740,6 @@ const steps = [
   },
 ];
 function widthTopBack(status){
-  console.log(status);
   //returns the width of the top of the back, the quarter ellipse 1-2 around O
   const point1 = status.pattern.points['1'];
 
@@ -793,6 +781,8 @@ function distOtoA(status) {
   return b - a;
 }
 
-
-
-export default { design_info, measurements, steps };
+export const keystone_single = {
+  design_info: design_info,
+  measurements: measurements,
+  steps: steps
+}

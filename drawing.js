@@ -41,10 +41,7 @@ export function drawPattern(status) {
   }
 
   for (let curve of pixelPattern.curves) {
-    console.log('drawing curve');
-    console.log(curve);
     if (curve.style === 'dashed') {
-      console.log('dashed');
       ctx.setLineDash([5, 5]);
       ctx.strokeStyle = 'gray';
     } else {  //solid
@@ -242,11 +239,6 @@ function drawBezier(ctx, _status, pixelPattern, curve) {
     //if control point is defined, use that
     cp1 = control;
   }
-  console.log(curve)
-
-  console.log(`start: ${start.x}, ${start.y}`);
-  console.log(`cp1: ${cp1.x}, ${cp1.y}`);
-  console.log(`end: ${end.x}, ${end.y}`);
 
     ctx.moveTo(start.x, start.y);
     ctx.strokeStyle = 'black';
