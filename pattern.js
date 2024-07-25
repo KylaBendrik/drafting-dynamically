@@ -5,30 +5,18 @@ export function inchesToPrecision(status, inches){
   return Math.round(inches * precision);
 }
 
-export function setPoint(x, y, guides){
+export function setPoint(x, y, guides, visible = true){
   let tempGuide = {u: false, d: false, l: false, r: false};
   if (guides === undefined){
     guides = tempGuide;
   } else {
     guides = {...tempGuide, ...guides};
   }
-  let point = {x: x, y: y, guides: guides};
+  let point = {x: Math.round(x), y: Math.round(y), guides: guides, visible: visible};
   return point;
 }
 
-export function setLine(status, start, end, style = 'solid', length = 'defined'){
-  let line = {
-    start: start,
-    end: end,
-    style: style,
-    length: length //either defined or continued (extending past end point)
-  };
-  status.pattern.lines.push(line);
-
-  return status;
-}
-
-export function setPointLineY(status, point1, point2, y, guides){
+export function setPointLineY(status, point1, point2, y, guides, visible = true){
   //find x value where line between point1 and point2 crosses y
 
   let x1 = point1.x;
@@ -37,11 +25,11 @@ export function setPointLineY(status, point1, point2, y, guides){
   let y2 = point2.y;
 
   let x = Math.round(x1 + (x2 - x1) * (y - y1) / (y2 - y1));
-  let point = setPoint(x, y, guides);
+  let point = setPoint(x, y, guides, visible);
 
   return point;
 }
-export function setPointLineX(status, point1, point2, x, guides){
+export function setPointLineX(status, point1, point2, x, guides, visible = true){
   //find x value where line between point1 and point2 crosses y
   let x1 = point1.x;
   let y1 = point1.y;
@@ -49,12 +37,12 @@ export function setPointLineX(status, point1, point2, x, guides){
   let y2 = point2.y;
 
   let y = Math.round(y1 + (y2 - y1) * (x - x1) / (x2 - x1));
-  let point = setPoint(x, y, guides);
+  let point = setPoint(x, y, guides, visible);
 
   return point;
 }
 
-export function setPointAlongLine(status, point1, point2, to3inInches, guides){
+export function setPointAlongLine(status, point1, point2, to3inInches, guides, visible = true){
   //find point distance from point1 along line to point2
   let x1 = point1.x;
   let y1 = point1.y;
@@ -67,12 +55,12 @@ export function setPointAlongLine(status, point1, point2, to3inInches, guides){
 
   let x = Math.round(x1 + (x2 - x1) * distance);
   let y = Math.round(y1 + (y2 - y1) * distance);
-  status = setPoint(x, y, guides);
+  status = setPoint(x, y, guides, visible);
 
   return status;
 }
 
-export function setPointLineCircle(status, point1, point2, center, radius){
+export function setPointLineCircle(status, point1, point2, center, radius, visible = true){
   //first, find the slope of the line between point1 and point2
   let x1 = point1.x;
   let y1 = point1.y;
@@ -97,14 +85,14 @@ export function setPointLineCircle(status, point1, point2, center, radius){
   //solve for x
   let x = Math.round((-b2 - Math.sqrt(b2 * b2 - 4 * a * c)) / (2 * a));
   let y = Math.round(m * x + b);
-  status = setPoint(x, y);
+  status = setPoint(x, y, undefined, visible);
   //there may be two solutions, but we'll just use the first one for now
 
   return status;
 
 }
 
-export function setPointLineLine(status, point1, point2, point3, point4){
+export function setPointLineLine(status, point1, point2, point3, point4, visible = true){
   //find the intersection of two lines, defined by points 1 and 2, and points 3 and 4
   let x1 = point1.x;
   let y1 = point1.y;
@@ -122,18 +110,29 @@ export function setPointLineLine(status, point1, point2, point3, point4){
 
   let x = (b2 - b1) / (m1 - m2);
   let y = m1 * x + b1;
-  status = setPoint(x, y);
+  status = setPoint(x, y, {}, visible);
 
   return status;
 
 }
+export function setLine(status, start, end, style = 'solid', length = 'defined'){
+  let line = {
+    start: start,
+    end: end,
+    style: style,
+    length: length //either defined or continued (extending past end point)
+  };
+  status.pattern.lines.push(line);
 
-export function setCurve(status, startPoint, endPoint, quarter, style = 'solid'){
+  return status;
+}
+
+export function setCurve(status, points, quarter, type = 'ellipse', style = 'solid'){
   //quarter 1, 2, 3, or 4, clockwise from 12 o'clock (so 1 is top right, 2 is bottom right, 3 is bottom left, 4 is top left)
   let curve = {
-    start: startPoint,
-    end: endPoint,
+    points: points,
     quarter: quarter,
+    type: type,
     style: style
   };
   status.pattern.curves.push(curve);

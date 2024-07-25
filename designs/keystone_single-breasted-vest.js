@@ -130,7 +130,8 @@ const steps = [
       status.pattern.points['2'] = setPoint(0 - inchesToPrecision(status, blade * 3 / 16), 0);
       //draw curve from 2 to 1, centered around O
       console.log(status)
-      status = setCurve(status, '1', '2', 3);
+      
+      status = setCurve(status, {start: '1', end: '2'}, 3, 'ellipse');
       return status;
     }
   },
@@ -281,16 +282,18 @@ const steps = [
       const pointX = status.pattern.points['X'];
       const pointK = status.pattern.points['K'];
       const xdistance = Math.abs(pointZ.x - pointX.x);
-      status.pattern.points['00'] = setPoint(pointK.x - xdistance, (pointK.y + pointZ.y)/2, {u: true, d: true});
+      const point00 = setPoint(pointK.x - xdistance, (pointK.y + pointZ.y)/2, {u: true, d: true}, );
+      status.pattern.points['00'] = point00;
+      status.pattern.points['00K'] = setPoint(point00.x, pointK.y, {}, false);
       return status;
     }
   },
   {
     description: (_status) => { return `curve the armhole from 00 to 12, from 14 to 12, and from 00 to 3` },
     action: (status) => {
-      status = setCurve(status, '12', '3', 2);
-      status = setCurve(status, '00', '12', 3);
-      status = setLine(status, '14', '00');
+      
+      status = setCurve(status, {start:'14', touch: '00', end: '12'}, 0, 'bezier');
+      status = setCurve(status, {start: '3', end: '12'}, 2, 'ellipse')
       return status;
     }
   },
@@ -560,6 +563,7 @@ const steps = [
       let pointD1 = { x: pointD.x, y: pointD.y - r };
       let pointG = { x: xg, y: pointf.y };
       status.pattern.points['D1'] = setPoint(pointD1.x, pointD1.y);
+      status.pattern.points['D1'].visible = false;
       status.pattern.points['g'] = setPoint(pointG.x, pointG.y);
       status = setLine(status, 'D', 'D1');
       status = setLine(status, 'D1', 'g');
@@ -577,6 +581,8 @@ const steps = [
       const pointH = status.pattern.points['H'];
       const dist = inchesToPrecision(status, 0.5);
       status.pattern.points['G1'] = setPoint(pointG.x - dist, pointG.y);
+      console.log('point G1');
+      console.log(status.pattern.points['G1']);
       
       return status;
     }
@@ -600,32 +606,41 @@ const steps = [
       const point21a = setPointLineLine(status, point20, pointE, pointN, pointG1)
       const point21b = setPointLineLine(status, point20, pointE, pointH, pointG1)
 
-      //if neckline extends below G1, don't connect to G1
-      if(point21a.y < pointG1.y && point20.y > pointN.y){  
+      if(point20.y <= pointN.y){
+        console.log(`point 20: ${point20.y} is less than or equal to pointN: ${pointN.y}`);
+
+        status = setCurve(status, {start: 'E', end: 'N'}, 2, 'ellipse');
+        status = setCurve(status, {start: 'N', touch: 'G1', end: 'H'}, 0, 'bezier');
 
         status.pattern.points[`21`] = point21a;
-        
-        status = setLine(status, '21', 'G1');
-        status = setLine(status, 'H', 'G1');
-        
-        status = setCurve(status, 'E', 'N', 2, 'dashed');
-        status = setLine(status, 'E', '21', 'dashed');
-      } else if (point20.y <= pointN.y){
+        status.pattern.points[`21`].visible = false
+      } else {
+        status = setCurve(status, {start: 'E', end: 'N'}, 2, 'ellipse', 'dashed');
+      }
 
-        status = setLine(status, 'H', 'G1');
-        status = setLine(status, 'N', 'G1')
+
+
+      //if neckline extends below G1, don't connect to G1
+      if(point21a.y < pointG1.y){  
+        console.log(`point 21a: ${point21a.y} is less than pointG1: ${pointG1.y}, and point20: ${point20.y} is greater than pointN: ${pointN.y}`);
         
-        status = setCurve(status, 'E', 'N', 2);
+        status.pattern.points[`21`] = point21a;
+        
+        status = setLine(status, 'E', '21');
+        // console.log('set line 21 to G1');
+        status = setCurve(status, {start: '21', touch: 'G1', end: 'H'}, 0, 'bezier');
+
       } else {
 
-        status.pattern.points[`21`] = point21b;
-
-        status = setLine(status, '21', 'H');
+        console.log(`point 21b: ${point21b.y} is greater than pointG1: ${pointG1.y}`);  
         
-        status = setCurve(status, 'E', 'N', 2, 'dashed');
-        status = setLine(status, 'E', '21', 'dashed');
+        status.pattern.points[`21`] = point21b;
+        
+        status = setLine(status, 'E', '21');
+        status = setLine(status, '21', 'H');
       }
-      
+
+      status = setLine(status, 'M2', 'H');
       return status;
     }
   },

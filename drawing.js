@@ -23,14 +23,15 @@ export function drawPattern(status) {
   }
 
   for (let line of pixelPattern.lines) {
-
     let start = pixelPattern.points[line.start];
     let end = pixelPattern.points[line.end];
 
     if (line.style === 'dashed') {
       ctx.setLineDash([5, 5]);
+      ctx.strokeStyle = 'gray';
     } else {  //solid
       ctx.setLineDash([]);
+      ctx.strokeStyle = 'black';
     }
     if (line.length === 'defined') {
       drawLine(ctx, start, end);
@@ -40,7 +41,21 @@ export function drawPattern(status) {
   }
 
   for (let curve of pixelPattern.curves) {
-    drawQuarterEllipse(ctx, status, pixelPattern, curve);
+    console.log('drawing curve');
+    console.log(curve);
+    if (curve.style === 'dashed') {
+      console.log('dashed');
+      ctx.setLineDash([5, 5]);
+      ctx.strokeStyle = 'gray';
+    } else {  //solid
+      ctx.setLineDash([]);
+      ctx.strokeStyle = 'black';
+    }
+    if (curve.type === 'bezier') {
+      drawBezier(ctx, status, pixelPattern, curve);
+    } else {
+      drawQuarterEllipse(ctx, status, pixelPattern, curve);
+    }
   }
 
   status.canvasInfo.drawing = drawing;
@@ -51,39 +66,44 @@ function drawPoint(ctx, status, pixelPattern, pointLabel) {
   let point = pixelPattern.points[pointLabel];
   let pointSize = status.canvasInfo.pointSize;
   let margin = status.canvasInfo.margin;
+  let visible = point.visible;
   let x = point.x;
   let y = point.y;
   let guides = point.guides;
 
-  ctx.beginPath();
-  //make a small solid black square for the point
+  if (visible === true) {
+    ctx.beginPath();
+    //make a small solid black square for the point
 
-  ctx.rect(x - pointSize / 2, y - pointSize / 2, pointSize, pointSize);
-  ctx.fill();
-  //set label to the upper right by 15 pixels
-  ctx.fillText(pointLabel, x + 5, y - 5);
+    ctx.rect(x - pointSize / 2, y - pointSize / 2, pointSize, pointSize);
+    ctx.fill();
+    //set label to the upper right by 15 pixels
+    ctx.fillText(pointLabel, x + 5, y - 5);
 
-  ctx.setLineDash([5, 5]);
-  if (guides.u) {
-    ctx.moveTo(x, y);
-    ctx.lineTo(x, margin);
-    ctx.stroke();
+    ctx.setLineDash([5, 5]);
+    ctx.strokeStyle = 'gray';
+    if (guides.u) {
+      ctx.moveTo(x, y);
+      ctx.lineTo(x, margin);
+      ctx.stroke();
+    }
+    if (guides.d) {
+      ctx.moveTo(x, y);
+      ctx.lineTo(x, pixelPattern.canvasSize.y - margin);
+      ctx.stroke();
+    }
+    if (guides.l) {
+      ctx.moveTo(x, y);
+      ctx.lineTo(margin, y);
+      ctx.stroke();
+    }
+    if (guides.r) {
+      ctx.moveTo(x, y);
+      ctx.lineTo(pixelPattern.canvasSize.x - margin, y);
+      ctx.stroke();
+    }
   }
-  if (guides.d) {
-    ctx.moveTo(x, y);
-    ctx.lineTo(x, pixelPattern.canvasSize.y - margin);
-    ctx.stroke();
-  }
-  if (guides.l) {
-    ctx.moveTo(x, y);
-    ctx.lineTo(margin, y);
-    ctx.stroke();
-  }
-  if (guides.r) {
-    ctx.moveTo(x, y);
-    ctx.lineTo(pixelPattern.canvasSize.x - margin, y);
-    ctx.stroke();
-  }
+
 }
 
 function drawLine(ctx, start, end, continued = false) {
@@ -105,8 +125,8 @@ function drawLine(ctx, start, end, continued = false) {
 
 function drawQuarterEllipse(ctx, _status, pixelPattern, curve) {
   //assume quarter of an ellipse
-  let point1 = pixelPattern.points[curve.start];
-  let point2 = pixelPattern.points[curve.end];
+  let point1 = pixelPattern.points[curve.points.start];
+  let point2 = pixelPattern.points[curve.points.end];
   let quarter = curve.quarter;
   //quarter 1, 2, 3, or 4, clockwise from 12 o'clock (so 1 is top right, 2 is bottom right, 3 is bottom left, 4 is top left)
   //calculate center from start, end, and quarter
@@ -187,13 +207,50 @@ function drawQuarterEllipse(ctx, _status, pixelPattern, curve) {
     radiusX = Math.abs(center.x - start.x);
     radiusY = Math.abs(center.y - end.y);
   }
-  //draw quarter ellipse from start to end, centered on center
-  if (curve.style === 'dashed') {
-    ctx.setLineDash([5, 5]);
-  } else {  //solid
-    ctx.setLineDash([]);
-  }
   ctx.beginPath();
+  //draw quarter ellipse from start to end, centered on center
+  
   ctx.ellipse(center.x, center.y, radiusX, radiusY, 0, startAngle, endAngle);
   ctx.stroke();
+}
+
+function drawBezier(ctx, _status, pixelPattern, curve) {
+  let start = pixelPattern.points[curve.points.start];
+  let end = pixelPattern.points[curve.points.end];
+  let control = pixelPattern.points[curve.points.cp1];
+  let touch = pixelPattern.points[curve.points.touch];
+  let cp1 = { x: 0, y: 0 };
+
+  if (control === undefined) {
+    let cx = 0;
+    let cy = 0;
+  
+    if (touch === undefined) {
+      //if there is no touch point, control point is at the corner of start and end points
+      cx = start.x
+      cy = end.y
+    } else {
+      //if there is a touch point, control point is calculated so the line should be close to the touch point
+      cx = 2 * touch.x - 0.5 * (start.x + end.x)
+      cy = 2 * touch.y - 0.5 * (start.y + end.y)
+    }
+    cp1 = {
+      x: cx,
+      y: cy
+    }
+  } else {
+    //if control point is defined, use that
+    cp1 = control;
+  }
+  console.log(curve)
+
+  console.log(`start: ${start.x}, ${start.y}`);
+  console.log(`cp1: ${cp1.x}, ${cp1.y}`);
+  console.log(`end: ${end.x}, ${end.y}`);
+
+    ctx.moveTo(start.x, start.y);
+    ctx.strokeStyle = 'black';
+    ctx.moveTo(start.x, start.y);
+    ctx.quadraticCurveTo(cp1.x, cp1.y, end.x, end.y);
+    ctx.stroke();
 }
