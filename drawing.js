@@ -217,6 +217,7 @@ function drawBezier(ctx, _status, pixelPattern, curve) {
   let control = pixelPattern.points[curve.points.cp1];
   let touch = pixelPattern.points[curve.points.touch];
   let cp1 = { x: 0, y: 0 };
+.
 
   if (control === undefined) {
     let cx = 0;
