@@ -1,8 +1,10 @@
 import {keystone_single} from './keystone_single-breasted-vest.js';
+import {keystone_bodice} from './keystone_bodice.js';
 import {keystone_collars} from './keystone_collars.js';
 
 const designs = [
   keystone_single,
+  keystone_bodice,
   keystone_collars
 ].map((design) => {
   return {
