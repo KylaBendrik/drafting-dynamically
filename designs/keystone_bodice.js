@@ -241,6 +241,47 @@ const steps = [
         return status;
       }
     },
+    {
+      description: (status) => { return `Point F is 1/12 of the breast measure ${printMeasure(status.measurements.breast, 1 / 12)} left of E.` },
+      action: (status) => {
+        
+        let breast = parseFloat(status.measurements.breast.value);
+        let pointE = status.pattern.points['E'];
+        status.pattern.points['F'] = setPoint(pointE.x - inchesToPrecision(status, breast * 1 / 12), pointE.y);
+        
+        status = setLine(status, 'E', 'F', 'dashed');
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `Draw line from F through G, extending below the waist line` },
+      action: (status) => {
+        status = setLine(status, 'F', 'G', 'dashed', 'continued');
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `Point N is on this line from F to G, 1/12 of the breast down from F` },
+      action: (status) => {
+        const pointF = status.pattern.points['F'];
+        const pointG = status.pattern.points['G'];
+        const dist = parseFloat(status.measurements.breast.value) / 12;
+        status.pattern.points['N'] = setPointAlongLine(status, pointF, pointG, dist);
+        
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `Point H is on this line from F to G, where it crosses the line left of B` },
+      action: (status) => {
+        const pointF = status.pattern.points['F'];
+        const pointG = status.pattern.points['G'];
+        const pointB = status.pattern.points['B'];
+        status.pattern.points['H'] = setPointLineY(status, pointF, pointG, pointB.y);
+        
+        return status;
+      }
+    },
 ]
 
 function widthTopBack(status){
