@@ -103,7 +103,63 @@ const steps = [
         status.pattern.points['G'] = setPoint(pointA1.x - inchesToPrecision(status, parseFloat(status.measurements.breast.value) / 2), pointA1.y);
         return status;
       }
-    }
+    },
+    {
+      description: (status => {return `Point K is the Blade (or "front of arm") ${printMeasure(status.measurements.blade)} left of A1`}),
+      action : (status) => {
+        let pointA1 = status.pattern.points['A1'];
+        status.pattern.points['K'] = setPoint(pointA1.x - inchesToPrecision(status, parseFloat(status.measurements.blade.value)), pointA1.y, { d: true, u: true });
+        return status;
+      }
+    },
+    {
+      description: (status) => { return `Point L is 3/8 of the blade measure ${printMeasure(status.measurements.blade, 3 / 8)} right of K` },
+      action: (status) => {
+        const blade = parseFloat(status.measurements.blade.value);
+        const pointK = status.pattern.points['K'];
+        status.pattern.points['L'] = setPoint(pointK.x + inchesToPrecision(status, blade * 3 / 8), pointK.y, { u: true });
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return 'Point V is where the line up from L crosses line extending left from O' },
+      action: (status) => {
+        let pointL = status.pattern.points['L'];
+        let pointO = status.pattern.points['O'];
+        status.pattern.points['V'] = setPoint(pointL.x, pointO.y);
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return 'Point Z is halfway between Point L and Point V'},
+      action: (status) => {
+        let pointL = status.pattern.points['L'];
+        let pointV = status.pattern.points['V'];
+        let newY = (pointL.y + pointV.y) / 2
+        status.pattern.points['Z'] = setPoint(pointL.x, newY)
+        return status
+      }
+    },
+    {
+      description: (_status) => { return 'Point T is halfway between Point Z and Point V'},
+      action: (status) => {
+        let pointZ = status.pattern.points['Z'];
+        let pointV = status.pattern.points['V'];
+        let newY = (pointZ.y + pointV.y) / 2
+        status.pattern.points['T'] = setPoint(pointZ.x, newY)
+        return status
+      }
+    },
+    {
+      description: (_status) => { return 'Point 3 is halfway between Point Z and Point T'},
+      action: (status) => {
+        let pointZ = status.pattern.points['Z'];
+        let pointT = status.pattern.points['T'];
+        let newY = (pointZ.y + pointT.y) / 2
+        status.pattern.points['3'] = setPoint(pointZ.x, newY)
+        return status
+      }
+    },
 ]
 
 export const keystone_bodice = {
