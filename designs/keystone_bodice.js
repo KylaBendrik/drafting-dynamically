@@ -160,7 +160,124 @@ const steps = [
         return status
       }
     },
+    {
+      description: (status) => { return `Point 2 is 3/16 of the blade measure ${printMeasure(status.measurements.blade, 3 / 16)} left from O` },
+      action: (status) => {
+        const blade = parseFloat(status.measurements.blade.value);
+        status.pattern.points['2'] = setPoint(0 - inchesToPrecision(status, blade * 3 / 16), 0);
+        
+        status = setLine(status, '2', '3', 'dashed');
+        status = setCurve(status, {start: '1', end: '2'}, 3, 'ellipse');
+        return status;
+      }
+    },
+    {
+      description: (status) => { return `Point 9 is 1/6 of the breast ${printMeasure(status.measurements.breast, 1 / 6)} left of O` },
+      action: (status) => {
+        let breast = parseFloat(status.measurements.breast.value);
+        let pointO = status.pattern.points['O'];
+        status.pattern.points['9'] = setPoint(0 - inchesToPrecision(status, breast * 1 / 6), pointO.y);
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `Point X is where the line down from 9 meets the line from 3 to 2.` },
+      action: (status) => {
+        let point9 = status.pattern.points['9'];
+        let point2 = status.pattern.points['2'];
+        let point3 = status.pattern.points['3'];
+        status.pattern.points['X'] = setPointLineX(status, point2, point3, point9.x)
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `Point 8 is where the line down from 9 meets the line right from Z` },
+      action: (status) => {
+        let point9 = status.pattern.points['9'];
+        let pointZ = status.pattern.points['Z'];
+        status.pattern.points['8'] = setPoint(point9.x, pointZ.y);
+        status = setLine(status, 'Z', '8', 'dashed');
+        status = setLine(status, '9', '8', 'dashed');
+        
+        return status;
+      }
+    },
+    {
+      description: (status) => { return `Point D is 1 1/2 inch left from C. Draw a guide line from C to X` },
+      action: (status) => {
+        let pointC = status.pattern.points['C'];
+        status.pattern.points['D'] = setPoint(pointC.x - inchesToPrecision(status, 1.5), pointC.y);
+        
+        status = setLine(status, 'C', 'X', 'dashed');
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `Point P is halfway between G and K. Go up to E (where it crosses line left from O)` },
+      action: (status) => {
+        let pointG = status.pattern.points['G'];
+        let pointK = status.pattern.points['K'];
+        let pointO = status.pattern.points['O'];
+        let newX = (pointG.x + pointK.x) / 2
+        status.pattern.points['P'] = setPoint(newX, pointG.y);
+        status.pattern.points['E'] = setPoint(newX, pointO.y);
+
+        status = setLine(status, 'P', 'E', 'dashed');
+        
+        return status;
+      }
+    },
+    {
+      description: (_status) => {
+        return `Point E is found by going up the front length - the width of top of back from 1 inch to the left of J up to meet the line up from P. E may be above or below the top line.`
+      },
+      action: (status) => {
+        const pointB = status.pattern.points['B'];
+        const pointK = status.pattern.points['K'];
+        const pointJ = setPoint(pointK.x, pointB.y);
+        const pointP = status.pattern.points['P'];
+        status.pattern.points['E'] = findPointE(status, pointJ, pointP);
+        status = setLine(status, 'T', 'E', 'dashed');
+        return status;
+      }
+    },
 ]
+
+function widthTopBack(status){
+  //returns the width of the top of the back, the quarter ellipse 1-2 around O
+  const point1 = status.pattern.points['1'];
+
+  //const point1 = {x: 20, y: 0};
+  const point2 = status.pattern.points['2'];
+  const center = status.pattern.points['O'];
+  const p = perimeterEllipse(status, center, point1, point2);
+  return p / 4;
+}
+
+function findPointE(status, pointJ, pointP) {
+  const pointj = setPoint(pointJ.x - (1 * status.precision), pointJ.y);
+  const frontLength = parseFloat(status.design.measurements.frontLength.value) * status.precision;
+
+  //the "width of top back" not clear in the instructions. But it seems that 1/12 of the breast value gets the right result
+  //I did try from O to 2, as well as finding the circumference of the ellipse, but neither seemed to work.
+  //const wtb = Math.abs(parseFloat(status.design.measurements.breast.value) / 12 * status.precision);
+  
+  //o-2 is the width of the top back
+  const wtb = widthTopBack(status);
+  
+  
+  //we need to find the y for point E
+  //we have a triangle, with lines a, b, and c.
+  //a is along x, from pointj to pointP
+  const a = Math.abs(pointP.x - pointj.x);
+  const c = frontLength - wtb;
+  //b is along y, on x of point P.
+  //a^2 + b^2 = c^2
+  //b = sqrt(c^2 - a^2)
+  const b = Math.round(Math.sqrt(c * c - a * a));
+  const ey = Math.round(pointJ.y - b);
+  return setPoint(pointP.x, ey, { l: true });
+}
 
 export const keystone_bodice = {
   design_info: design_info,
