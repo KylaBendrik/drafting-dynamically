@@ -452,11 +452,56 @@ const steps = [
 
         let distCD = distPointToPoint(pointC, pointD);
         let dist16H = distPointToPoint(point16, pointH);
-        let waist = parseFloat(status.measurements.waist.value) / 2;
-        let space = (distCD + dist16H) - waist;
+        let waist = parseFloat(status.measurements.waist.value) / 2 * status.precision;
+        let space = ((distCD + dist16H) - waist);
+        //reduce space by 1/2 inch
+        space = space - inchesToPrecision(status, 1/2);
+        //divide space into 4 parts, giving the distance for each side of the dart
+        let dist = space / 4;
+        //on either side of Q is 4 and 5, and on either side of R is 6 and 7
+        let pointQ = status.pattern.points['Q'];
+        let pointR = status.pattern.points['R'];
+        status.pattern.points['4'] = setPoint(pointQ.x - dist, pointQ.y);
+        status.pattern.points['5'] = setPoint(pointQ.x + dist, pointQ.y);
+        status.pattern.points['6'] = setPoint(pointR.x - dist, pointR.y);
+        status.pattern.points['7'] = setPoint(pointR.x + dist, pointR.y);
 
+        //draw lines from V to 4 and 5, and from W to 6 and 7
+        status = setLine(status, 'V', '4');
+        status = setLine(status, 'V', '5');
+        status = setLine(status, 'W', '6');
+        status = setLine(status, 'W', '7');
         
 
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `Take the distance from 7 to 16, and divide it into 3 parts. This gives points 15 and 17` },
+      action: (status) => { 
+        let point7 = status.pattern.points['7'];
+        let point16 = status.pattern.points['16'];
+        let distX = Math.abs(point7.x - point16.x) / 3;
+
+        //draw dashed line up from 15
+        status.pattern.points['15'] = setPoint(point7.x + distX, point7.y);
+        status.pattern.points['17'] = setPoint(point7.x + (distX * 2), point7.y);
+
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `draw a line straight up from 15, finding point 14 where it meets the line from A1`},
+      action: (status) => {
+        let point15 = status.pattern.points['15'];
+        let pointA1 = status.pattern.points['A1'];
+        let pointG = status.pattern.points['G'];
+
+        status.pattern.points['14'] = setPointLineX(status, pointA1, pointG, point15.x);
+
+        status = setLine(status, '15', '14', 'dashed');
+        //make the armhole fromm 14 to 13, touching 00
+        status = setCurve(status, {start: '14', touch: '00', end: '13'}, 0, 'bezier');
         return status;
       }
     }
