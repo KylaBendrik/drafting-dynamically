@@ -206,9 +206,14 @@ const steps = [
       description: (status) => { return `Point D is 1 1/2 inch left from C. Draw a guide line from C to X` },
       action: (status) => {
         let pointC = status.pattern.points['C'];
+        let pointX = status.pattern.points['X'];
+        let pointA = status.pattern.points['A'];
+
         status.pattern.points['D'] = setPoint(pointC.x - inchesToPrecision(status, 1.5), pointC.y);
+        status.pattern.points['11'] = setPointLineY(status, pointC, pointX, pointA.y)
         
         status = setLine(status, 'C', 'X', 'dashed');
+        status = status = setCurve(status, {start: '8', touch: '11', end: 'D'}, 0, 'bezier');
         return status;
       }
     },
@@ -237,7 +242,6 @@ const steps = [
         const pointJ = setPoint(pointK.x, pointB.y);
         const pointP = status.pattern.points['P'];
         status.pattern.points['E'] = findPointE(status, pointJ, pointP);
-        status = setLine(status, 'T', 'E', 'dashed');
         return status;
       }
     },
@@ -268,6 +272,8 @@ const steps = [
         const dist = parseFloat(status.measurements.breast.value) / 12;
         status.pattern.points['N'] = setPointAlongLine(status, pointF, pointG, dist);
         
+        status = setCurve(status, {start: 'E', end: 'N'}, 2, 'ellipse');
+        
         return status;
       }
     },
@@ -282,6 +288,178 @@ const steps = [
         return status;
       }
     },
+    {
+      description: (_status) => { return `Point 13 is along E-T, using the same distance as 2-X` },
+      action: (status) => {
+        const pointE = status.pattern.points['E'];
+        const pointT = status.pattern.points['T'];
+        const point2 = status.pattern.points['2'];
+        const pointX = status.pattern.points['X'];
+        
+        const a = Math.abs(pointX.x - point2.x);
+        const b = Math.abs(pointX.y - point2.y);
+        const c = a * a + b * b;
+        const distance = Math.sqrt(c);
+
+
+        status.pattern.points['13'] = setPointAlongLine(status, pointE, pointT, distance / status.precision);
+        status = setLine(status, '13', 'E');
+        status = setLine(status, '2', 'X');
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `Point 00 is left of K, the same distance 3 is left of X (not distance between 3 and X) It is also 2/5 of the distance down from Z to L` },
+      action: (status) => {
+        let pointK = status.pattern.points['K'];
+        let point3 = status.pattern.points['3'];
+        let pointX = status.pattern.points['X'];
+        let pointZ = status.pattern.points['Z'];
+        let pointL = status.pattern.points['L'];
+
+        let distX = Math.abs(point3.x - pointX.x);
+        let distY = Math.abs(pointZ.y - pointL.y) * 2/5;
+
+        status.pattern.points['00'] = setPoint(pointK.x - distX, pointZ.y + distY);
+
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `Go in from 8 to top of side body 1/4 inch, curve the side-seam from 11 up.` },
+      action: (status) => {
+        let point8 = status.pattern.points['8'];
+        let distX = inchesToPrecision(status, 1/4);
+
+        status.pattern.points['8z'] = setPoint(point8.x - distX, point8.y, [], false);
+
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `Point 16 is 1 inch left of D` },
+      action: (status) => {
+        let pointD = status.pattern.points['D'];
+        let distX = inchesToPrecision(status, 1);
+
+        status.pattern.points['16'] = setPoint(pointD.x - distX, pointD.y);
+        
+        let point16 = status.pattern.points['16'];
+       status = status = setCurve(status, {start: '8z', touch: '11', end: '16'}, 0, 'bezier');
+
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `Point Gx is 1/2 inch left of G. Shape the front from N, touching Gx, ending at H` },
+      action: (status) => {
+        let pointG = status.pattern.points['G'];
+        let distX = inchesToPrecision(status, 1/2);
+        status.pattern.points['Gx'] = setPoint(pointG.x - distX, pointG.y);
+        let pointGx = status.pattern.points['Gx'];
+        let pointN = status.pattern.points['N'];
+        let pointH = status.pattern.points['H'];
+        status = setCurve(status, {start: 'N', touch: 'Gx', end: 'H'}, 0, 'bezier');
+
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `Divide the distance G - K into 3 parts, which gives points S and T` },
+      action: (status) => {
+        let pointG = status.pattern.points['G'];
+        let pointK = status.pattern.points['K'];
+        let distX = Math.abs(pointG.x - pointK.x) / 3;
+
+        status.pattern.points['S'] = setPoint(pointG.x + distX, pointG.y);
+        status.pattern.points['T'] = setPoint(pointG.x + (distX * 2), pointG.y);
+
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `Point U is 1/2 inch right of S` },
+      action: (status) => {
+        let pointS = status.pattern.points['S'];
+        let distX = inchesToPrecision(status, 1/2);
+        status.pattern.points['U'] = setPoint(pointS.x + distX, pointS.y);
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `Point J is along the bottom, where the line down from K meets the line across from B.` },
+      action: (status) => {
+        let pointK = status.pattern.points['K'];
+        let pointB = status.pattern.points['B'];
+        status.pattern.points['J'] = setPoint(pointK.x, pointB.y);
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `Divide the space between H-J into 3, giving points Q and R` },
+      action: (status) => {
+        let pointH = status.pattern.points['H'];
+        let pointJ = status.pattern.points['J'];
+        let distX = Math.abs(pointH.x - pointJ.x) / 3;
+
+        status.pattern.points['Q'] = setPoint(pointH.x + distX, pointH.y);
+        status.pattern.points['R'] = setPoint(pointH.x + (distX * 2), pointH.y);
+
+        status = setLine(status, 'U', 'Q', 'dashed');
+        status = setLine(status, 'T', 'R', 'dashed');
+
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `Point V is 1/3 of the way from U to Q` },
+      action: (status) => {
+        let pointU = status.pattern.points['U'];
+        let pointQ = status.pattern.points['Q'];
+        let distX = Math.abs(pointU.x - pointQ.x) / 3;
+        let distY = Math.abs(pointU.y - pointQ.y) / 3;
+
+        status.pattern.points['V'] = setPoint(pointU.x - distX, pointU.y + distY);
+
+        return status;
+      }
+    },
+    {
+      description: (status) => { return `Point W is on the line from T to R, 1/2 an inch higher than point V is` },
+      action: (status) => {
+        let pointT = status.pattern.points['T'];
+        let pointR = status.pattern.points['R'];
+        let pointV = status.pattern.points['V'];
+
+        //make two points, one 1/2 higher than V, and another several inches to the right, both invisible
+        let pointV2 = setPoint(pointV.x, pointV.y + inchesToPrecision(status, 1/2), {}, false);
+        let pointV3 = setPoint(pointV.x + inchesToPrecision(status, 5), pointV.y + inchesToPrecision(status, 1/2), {}, false);
+
+        //find the intersection of the line from T to R, and the line from V2 to V3
+        status.pattern.points['W'] = setPointLineLine(status, pointT, pointR, pointV2, pointV3);
+
+
+        return status;
+      }
+    },
+    {
+      description: (status) => { return `Measure from C to D, and from 16 to H. Subtract from this, 1/2 the waist measure ${printMeasure(status.measurements.waist, 1 / 2)}, to get the amount of space to give the darts.` },
+      action: (status) => {
+        let pointC = status.pattern.points['C'];
+        let pointD = status.pattern.points['D'];
+        let point16 = status.pattern.points['16'];
+        let pointH = status.pattern.points['H'];
+
+        let distCD = distPointToPoint(pointC, pointD);
+        let dist16H = distPointToPoint(point16, pointH);
+        let waist = parseFloat(status.measurements.waist.value) / 2;
+        let space = (distCD + dist16H) - waist;
+
+        
+
+        return status;
+      }
+    }
 ]
 
 function widthTopBack(status){
