@@ -5,6 +5,22 @@ export function inchesToPrecision(status, inches){
   return Math.round(inches * precision);
 }
 
+export function registerPoint(status, point, label = undefined) {
+  // register point to the pattern
+  status.pattern.points[label] = point;
+
+  return status;
+}
+
+export function registerPoints(status, points) {
+  // use registerPoint to register all points in the object
+  // points is an object with keys as labels and values as points
+  for (let key in points) {
+    status = registerPoint(status, points[key], key);
+  }
+  return status;
+}
+
 export function setPoint(x, y, guides, visible = true){
   let tempGuide = {u: false, d: false, l: false, r: false};
   if (guides === undefined){
