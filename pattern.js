@@ -115,6 +115,93 @@ export function setPointLineLine(status, point1, point2, point3, point4, visible
   return status;
 
 }
+
+export function makeTouchPoint(_status, point1, point2, quarter, depth = 0.5, visible = true) {
+  //make a point that provides a touch point for a bezier curve. 
+  //mid is the halfway point between point1 and point2
+  //corner is the outher corner of the curve, if it were a rectangle
+  //Depth is a percentage from mid to the corner, so 0.5 is halfway, 1 is all the way to the corner
+  //quarter 1, 2, 3, or 4, clockwise from 12 o'clock (so 1 is top right, 2 is bottom right, 3 is bottom left, 4 is top left)
+  //calculate center from point1, point2, and quarter
+  let corner = { x: 0, y: 0 };
+  let mid = { x: 0, y: 0 };
+  let touch = { x: 0, y: 0 };
+  let dist = { x: 0, y: 0 };
+
+  if (quarter == 1) {
+    //center is below point1 and left of point2
+    corner.x = point1.x;
+    corner.y = point2.y;
+
+    //find the halfway point between point1 and point2
+    mid.y = (point1.y + point2.y) / 2;
+    mid.x = (point1.x + point2.x) / 2;
+
+    //distance from center to mid
+    dist.x = Math.abs(corner.x - mid.x);
+    dist.y = Math.abs(corner.y - mid.y);
+
+    //find the x and y of the touch point
+
+    touch.x = mid.x + distX * depth;
+    touch.y = mid.y - distY * depth;
+
+  } else if (quarter == 2) {
+    //center is left of point1 and above point2
+    corner.x = point2.x;
+    corner.y = point1.y;
+
+    //find the halfway point between point1 and point2
+    mid.x = (point1.x + point2.x) / 2;
+    mid.y = (point1.y + point2.y) / 2;
+
+    //distance from center to mid
+    dist.x = Math.abs(corner.x - mid.x);
+    dist.y = Math.abs(corner.y - mid.y);
+
+    //find the x and y of the touch point
+
+    touch.x = mid.x + distX * depth;
+    touch.y = mid.y + distY * depth;
+  } else if (quarter == 3) {
+    //center is above point1 and right of point2
+    corner.x = point1.x;
+    corner.y = point2.y;
+
+    //find the halfway point between point1 and point2
+    mid.x = (point1.x + point2.x) / 2;
+    mid.y = (point1.y + point2.y) / 2;
+
+    //distance from center to mid
+    dist.x = Math.abs(corner.x - mid.x);
+    dist.y = Math.abs(corner.y - mid.y);
+
+    //find the x and y of the touch point
+
+    touch.x = mid.x - distX * depth;
+    touch.y = mid.y + distY * depth;
+  } else if (quarter == 4) {
+    //center is right of point1 and below point2
+    corner.x = point2.x;
+    corner.y = point1.y;
+
+    //find the halfway point between point1 and point2
+    mid.x = (point1.x + point2.x) / 2;
+    mid.y = (point1.y + point2.y) / 2;
+
+    //distance from center to mid
+    dist.x = Math.abs(corner.x - mid.x);
+    dist.y = Math.abs(corner.y - mid.y);
+
+    //find the x and y of the touch point
+    touch.x = mid.x - distX * depth;
+    touch.y = mid.y - distY * depth;
+  }
+
+
+  return setPoint(touch.x, touch.y, {}, visible);
+}
+
 export function setLine(status, start, end, style = 'solid', length = 'defined'){
   let line = {
     start: start,

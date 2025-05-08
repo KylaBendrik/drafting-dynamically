@@ -7,6 +7,7 @@ import {
     setPointAlongLine,
     setPointLineCircle,
     setPointLineLine,
+    makeTouchPoint,
     setCurve,
     distPointToPoint,
     distABC,
@@ -554,71 +555,7 @@ const steps = [
     }
 ]
 
-function makeTouchPoint(_status, point1, point2, quarter, depth = 0.5, visible = true) {
-  //quarter 1, 2, 3, or 4, clockwise from 12 o'clock (so 1 is top right, 2 is bottom right, 3 is bottom left, 4 is top left)
-  //calculate center from point1, point2, and quarter
-  let center = { x: 0, y: 0 };
-  let mid1and2 = { x: 0, y: 0 };
-  let touch = { x: 0, y: 0 };
-  let x = 0;
-  let y = 0;
 
-  if (quarter == 1) {
-    //center is below point1 and left of point2
-    center.x = point1.x;
-    center.y = point2.y;
-
-    //find the halfway point between point1 and point2
-    mid1and2.x = (point1.x + point2.x) / 2;
-    mid1and2.y = (point1.y + point2.y) / 2;
-
-    x = mid1and2.x + (center.x - mid1and2.x) * depth;
-    y = mid1and2.y + (center.y - mid1and2.y) * depth;
-  } else if (quarter == 2) {
-    //center is left of point1 and above point2
-    center.x = point2.x;
-    center.y = point1.y;
-
-    //find the halfway point between point1 and point2
-    mid1and2.x = (point1.x + point2.x) / 2;
-    mid1and2.y = (point1.y + point2.y) / 2;
-
-    x = mid1and2.x + (center.x - mid1and2.x) * depth;
-    y = mid1and2.y + (center.y - mid1and2.y) * depth;
-  } else if (quarter == 3) {
-    //center is above point1 and right of point2
-    center.x = point1.x;
-    center.y = point2.y;
-
-    //find the halfway point between point1 and point2
-    mid1and2.x = (point1.x + point2.x) / 2;
-    mid1and2.y = (point1.y + point2.y) / 2;
-
-    x = mid1and2.x + (center.x - mid1and2.x) * depth;
-    y = mid1and2.y + (center.y - mid1and2.y) * depth;
-  } else if (quarter == 4) {
-    //center is right of point1 and below point2
-    center.x = point2.x;
-    center.y = point1.y;
-
-    //find the halfway point between point1 and point2
-    mid1and2.x = (point1.x + point2.x) / 2;
-    mid1and2.y = (point1.y + point2.y) / 2;
-
-    x = mid1and2.x + (center.x - mid1and2.x) * depth;
-    y = mid1and2.y + (center.y - mid1and2.y) * depth;
-  }
-
-
-
-  //find x and y, between center and mid1and2. Depth is the distance from mid1and2 to the touch point
-  //0 would be at mid1and2, 1 would be at center
-
-  // let x = mid1and2.x + (center.x - mid1and2.x) * depth;
-  // let y = mid1and2.y + (center.y - mid1and2.y) * depth;
-  //find the distance from center to mid1and2  
-  return setPoint(x, y, {}, visible);
-}
 
 function widthTopBack(status){
   //returns the width of the top of the back, the quarter ellipse 1-2 around O
