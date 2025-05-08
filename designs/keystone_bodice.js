@@ -345,8 +345,6 @@ const steps = [
 
         status.pattern.points['16'] = setPoint(pointD.x - distX, pointD.y);
         
-        let point16 = status.pattern.points['16'];
-       status = status = setCurve(status, {start: '8z', touch: '11', end: '16'}, 0, 'bezier');
 
         return status;
       }
@@ -467,13 +465,6 @@ const steps = [
         status.pattern.points['6'] = setPoint(pointR.x - dist, pointR.y);
         status.pattern.points['7'] = setPoint(pointR.x + dist, pointR.y);
 
-        //draw lines from V to 4 and 5, and from W to 6 and 7
-        status = setLine(status, 'V', '4');
-        status = setLine(status, 'V', '5');
-        status = setLine(status, 'W', '6');
-        status = setLine(status, 'W', '7');
-        
-
         return status;
       }
     },
@@ -513,7 +504,7 @@ const steps = [
         let pointZ = status.pattern.points['Z'];
         let pointL = status.pattern.points['L'];
 
-        status.pattern.points['12'] = makeTouchPoint(status, point14, pointZ, 2);
+        status.pattern.points['12'] = makeTouchPoint(status, point14, pointZ, 2, 0.4);
         let point12 = status.pattern.points['12'];
 
         //find point 12r, 1/2 inch right of 12
@@ -532,7 +523,7 @@ const steps = [
       }
     },
     {
-      description: (_status) => { return `Create the underarm and side back sem from 12 to 17, touching just left of L, widening to 1/4" between L and 17, and meeting again at 17.`},
+      description: (_status) => { return `Create the underarm and side back seam from 12 to 17, touching just left of L, widening to no more than 1/4" between L and 17, and meeting again at 17.`},
       action: (status) => {
         let pointL = status.pattern.points['L'];
         let point17 = status.pattern.points['17'];
@@ -540,16 +531,163 @@ const steps = [
         let point12r = status.pattern.points['12r'];
 
         //find the point left of L, on the line from 12 to 17
-        status = setLine(status, '12', '17', 'dashed');
-        let pointL2 = setPointLineY(status, point12, point17, pointL.y);
+        status = setLine(status, '12r', '17', 'dashed');
+        let pointL2 = setPointLineY(status, point12r, point17, pointL.y);
         status.pattern.points['L2'] = pointL2;
 
         //draw curves from 12 to L2 and from 12r to L2, both quarter 1
-        status.pattern.points['12_L2'] = makeTouchPoint(status, point12, pointL2, 1);
-        status.pattern.points['12r_L2'] = makeTouchPoint(status, point12r, pointL2, 1);
+        status.pattern.points['12_L2'] = makeTouchPoint(status, point12, pointL2, 1, 0.5, false);
+        status.pattern.points['12r_L2'] = makeTouchPoint(status, point12r, pointL2, 1, 0.5, false);
         status = setCurve(status, {start: '12', touch: '12_L2', end: 'L2'}, 0, 'bezier');
-        status = setCurve(status, {start: '12r', touch: '12r_L2', end: 'L2'}, 0, 'bezier');
+        //status = setCurve(status, {start: '12r', touch: '12r_L2', end: 'L2'}, 0, 'bezier');
         
+        //create two points, left and right of the line from 12 to 17, 1/4 inch away
+
+        //find point 2/3 of the way from 12r to 17
+        let point12r17 = setPointLineY(status, point12r, point17, point12r.y + (distPointToPoint(point12r, point17) * 2/3));
+
+        //place two points, 1/4 left and right of point12r17
+        status.pattern.points['12r-17L'] = setPoint(point12r17.x - inchesToPrecision(status, 1/8), point12r17.y, {}, false);
+        status.pattern.points['12r-17R'] = setPoint(point12r17.x + inchesToPrecision(status, 1/4), point12r17.y, {}, false);
+
+        //draw curves from L2 to 17, touching the two new points
+        status = setCurve(status, {start: 'L2', touch: '12r-17L', end: '17'}, 0, 'bezier');
+        //status = setCurve(status, {start: 'L2', touch: '12r-17R', end: '17'}, 0, 'bezier');
+        status = setCurve(status, {start: '12r', touch: 'L2', end: '17'}, 0, 'bezier');
+
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `On the seam 14 to 15, take out 1/2 inch at 15`},
+      action: (status) => {
+        let point14 = status.pattern.points['14'];
+        let point15 = status.pattern.points['15'];
+        let distX = inchesToPrecision(status, 1/4);
+        let distX2 = inchesToPrecision(status, 1/8);
+
+        status.pattern.points['15r'] = setPoint(point15.x + distX, point15.y);
+        status.pattern.points['15l'] = setPoint(point15.x - distX, point15.y);
+        let point15r = status.pattern.points['15r'];
+        let point15l = status.pattern.points['15l'];
+
+        //make touch points, about 1/3 up from 15 to 14, 1/8 inch wider than 15r and 15l
+        let point14_15r = setPoint(point15r.x + distX2, point14.y + (point15r.y - point14.y) * 2/3);
+        let point14_15l = setPoint(point15l.x - distX2, point14.y + (point15l.y - point14.y) * 2/3);
+        status.pattern.points['14_15r'] = point14_15r;
+        status.pattern.points['14_15l'] = point14_15l;
+
+        //draw curves from 14 to 15r and 15l, touching the new points
+        status = setCurve(status, {start: '14', touch: '14_15r', end: '15r'}, 0, 'bezier');
+        status = setCurve(status, {start: '14', touch: '14_15l', end: '15l'}, 0, 'bezier');
+
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `Add to the front length from H to 10 1 inch, and shape bottom edge from 16, which is 1/2 below the waistline, to 17, on to 15`},
+      action: (status) => {
+        let pointH = status.pattern.points['H'];
+        let pointG = status.pattern.points['G'];
+        let pointV = status.pattern.points['V'];
+        let pointW = status.pattern.points['W'];
+        let point16 = status.pattern.points['16'];
+        let point17 = status.pattern.points['17'];
+        let point4 = status.pattern.points['4'];
+        let point5 = status.pattern.points['5'];
+        let point6 = status.pattern.points['6'];
+        let point7 = status.pattern.points['7'];
+        let point15r = status.pattern.points['15r'];
+        let point15l = status.pattern.points['15l'];
+
+        //first, find point 10, following the line from G to H, extending it 1 inch down to 10
+        let x1 = pointG.x;
+        let y1 = pointG.y;
+        let x2 = pointH.x;
+        let y2 = pointH.y;
+        //distance is expected to be a percentage of the distance between point1 and point2
+        let dist1to2 = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
+
+        const precision = status.precision;
+
+        let distTo10inch = (dist1to2 / precision) + 1
+
+        let point10 = setPointAlongLine(status, pointG, pointH, distTo10inch);
+        status.pattern.points['10'] = point10;
+
+        status = setLine(status, 'H', '10');
+
+        //set heights for 4low, 5low, 6low, and 7low
+        // Q and R are 1/3 of the way from H to J
+        // their dart sides should be the same height.
+        // compare point 10 and point 15l. 1/3 up is qHeight. 2/3 up is rHeight
+        let pointQ = status.pattern.points['Q'];
+        let pointR = status.pattern.points['R'];
+        let qHeight = pointQ.y + (point10.y - point15l.y) * 2/3;
+        let rHeight = pointR.y + (point10.y - point15l.y) * 1/3;
+        //set the heights for 4low and 5low at qHeight
+        status.pattern.points['4low'] = setPoint(point4.x, qHeight, {}, false);
+        status.pattern.points['5low'] = setPoint(point5.x, qHeight, {}, false);
+        let point4low = status.pattern.points['4low'];
+        let point5low = status.pattern.points['5low'];
+        //set the heights for 6low and 7low at rHeight
+        status.pattern.points['6low'] = setPoint(point6.x, rHeight, {}, false);
+        status.pattern.points['7low'] = setPoint(point7.x, rHeight, {}, false);
+        let point6low = status.pattern.points['6low'];
+        let point7low = status.pattern.points['7low'];
+
+        //make touch points for the curves V to 4low and 5low, and W to 6low and 7low
+        let curveControl = 0.75;
+        let lowerCurve = 2/3;
+        status.pattern.points['V_4low'] = makeTouchPoint(status, point4low, pointV, 4, curveControl, false);
+        status.pattern.points['V_5low'] = makeTouchPoint(status, pointV, point5low, 1, curveControl, false);
+        status.pattern.points['W_6low'] = makeTouchPoint(status, point6low, pointW, 4, curveControl, false);
+        status.pattern.points['W_7low'] = makeTouchPoint(status, pointW, point7low, 1, curveControl, false);
+        let pointV_4low = status.pattern.points['V_4low'];
+        let pointV_5low = status.pattern.points['V_5low'];
+        let pointW_6low = status.pattern.points['W_6low'];
+        let pointW_7low = status.pattern.points['W_7low'];
+
+        //measure the distance from V to 4low
+        let distV4low = point4low.y - pointV.y;
+        //measure the distance from W to 6low
+        let distW6low = point6low.y - pointW.y;
+
+        //move touch points down, using lowerCurve
+        pointV_4low.y = pointV.y + (distV4low * lowerCurve);
+        pointV_5low.y = pointV.y + (distV4low * lowerCurve);
+        pointW_6low.y = pointW.y + (distW6low * lowerCurve);
+        pointW_7low.y = pointW.y + (distW6low * lowerCurve);
+        status.pattern.points['V_4low'] = pointV_4low;
+        status.pattern.points['V_5low'] = pointV_5low;
+        status.pattern.points['W_6low'] = pointW_6low;
+        status.pattern.points['W_7low'] = pointW_7low;
+
+        //draw curves from V to 4low and 5low, touching 4 and 5
+        status = setCurve(status, {start: 'V', touch: 'V_4low', end: '4low'}, 0, 'bezier');
+        status = setCurve(status, {start: 'V', touch: 'V_5low', end: '5low'}, 0, 'bezier');
+        //draw curves from W to 6low and 7low, touching 6 and 7
+        status = setCurve(status, {start: 'W', touch: 'W_6low', end: '6low'}, 0, 'bezier');
+        status = setCurve(status, {start: 'W', touch: 'W_7low', end: '7low'}, 0, 'bezier');
+
+        //draw lines from 10 to 4low, 5low to 6low, and 7low to 15l
+        status = setLine(status, '10', '4low');
+        status = setLine(status, '5low', '6low');
+        status = setLine(status, '7low', '15l');
+
+        //draw line from 15r to 17
+        status = setLine(status, '15r', '17');
+
+        //point16low is 1/2 inch below point 16
+        let point16low = setPoint(point16.x, point16.y + inchesToPrecision(status, 1/2), {}, false);
+        status.pattern.points['16low'] = point16low;
+        //draw a curve from 16low to 17, make new touch point
+        status.pattern.points['16low_17'] = makeTouchPoint(status, point17, point16low, 1, 0.33, false);
+        status = setCurve(status, {start: '17', touch: '16low_17', end: '16low'}, 0, 'bezier');
+
+        //draw curve from 8z to 16low, touching 11
+        status = setCurve(status, {start: '8z', touch: '11', end: '16low'}, 0, 'bezier');
+
         return status;
       }
     }

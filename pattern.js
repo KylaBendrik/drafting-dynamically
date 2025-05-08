@@ -143,8 +143,8 @@ export function makeTouchPoint(_status, point1, point2, quarter, depth = 0.5, vi
 
     //find the x and y of the touch point
 
-    touch.x = mid.x + distX * depth;
-    touch.y = mid.y - distY * depth;
+    touch.x = mid.x + dist.x * depth;
+    touch.y = mid.y - dist.y * depth;
 
   } else if (quarter == 2) {
     //center is left of point1 and above point2
@@ -161,8 +161,8 @@ export function makeTouchPoint(_status, point1, point2, quarter, depth = 0.5, vi
 
     //find the x and y of the touch point
 
-    touch.x = mid.x + distX * depth;
-    touch.y = mid.y + distY * depth;
+    touch.x = mid.x + dist.x * depth;
+    touch.y = mid.y + dist.y * depth;
   } else if (quarter == 3) {
     //center is above point1 and right of point2
     corner.x = point1.x;
@@ -178,8 +178,8 @@ export function makeTouchPoint(_status, point1, point2, quarter, depth = 0.5, vi
 
     //find the x and y of the touch point
 
-    touch.x = mid.x - distX * depth;
-    touch.y = mid.y + distY * depth;
+    touch.x = mid.x - dist.x * depth;
+    touch.y = mid.y + dist.y * depth;
   } else if (quarter == 4) {
     //center is right of point1 and below point2
     corner.x = point2.x;
@@ -194,8 +194,8 @@ export function makeTouchPoint(_status, point1, point2, quarter, depth = 0.5, vi
     dist.y = Math.abs(corner.y - mid.y);
 
     //find the x and y of the touch point
-    touch.x = mid.x - distX * depth;
-    touch.y = mid.y - distY * depth;
+    touch.x = mid.x - dist.x * depth;
+    touch.y = mid.y - dist.y * depth;
   }
 
 
