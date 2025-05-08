@@ -31,7 +31,7 @@ import {
   let measurements = {
     width_armhole: { label: "Armhole", value: 16 },
     length_underarm: { label: "Length of sleeve under arm", value: 16.5 },
-    width_wrist: { label: "width at elbow", value: 12 },
+    width_elbow: { label: "width at elbow", value: 12 },
     width_wrist: { label: "Width at wrist", value: 10 },
   };
 
@@ -248,6 +248,18 @@ const steps = [
 
         status = registerPoints(status, {'NLcp1': pointNLcp1, 'NLcp2': pointNLcp2});
         status = setCurve(status, {start: 'L', cp1: 'NLcp1', cp2: 'NLcp2', end: 'N'}, 0, 'bezier2');
+        return status;
+      }
+    },
+    {
+      description: (status) => { return `Point M is 1/2 elbow, ${printNum(status.measurements.width_elbow.value / 2)} right of F` },
+      action: (status) => {
+        let elbow = inchesToPrecision(status, status.design.measurements.width_elbow.value);
+        let pointF = status.pattern.points['F'];
+        let pointM = setPoint(pointF.x + elbow / 2, pointF.y);
+
+        status = registerPoint(status, pointM, 'M');
+        status = setCurve(status, {start: 'A', touch: 'M', end: 'C'}, 0, 'bezier');
         return status;
       }
     }
