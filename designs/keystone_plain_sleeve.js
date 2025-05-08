@@ -8,6 +8,7 @@ import {
     setPointLineX,
     setPointAlongLine,
     setPointLineCircle,
+    setEquilateralThirdPoint,
     setPointLineLine,
     makeTouchPoint,
     setCurve,
@@ -143,14 +144,115 @@ const steps = [
       action: (status) => {
         let pointH = status.pattern.points['H'];
         let pointJ = status.pattern.points['J'];
-        let pointI = setPoint((pointH.x + pointJ.x) / 2, pointH.y);
+        let pointI = setPoint((pointH.x + pointJ.x) / 2, pointH.y, { d: true });
 
         status = registerPoint(status, pointI, 'I');
         return status;
       }
     },
-    
+    {
+      description: (status) => { return `Point K is 1/4 armhole ${printNum(status.measurements.width_armhole.value / 4)} up from G` },
+      action: (status) => {
+        let armhole = inchesToPrecision(status, status.design.measurements.width_armhole.value);
+        let pointG = status.pattern.points['G'];
+        let pointK = setPoint(pointG.x, pointG.y - armhole / 4, { r: true });
+
+        status = registerPoint(status, pointK, 'K');
+        return status;
+      }
+    },
+    { 
+      description: (_status) => { return `Point P is the third point in an equilateral triangle with points K and H.` },
+      action: (status) => {
+        let pointK = status.pattern.points['K'];
+        let pointH = status.pattern.points['H'];
+
+        // Calculate the third point of the equilateral triangle
+        let pointP = setEquilateralThirdPoint(status, pointK, pointH);
+
+        // Point S is right of P, the same distance as K to H
+        let distKtoH = distPointToPoint(pointK, pointH);
+        let pointS = setPoint(pointP.x + distKtoH, pointP.y);
+        //Point S2 is 6 degrees counterclockwise from S, around point P
+
+        
+
+        // Register point S
+        status = registerPoints(status, {'P': pointP, 'S': pointS});
+        //status = setCurve(status, {start: 'V', touch: 'V_4low', end: '4low'}, 0, 'bezier');
+        status = setCurve(status, {start: 'K', center: 'P', end: 'S'}, 0, 'arc');
+
+        return status;
+      }
+    },
+    {
+      description: (status) => { return `Point R is 1/2 inch up from A` },
+      action: (status) => {
+        let pointA = status.pattern.points['A'];
+        let pointR = setPoint(pointA.x, pointA.y - inchesToPrecision(status, 0.5));
+
+        status = registerPoint(status, pointR, 'R');
+        //draw curve from R to S, quarter 3, make touch point
+        let pointS = status.pattern.points['S'];
+        let pointP = status.pattern.points['P'];
+
+        let radius = distPointToPoint(pointS, pointP);
+
+        //angle from S to S2
+        let angleDegrees = 6;
+        let angleRadians = (angleDegrees * Math.PI) / 180;
+        let newX = pointP.x + radius * Math.cos(angleRadians);
+        let newY = pointP.y - radius * Math.sin(angleRadians);
+        //pointSR is the new point, 6 degrees counterclockwise from S
+        let pointS2 = setPoint(newX, newY, {}, false);
+
+        let pointSR = makeTouchPoint(status, pointS2, pointR, 3, 0.25, false);
+        
+
+        status = registerPoints(status, {'S2': pointS2, 'SR': pointSR});
+        status = setCurve(status, {start: 'R', touch: 'SR', end: 'S2'}, 0, 'bezier');
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `N is right of K, and below I, and L is 2 inches left of A` },
+      action: (status) => {
+        let pointK = status.pattern.points['K'];
+        let pointI = status.pattern.points['I'];
+        let pointA = status.pattern.points['A'];    
+            
+        let pointN = setPoint(pointI.x, pointK.y);
+        let pointL = setPoint(pointA.x - inchesToPrecision(status, 2), pointA.y);
+        status = registerPoints(status, {'N': pointN, 'L': pointL});
+        return status;
+      }
+    },
+    {
+      description: (status) => { return `Shape the under-arm scye from R to the line at L and up to N, curving above and below a straight line from N to L`},
+      action: (status) => {
+        let pointN = status.pattern.points['N'];
+        let pointL = status.pattern.points['L'];
+
+        //set the line from N to L
+        status = setLine(status, 'N', 'L', 'dashed');
+        //set the curve from R to L
+        status = setCurve(status, {start: 'R', end: 'L'}, 2, 'ellipse');
+        //set the curve from L to N
+        let midX = (pointL.x + pointN.x) / 2;
+        let midY = (pointL.y + pointN.y) / 2;
+        //amplitude
+        let amp = 5;
+
+        let pointNLcp1 = setPoint(midX, midY + amp, {}, false);
+        let pointNLcp2 = setPoint(midX, midY - amp, {}, false);
+
+        status = registerPoints(status, {'NLcp1': pointNLcp1, 'NLcp2': pointNLcp2});
+        status = setCurve(status, {start: 'L', cp1: 'NLcp1', cp2: 'NLcp2', end: 'N'}, 0, 'bezier2');
+        return status;
+      }
+    }
 ]
+
 
 export const keystone_plain_sleeve = {
   design_info: design_info,

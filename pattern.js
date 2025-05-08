@@ -108,6 +108,30 @@ export function setPointLineCircle(status, point1, point2, center, radius, visib
 
 }
 
+export function setEquilateralThirdPoint(_status, point1, point2) {
+  let x1 = point1.x;
+  let y1 = point1.y;
+  let x2 = point2.x;
+  let y2 = point2.y;
+
+  // Calculate the midpoint
+  let midX = (x1 + x2) / 2;
+  let midY = (y1 + y2) / 2;
+
+  // Calculate the distance between the two points
+  let dist = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+
+  // Calculate the height of the equilateral triangle
+  let height = (Math.sqrt(3) / 2) * dist;
+
+  // Calculate the coordinates of the third point
+  let thirdX = midX - height * (y2 - y1) / dist;
+  let thirdY = midY + height * (x2 - x1) / dist;
+
+  return setPoint(thirdX, thirdY)
+}
+
+
 export function setPointLineLine(status, point1, point2, point3, point4, visible = true){
   //find the intersection of two lines, defined by points 1 and 2, and points 3 and 4
   let x1 = point1.x;
@@ -240,7 +264,6 @@ export function setCurve(status, points, quarter, type = 'ellipse', style = 'sol
   };
   status.pattern.curves.push(curve);
   return status;
-
 }
 
 export function perimeterEllipse(_status, center, point1, point2){
@@ -268,6 +291,8 @@ export function perimeterEllipse(_status, center, point1, point2){
   //return 10;
 }
 export function distPointToPoint(point1, point2){
+  //find the distance between two points
+  //point1 and point2 are objects with x and y properties
   return Math.round(Math.sqrt((point1.x - point2.x) * (point1.x - point2.x) + (point1.y - point2.y) * (point1.y - point2.y)));
 }
 
