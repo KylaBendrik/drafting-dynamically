@@ -53,7 +53,7 @@ const steps = [
       }
     },
     {
-      description: (status) => {return `From point 1, go down the back length ${printMeasure(status.design.measurements.backLength)} to define point B`},
+      description: (status) => {return `From point 1, go down the back length ${printMeasure(status.measurements.backLength)} to define point B`},
       action: (status) => {
           let point1 = status.pattern.points['1'];
           let pointb_y = point1.y + inchesToPrecision(status, parseFloat(status.design.measurements.backLength.value));
