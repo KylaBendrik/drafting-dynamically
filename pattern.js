@@ -222,7 +222,7 @@ export function setLine(status, start, end, style = 'solid', length = 'defined')
   let line = {
     start: start,
     end: end,
-    style: style,
+    style: style, //solid, dashed
     length: length //either defined or continued (extending past end point)
   };
   status.pattern.lines.push(line);

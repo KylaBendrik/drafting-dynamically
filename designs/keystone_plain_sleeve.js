@@ -51,8 +51,6 @@ const steps = [
         let armhole = inchesToPrecision(status, status.design.measurements.width_armhole.value);
         let pointO = status.pattern.points['O'];
         let pointA = setPoint(pointO.x, pointO.y + armhole / 3, { l: true });
-        console.log('defining point A', pointA);
-        console.log(status.pattern.points);
 
         status = registerPoint(status, pointA, 'A');
         return status;
@@ -63,7 +61,7 @@ const steps = [
       action: (status) => {
         let armhole = inchesToPrecision(status, status.design.measurements.width_armhole.value);
         let pointO = status.pattern.points['O'];
-        let pointJ = setPoint(pointO.x - armhole / 2, pointO.y, { l: true });
+        let pointJ = setPoint(pointO.x - armhole / 2, pointO.y, {d: true });
 
         status = registerPoint(status, pointJ, 'J');
 
@@ -75,7 +73,6 @@ const steps = [
       action: (status) => {
         let lengthUnderarm = inchesToPrecision(status, status.design.measurements.length_underarm.value);
         let pointA = status.pattern.points['A'];
-        console.log('pointA', pointA);
         let pointC = setPoint(pointA.x, pointA.y + lengthUnderarm, { l: true });
 
         status = registerPoint(status, pointC, 'C');
@@ -121,16 +118,38 @@ const steps = [
         let pointB = status.pattern.points['B'];
         let pointJ = status.pattern.points['J'];
 
+        //new points
         let pointF = setPoint(pointJ.x, pointB.y);
         let pointG = setPoint(pointJ.x, pointA.y);
 
         status = registerPoints(status, {'F': pointF, 'G': pointG});
-        // status.pattern.points['F'] = pointF;
-        // status.pattern.points['G'] = pointG;
-
+        status = setLine(status, 'F', 'E', 'dashed');
         return status;
       }
-    }
+    },
+    {
+      description: (status) => { return `Point H is in the middle between O and J` },
+      action: (status) => {
+        let pointO = status.pattern.points['O'];
+        let pointJ = status.pattern.points['J'];
+        let pointH = setPoint((pointO.x + pointJ.x) / 2, pointO.y);
+
+        status = registerPoint(status, pointH, 'H');
+        return status;
+      }
+    },
+    {
+      description: (status) => { return `Point I is halfway between H and J` },
+      action: (status) => {
+        let pointH = status.pattern.points['H'];
+        let pointJ = status.pattern.points['J'];
+        let pointI = setPoint((pointH.x + pointJ.x) / 2, pointH.y);
+
+        status = registerPoint(status, pointI, 'I');
+        return status;
+      }
+    },
+    
 ]
 
 export const keystone_plain_sleeve = {
