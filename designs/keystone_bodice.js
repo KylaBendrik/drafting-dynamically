@@ -31,10 +31,7 @@ import {
     blade: { label: "Blade", value: 10 },
     heightUnderArm: { label: "Height Under Arm", value: 7.5 },
     breast: { label: "Breast", value: 36 },
-    waist: { label: "Waist", value: 25 },
-    lengthOfFront: { label: "Length of Front", value: 23 },
-    shoulder: { label: "Desired Shoulder Change", value: 1, step: 0.25 },
-    neckline: { label: "Neckline", value: 10 }
+    waist: { label: "Waist", value: 25 }
   };
 
   //all distances are in inches * precision
@@ -566,14 +563,14 @@ const steps = [
         let distX = inchesToPrecision(status, 1/4);
         let distX2 = inchesToPrecision(status, 1/8);
 
-        status.pattern.points['15r'] = setPoint(point15.x + distX, point15.y);
-        status.pattern.points['15l'] = setPoint(point15.x - distX, point15.y);
+        status.pattern.points['15r'] = setPoint(point15.x + distX, point15.y, {}, false);
+        status.pattern.points['15l'] = setPoint(point15.x - distX, point15.y, {}, false);
         let point15r = status.pattern.points['15r'];
         let point15l = status.pattern.points['15l'];
 
         //make touch points, about 1/3 up from 15 to 14, 1/8 inch wider than 15r and 15l
-        let point14_15r = setPoint(point15r.x + distX2, point14.y + (point15r.y - point14.y) * 2/3);
-        let point14_15l = setPoint(point15l.x - distX2, point14.y + (point15l.y - point14.y) * 2/3);
+        let point14_15r = setPoint(point15r.x + distX2, point14.y + (point15r.y - point14.y) * 2/3, {}, false);
+        let point14_15l = setPoint(point15l.x - distX2, point14.y + (point15l.y - point14.y) * 2/3, {}, false);
         status.pattern.points['14_15r'] = point14_15r;
         status.pattern.points['14_15l'] = point14_15l;
 
@@ -687,6 +684,24 @@ const steps = [
 
         //draw curve from 8z to 16low, touching 11
         status = setCurve(status, {start: '8z', touch: '11', end: '16low'}, 0, 'bezier');
+
+        //create Dlow, following D down to match 16low
+        let pointD = status.pattern.points['D'];
+        let pointDlow = setPoint(pointD.x, pointD.y + inchesToPrecision(status, 1/2), {}, false);
+        status.pattern.points['Dlow'] = pointDlow;
+
+        status = setLine(status, 'D', 'Dlow');
+
+        status = setLine(status, 'Dlow', 'C');
+
+        //make last curve from X to 8
+        let pointX = status.pattern.points['X'];
+        let point8 = status.pattern.points['8'];
+        //make touch point, from X to 8, 1/8 inch right of X
+        let dist8X = inchesToPrecision(status, 1/8);
+        status.pattern.points['X_8'] = setPoint(((pointX.x + point8.x) /2) + dist8X, (pointX.y + point8.y) / 2, {}, false);
+
+        status = setCurve(status, {start: 'X', touch: 'X_8', end: '8'}, 0, 'bezier');
 
         return status;
       }
