@@ -241,7 +241,7 @@ const steps = [
         let midX = (pointL.x + pointN.x) / 2;
         let midY = (pointL.y + pointN.y) / 2;
         //amplitude
-        let amp = 5;
+        let amp = 7;
 
         let pointNLcp1 = setPoint(midX, midY + amp, {}, false);
         let pointNLcp2 = setPoint(midX, midY - amp, {}, false);
@@ -259,7 +259,117 @@ const steps = [
         let pointM = setPoint(pointF.x + elbow / 2, pointF.y);
 
         status = registerPoint(status, pointM, 'M');
-        status = setCurve(status, {start: 'A', touch: 'M', end: 'C'}, 0, 'bezier');
+
+        //make points AM and CM, 1/3 of the way from A to M and C to M
+        let pointA = status.pattern.points['A'];
+        let pointC = status.pattern.points['C'];
+        let pointAM = makeTouchPoint(status, pointM, pointA, 4, 0.25, false);
+        let pointCM = makeTouchPoint(status, pointC, pointM, 3, 0.25, false);
+        status = registerPoints(status, {'AM': pointAM, 'CM': pointCM});
+
+        status = setCurve(status, {start: 'AM', touch: 'M', end: 'CM'}, 0, 'bezier');
+        status = setLine(status, 'A', 'AM');
+        status = setLine(status, 'C', 'CM');
+        return status;
+      }
+    },
+    {
+      description: (status) => { return `Shape from K to G, past F clearing it by 1/2 inch, then curve to E.` },
+      action: (status) => {
+        let pointK = status.pattern.points['K'];
+        let pointG = status.pattern.points['G'];
+        let pointF = status.pattern.points['F'];
+        let pointE = status.pattern.points['E'];
+
+        //set the line from K to G
+        //status = setLine(status, 'K', 'G');
+        //set point F2, 1/2 inch left of F
+        let pointF2 = setPoint(pointF.x - inchesToPrecision(status, 0.5), pointF.y, {}, false);
+        status = registerPoint(status, pointF2, 'F2');
+        //Find touch points between F2 and G, and F2 and E
+        let pointGF2 = makeTouchPoint(status, pointF2, pointG, 4, 0.3, false);
+        let pointF2E = makeTouchPoint(status, pointF2, pointE, 3, 0.075, false);
+        status = registerPoints(status, {'GF2': pointGF2, 'F2E': pointF2E, 'F2': pointF2});
+
+        //set the lines from G to F2 and from F2 to E
+        status = setLine(status, 'G', 'F2', 'dashed');
+        status = setLine(status, 'F2', 'E', 'dashed');
+        //status = setCurve(status, {start: 'G', touch: 'GF2', end: 'F2'}, 0, 'bezier');
+        status = setCurve(status, {start: 'K', touch: 'G', end: 'GF2'}, 0, 'bezier');
+        status = setCurve(status, {start: 'GF2', touch: 'F2', end: 'F2E'}, 0, 'bezier');
+        status = setLine(status, 'F2E', 'E');
+
+        return status;
+      }
+    },
+    {
+      description: (status) => { return `Curve the cuff from C to E` },
+      action: (status) => {
+        let pointC = status.pattern.points['C'];
+        let pointE = status.pattern.points['E'];
+
+        let pointCE = makeTouchPoint(status, pointC, pointE, 4, 0.15);
+        status = registerPoint(status, pointCE, 'CE');
+
+        //set the line from C to E
+        status = setLine(status, 'C', 'E', 'dashed');
+        //set the curve from C to E
+        status = setCurve(status, {start: 'C', touch: 'CE', end: 'E'}, 0, 'bezier');
+        return status;
+      }
+    },
+    {
+      description: (status) => { return `Point 9 is 1/2 inch right of E` },
+      action: (status) => {
+        let pointE = status.pattern.points['E'];
+        let point9 = setPoint(pointE.x + inchesToPrecision(status, 0.5), pointE.y);
+
+        status = registerPoint(status, point9, '9');
+        return status;
+      }
+    },
+    {
+      description: (status) => { return `Draw the elbow-seam of the under part from N to 1 straight down` },
+      action: (status) => {
+        let pointN = status.pattern.points['N'];
+        let pointG = status.pattern.points['G'];
+        let point1 = setPoint(pointN.x, pointG.y);
+
+        status = registerPoint(status, point1, '1');
+
+        //set the line from N to 1
+        status = setLine(status, 'N', '1');
+        return status;
+      }
+    },
+    {
+      description: (status) => { return `Draw the seam from 1 to Point Q, which is 1/2 right of F` },
+      action: (status) => {
+        let pointF = status.pattern.points['F'];
+        let point1 = status.pattern.points['1'];
+        let pointQ = setPoint(pointF.x + inchesToPrecision(status, 0.5), pointF.y);
+        let point9 = status.pattern.points['9'];
+
+        let point1Q = makeTouchPoint(status, point1, pointQ, 4, 0.1, false);
+
+        let distX = Math.abs(point9.x - pointQ.x);
+        let distY = Math.abs(point9.y - pointQ.y);
+
+        let pointQ2 = setPoint(pointQ.x + distX * 0.1, pointQ.y + distY * 0.2);
+
+        status = registerPoints(status, {'Q': pointQ, '1Q': point1Q,'Q2': pointQ2});
+
+
+        //set curve from 1 to 9
+        status = setCurve(status, {start: '1Q', touch: 'Q2', end: '9'}, 0, 'bezier');
+
+        //make cuff from 9 to C
+        let pointC = status.pattern.points['C'];
+        let point9C = makeTouchPoint(status, point9, pointC, 4, 0.15);
+        status = registerPoint(status, point9C, '9C');
+        //set the curve from 9 to C
+        status = setCurve(status, {start: '9', touch: '9C', end: 'C'}, 0, 'bezier');
+        status = setCurve(status, {start: 'N', touch: '1', end: '1Q'}, 0, 'bezier');
         return status;
       }
     }
