@@ -516,57 +516,108 @@ const steps = [
         let point12 = status.pattern.points['12'];
 
         //find point 12r, 1/2 inch right of 12
-        status.pattern.points['12r'] = setPoint(point12.x + inchesToPrecision(status, 1/2), point12.y, {}, false);
+        status.pattern.points['12r'] = setPoint(point12.x + inchesToPrecision(status, 1/4), point12.y, {}, false);
         let point12r = status.pattern.points['12r'];
         let point8z = status.pattern.points['8z'];
 
         //make a bezier curve from 12 to 8z, touching 12r
-        status.pattern.points['12r_8z'] = makeTouchPoint(status, point12r, point8z, 2, 0.25);
+        status.pattern.points['12r_8z'] = makeTouchPoint(status, point12r, point8z, 2, 0.25, false);
 
         status = setCurve(status, {start: '8z', touch: '12r_8z', end: '12r'}, 0, 'bezier');
         //make a curve from 12 to 14, making a new Touch point
-        status.pattern.points['12_14'] = makeTouchPoint(status, point14, point12, 2, 0.25);
+        status.pattern.points['12_14'] = makeTouchPoint(status, point14, point12, 2, 0.25, false);
         status = setCurve(status, {start: '12', touch: '12_14', end: '14'}, 0, 'bezier');
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `Create the underarm and side back sem from 12 to 17, touching just left of L, widening to 1/4" between L and 17, and meeting again at 17.`},
+      action: (status) => {
+        let pointL = status.pattern.points['L'];
+        let point17 = status.pattern.points['17'];
+        let point12 = status.pattern.points['12'];
+        let point12r = status.pattern.points['12r'];
+
+        //find the point left of L, on the line from 12 to 17
+        status = setLine(status, '12', '17', 'dashed');
+        let pointL2 = setPointLineY(status, point12, point17, pointL.y);
+        status.pattern.points['L2'] = pointL2;
+
+        //draw curves from 12 to L2 and from 12r to L2, both quarter 1
+        status.pattern.points['12_L2'] = makeTouchPoint(status, point12, pointL2, 1);
+        status.pattern.points['12r_L2'] = makeTouchPoint(status, point12r, pointL2, 1);
+        status = setCurve(status, {start: '12', touch: '12_L2', end: 'L2'}, 0, 'bezier');
+        status = setCurve(status, {start: '12r', touch: '12r_L2', end: 'L2'}, 0, 'bezier');
+        
         return status;
       }
     }
 ]
 
-function makeTouchPoint(_status, point1, point2, quarter, depth = 0.5) {
+function makeTouchPoint(_status, point1, point2, quarter, depth = 0.5, visible = true) {
   //quarter 1, 2, 3, or 4, clockwise from 12 o'clock (so 1 is top right, 2 is bottom right, 3 is bottom left, 4 is top left)
   //calculate center from point1, point2, and quarter
   let center = { x: 0, y: 0 };
   let mid1and2 = { x: 0, y: 0 };
   let touch = { x: 0, y: 0 };
+  let x = 0;
+  let y = 0;
+
   if (quarter == 1) {
     //center is below point1 and left of point2
     center.x = point1.x;
     center.y = point2.y;
+
+    //find the halfway point between point1 and point2
+    mid1and2.x = (point1.x + point2.x) / 2;
+    mid1and2.y = (point1.y + point2.y) / 2;
+
+    x = mid1and2.x + (center.x - mid1and2.x) * depth;
+    y = mid1and2.y + (center.y - mid1and2.y) * depth;
   } else if (quarter == 2) {
     //center is left of point1 and above point2
     center.x = point2.x;
     center.y = point1.y;
+
+    //find the halfway point between point1 and point2
+    mid1and2.x = (point1.x + point2.x) / 2;
+    mid1and2.y = (point1.y + point2.y) / 2;
+
+    x = mid1and2.x + (center.x - mid1and2.x) * depth;
+    y = mid1and2.y + (center.y - mid1and2.y) * depth;
   } else if (quarter == 3) {
     //center is above point1 and right of point2
     center.x = point1.x;
     center.y = point2.y;
+
+    //find the halfway point between point1 and point2
+    mid1and2.x = (point1.x + point2.x) / 2;
+    mid1and2.y = (point1.y + point2.y) / 2;
+
+    x = mid1and2.x + (center.x - mid1and2.x) * depth;
+    y = mid1and2.y + (center.y - mid1and2.y) * depth;
   } else if (quarter == 4) {
     //center is right of point1 and below point2
     center.x = point2.x;
     center.y = point1.y;
+
+    //find the halfway point between point1 and point2
+    mid1and2.x = (point1.x + point2.x) / 2;
+    mid1and2.y = (point1.y + point2.y) / 2;
+
+    x = mid1and2.x + (center.x - mid1and2.x) * depth;
+    y = mid1and2.y + (center.y - mid1and2.y) * depth;
   }
 
-  //find the halfway point between point1 and point2
-  mid1and2.x = (point1.x + point2.x) / 2;
-  mid1and2.y = (point1.y + point2.y) / 2;
+
 
   //find x and y, between center and mid1and2. Depth is the distance from mid1and2 to the touch point
   //0 would be at mid1and2, 1 would be at center
 
-  let x = mid1and2.x + (center.x - mid1and2.x) * depth;
-  let y = mid1and2.y + (center.y - mid1and2.y) * depth;
+  // let x = mid1and2.x + (center.x - mid1and2.x) * depth;
+  // let y = mid1and2.y + (center.y - mid1and2.y) * depth;
   //find the distance from center to mid1and2  
-  return setPoint(x, y, {}, false);
+  return setPoint(x, y, {}, visible);
 }
 
 function widthTopBack(status){
