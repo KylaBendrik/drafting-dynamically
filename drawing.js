@@ -54,9 +54,12 @@ export function drawPattern(status) {
       drawArc(ctx, status, pixelPattern, curve);
     } else if (curve.type === 'ellipse') {
       drawQuarterEllipse(ctx, status, pixelPattern, curve);
-    } else {
+    } else if (curve.type === 'bezier2') {
       //bezier2
       drawBezier2(ctx, status, pixelPattern, curve);
+    } else if (curve.type === 'bezier1Touch') {
+      //bezier1Touch
+      drawBezier1Touch(ctx, status, pixelPattern, curve);
     }
   }
 
@@ -258,9 +261,16 @@ function drawBezier(ctx, _status, pixelPattern, curve) {
     //if control point is defined, use that
     cp1 = control;
   }
+  //draw the control point
+  ctx.beginPath();
+  ctx.rect(cp1.x - 2, cp1.y - 2, 4, 4);
+  ctx.fillStyle = 'red';
+  ctx.fill();
+  ctx.strokeStyle = 'black';
+  ctx.beginPath();
 
     ctx.moveTo(start.x, start.y);
-    ctx.strokeStyle = 'black';
+    ctx.strokeStyle = 'red';
     ctx.moveTo(start.x, start.y);
     ctx.quadraticCurveTo(cp1.x, cp1.y, end.x, end.y);
     ctx.stroke();
@@ -277,4 +287,69 @@ function drawBezier2(ctx, _status, pixelPattern, curve) {
   ctx.strokeStyle = 'black';
   ctx.bezierCurveTo(control1.x, control1.y, control2.x, control2.y, end.x, end.y);
   ctx.stroke();
+}
+
+function drawBezier1Touch(ctx, _status, pixelPattern, curve, time = 0.5) {
+  let start = pixelPattern.points[curve.points.start];
+  let end = pixelPattern.points[curve.points.end];
+  let touch = pixelPattern.points[curve.points.touch];
+
+  //to start, let control point be the touch point
+  // let cp1 = { x: touch.x, y: touch.y };
+
+  //now, let's calculate the control point so that the curve is close to the touch point
+
+
+
+  //for now, let's calculate the distance "touch" is from the start point to the end point, 0 being start, 1 being end
+  let dx = end.x - start.x;
+  let dy = end.y - start.y;
+  let length = Math.sqrt(dx * dx + dy * dy);
+
+  //print this distance on the ctx as T = ___, next to the control point
+  let distance = Math.sqrt(Math.pow(touch.x - start.x, 2) + Math.pow(touch.y - start.y, 2));
+  let t = distance / length;
+
+  let cp1 = { x: 0, y: 0 };
+
+  cp1 = ctrlFromSTE(start, end, touch, time);
+  
+  ctx.fillText('T = ' + t.toFixed(2), cp1.x + 25, cp1.y - 15);
+
+  //draw the control point
+  ctx.beginPath();
+  ctx.rect(cp1.x - 2, cp1.y - 2, 4, 4);
+  ctx.fillStyle = 'blue';
+  ctx.fill();
+ 
+  ctx.beginPath();
+  ctx.moveTo(start.x, start.y);
+  ctx.strokeStyle = 'blue';
+  ctx.moveTo(start.x, start.y);
+  ctx.quadraticCurveTo(cp1.x, cp1.y, end.x, end.y);
+  ctx.stroke();
+}
+
+function ctrlFromSTE(s, t, e, time) {
+  console.log ('ctrlFromSTE')
+  console.log (s, t, e, time)
+  let cx = ctrlFromSTE_single(s.x, t.x, e.x, time);
+  let cy = ctrlFromSTE_single(s.y, t.y, e.y, time);
+  let c = {label: 'c', x: cx, y: cy};
+  
+  return c;
+}
+
+function ctrlFromSTE_single(s, t, e, time) {
+  //t = s * (1 - time) * (1 - time) + c * 2 * time * (1 - time) + e * time * time
+  //t - e * time * time - s * (1 - time) * (1 - time) = c * 2 * time * (1 - time)
+  //c = (t - e * time * time - s * (1 - time) * (1 - time)) / (2 * time * (1 - time))
+  let c = (t - e * time * time - s * (1 - time) * (1 - time)) / (2 * time * (1 - time))
+
+  console.log ('s', s)
+  console.log ('t', t)
+  console.log ('e', e)
+  console.log ('time', time)
+  console.log ('c', c)
+  return c;
 }

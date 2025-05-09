@@ -284,11 +284,11 @@ const steps = [
         //set the line from K to G
         //status = setLine(status, 'K', 'G');
         //set point F2, 1/2 inch left of F
-        let pointF2 = setPoint(pointF.x - inchesToPrecision(status, 0.5), pointF.y, {}, false);
+        let pointF2 = setPoint(pointF.x - inchesToPrecision(status, 0.5), pointF.y, {});
         status = registerPoint(status, pointF2, 'F2');
         //Find touch points between F2 and G, and F2 and E
-        let pointGF2 = makeTouchPoint(status, pointF2, pointG, 4, 0.3, false);
-        let pointF2E = makeTouchPoint(status, pointF2, pointE, 3, 0.075, false);
+        let pointGF2 = makeTouchPoint(status, pointF2, pointG, 4, 0.3);
+        let pointF2E = makeTouchPoint(status, pointF2, pointE, 3, 0.075);
         status = registerPoints(status, {'GF2': pointGF2, 'F2E': pointF2E, 'F2': pointF2});
 
         //set the lines from G to F2 and from F2 to E
@@ -296,7 +296,12 @@ const steps = [
         status = setLine(status, 'F2', 'E', 'dashed');
         //status = setCurve(status, {start: 'G', touch: 'GF2', end: 'F2'}, 0, 'bezier');
         status = setCurve(status, {start: 'K', touch: 'G', end: 'GF2'}, 0, 'bezier');
+        
+        //status = setCurve(status, {start: 'K', touch: 'G', end: 'GF2', time: 0.5}, 0, 'bezier1Touch');
+
         status = setCurve(status, {start: 'GF2', touch: 'F2', end: 'F2E'}, 0, 'bezier');
+        
+        status = setCurve(status, {start: 'GF2', touch: 'F2', end: 'E'}, 0, 'bezier1Touch');
         status = setLine(status, 'F2E', 'E');
 
         return status;
@@ -355,7 +360,7 @@ const steps = [
         let distX = Math.abs(point9.x - pointQ.x);
         let distY = Math.abs(point9.y - pointQ.y);
 
-        let pointQ2 = setPoint(pointQ.x + distX * 0.1, pointQ.y + distY * 0.2);
+        let pointQ2 = setPoint(pointQ.x + distX * 0.1, pointQ.y + distY * 0.2, {}, false);
 
         status = registerPoints(status, {'Q': pointQ, '1Q': point1Q,'Q2': pointQ2});
 
@@ -365,11 +370,20 @@ const steps = [
 
         //make cuff from 9 to C
         let pointC = status.pattern.points['C'];
-        let point9C = makeTouchPoint(status, point9, pointC, 4, 0.15);
+        let point9C = makeTouchPoint(status, point9, pointC, 4, 0.15, false);
         status = registerPoint(status, point9C, '9C');
         //set the curve from 9 to C
         status = setCurve(status, {start: '9', touch: '9C', end: 'C'}, 0, 'bezier');
         status = setCurve(status, {start: 'N', touch: '1', end: '1Q'}, 0, 'bezier');
+
+        setLine(status, 'R', 'A');
+
+        //how long is the sleeve?
+        let pointK = status.pattern.points['K'];
+        let pointE = status.pattern.points['E'];
+        let sleeveLength = distPointToPoint(pointK, pointF) + distPointToPoint(pointF, pointE);
+        let sleeveLengthInches = sleeveLength / status.precision;
+        console.log('shoulder to cuff', sleeveLengthInches);
         return status;
       }
     }
