@@ -286,23 +286,9 @@ const steps = [
         //set point F2, 1/2 inch left of F
         let pointF2 = setPoint(pointF.x - inchesToPrecision(status, 0.5), pointF.y, {});
         status = registerPoint(status, pointF2, 'F2');
-        //Find touch points between F2 and G, and F2 and E
-        let pointGF2 = makeTouchPoint(status, pointF2, pointG, 4, 0.3);
-        let pointF2E = makeTouchPoint(status, pointF2, pointE, 3, 0.075);
-        status = registerPoints(status, {'GF2': pointGF2, 'F2E': pointF2E, 'F2': pointF2});
 
-        //set the lines from G to F2 and from F2 to E
-        status = setLine(status, 'G', 'F2', 'dashed');
-        status = setLine(status, 'F2', 'E', 'dashed');
-        //status = setCurve(status, {start: 'G', touch: 'GF2', end: 'F2'}, 0, 'bezier');
-        status = setCurve(status, {start: 'K', touch: 'G', end: 'GF2'}, 0, 'bezier');
-        
-        //status = setCurve(status, {start: 'K', touch: 'G', end: 'GF2', time: 0.5}, 0, 'bezier1Touch');
-
-        status = setCurve(status, {start: 'GF2', touch: 'F2', end: 'F2E'}, 0, 'bezier');
-        
-        status = setCurve(status, {start: 'GF2', touch: 'F2', end: 'E'}, 0, 'bezier1Touch');
-        status = setLine(status, 'F2E', 'E');
+        //try new cubic bezier
+        status = setCurve(status, {points: {s: 'K', g1: 'G', g2: 'F2', e: 'E'}, times: {t1: 0.2, t2: 0.7}}, 0, 'cubicBezier',);
 
         return status;
       }
@@ -319,7 +305,7 @@ const steps = [
         //set the line from C to E
         status = setLine(status, 'C', 'E', 'dashed');
         //set the curve from C to E
-        status = setCurve(status, {start: 'C', touch: 'CE', end: 'E'}, 0, 'bezier');
+        //status = setCurve(status, {start: 'C', touch: 'CE', end: 'E'}, 0, 'bezier');
         return status;
       }
     },
@@ -366,15 +352,15 @@ const steps = [
 
 
         //set curve from 1 to 9
-        status = setCurve(status, {start: '1Q', touch: 'Q2', end: '9'}, 0, 'bezier');
+        //status = setCurve(status, {start: '1Q', touch: 'Q2', end: '9'}, 0, 'bezier');
 
         //make cuff from 9 to C
         let pointC = status.pattern.points['C'];
         let point9C = makeTouchPoint(status, point9, pointC, 4, 0.15, false);
         status = registerPoint(status, point9C, '9C');
         //set the curve from 9 to C
-        status = setCurve(status, {start: '9', touch: '9C', end: 'C'}, 0, 'bezier');
-        status = setCurve(status, {start: 'N', touch: '1', end: '1Q'}, 0, 'bezier');
+        //status = setCurve(status, {start: '9', touch: '9C', end: 'C'}, 0, 'bezier');
+        //status = setCurve(status, {start: 'N', touch: '1', end: '1Q'}, 0, 'bezier');
 
         setLine(status, 'R', 'A');
 

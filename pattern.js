@@ -255,13 +255,37 @@ export function setLine(status, start, end, style = 'solid', length = 'defined')
 }
 
 export function setCurve(status, points, quarter, type = 'ellipse', style = 'solid'){
+  console.log('-------setCurve');
+  
+  console.log('points', points);
   //quarter 1, 2, 3, or 4, clockwise from 12 o'clock (so 1 is top right, 2 is bottom right, 3 is bottom left, 4 is top left)
-  let curve = {
-    points: points,
-    quarter: quarter,
-    type: type,
-    style: style
-  };
+  let curve = {};
+  if (type == 'cubicBezier') {
+    //sneak in t1 and t2 in the points object
+    //check if there's a "times" property in points
+    if (points.times === undefined) {
+      //only provided points in the points object, like normal
+      curve.times = { t1: 0.33, t2: 0.67 };
+      curve.points = points;
+    }  else {
+      console.log('points.times', points.times);
+
+      //separate points and times
+      curve.points = points.points;
+      curve.times = points.times;
+    }
+      curve.quarter = quarter;
+      curve.type = type;
+      curve.style = style;
+  } else {
+    curve = {
+      points: points,
+      quarter: quarter,
+      type: type,
+      style: style
+    };
+  }
+  console.log('curve', curve);
   status.pattern.curves.push(curve);
   return status;
 }
@@ -352,14 +376,10 @@ export function printNum(num, math = 1){
 //create shapes for pattern based on steps actions
 function createShapes(status){
   let stepFuncs = status.design.steps;
-  console.log('createShapes', status);
-  console.log('createShapes stepFuncs', stepFuncs);
 
   stepFuncs.forEach(step => {
     let action = step.action;
     status = action(status);
-
-    console.log('createShapes after action', status);
   });
 
   return status;
@@ -385,11 +405,8 @@ export function makePattern(status){
     curves: [],
     steps: []
   };
-  console.log('makePattern', status);
   status = writeSteps(status);
-  console.log('makePattern after writeSteps', status);
   status = createShapes(status); //runs through steps.ations, populating points, lines, and curves
-  console.log('makePattern after createShapes', status);
   return status;
 }
 

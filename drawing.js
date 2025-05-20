@@ -1,4 +1,5 @@
 import { makePixels } from './pixels.js';
+import { cubicBezier } from './math/cubic_bezier.js';
 
 export function drawPattern(status) {
   let pixelPattern = makePixels(status);
@@ -60,6 +61,9 @@ export function drawPattern(status) {
     } else if (curve.type === 'bezier1Touch') {
       //bezier1Touch
       drawBezier1Touch(ctx, status, pixelPattern, curve);
+    } else if (curve.type === 'cubicBezier') {
+      //cubicBezier
+      drawBezierCubic(ctx, status, pixelPattern, curve);
     }
   }
 
@@ -289,32 +293,108 @@ function drawBezier2(ctx, _status, pixelPattern, curve) {
   ctx.stroke();
 }
 
-function drawBezier1Touch(ctx, _status, pixelPattern, curve, time = 0.5) {
+function drawBezierCubic(ctx, _status, pixelPattern, curve) {
+  console.log('drawBezierCubic', curve);
+  //first, fix curve to match what cubicBezier expects
+    let fixedCurve = {
+      s: pixelPattern.points[curve.points.s],
+      e: pixelPattern.points[curve.points.e]
+    }
+
+  if (curve.points.c1 && curve.points.c2) {
+    //if there are two control points, use them
+    fixedCurve = {
+      s: pixelPattern.points[curve.points.s],
+      e: pixelPattern.points[curve.points.e],
+      c1: pixelPattern.points[curve.points.c1],
+      c2: pixelPattern.points[curve.points.c2]
+    }
+  } else {
+    fixedCurve = {
+      s: pixelPattern.points[curve.points.s],
+      e: pixelPattern.points[curve.points.e],
+      g1: pixelPattern.points[curve.points.g1],
+      g2: pixelPattern.points[curve.points.g2],
+      t1: curve.times.t1,
+      t2: curve.times.t2,
+    }
+  }
+
+  let bezierCurve = cubicBezier(fixedCurve);
+
+  let s = bezierCurve.s;
+  let e = bezierCurve.e;
+  let c1 = bezierCurve.c1;
+  let c2 = bezierCurve.c2;
+
+  // //draw c1
+  //   ctx.beginPath();
+  //   //make a small solid green square for the point
+  //   ctx.fillStyle = 'green';
+  //   let pointSize = 4;
+  //   ctx.rect(c1.x - pointSize / 2, c1.y - pointSize / 2, pointSize, pointSize);
+  //   ctx.fill();
+  //   //set label to the upper right by 15 pixels
+  //   ctx.fillText("c1", c1.x + 5, c1.y - 5);
+
+  // //draw c2
+  //   ctx.beginPath();
+  //   //make a small solid green square for the point
+  //   ctx.fillStyle = 'green';
+  //   ctx.rect(c2.x - pointSize / 2, c2.y - pointSize / 2, pointSize, pointSize);
+  //   ctx.fill();
+  //   //set label to the upper right by 15 pixels
+  //   ctx.fillText("c2", c2.x + 5, c2.y - 5);
+
+
+  ctx.beginPath();
+  ctx.strokeStyle = 'black';
+  ctx.moveTo(s.x, s.y);
+  //wider line for bezier
+  ctx.lineWidth = 1;
+  ctx.bezierCurveTo(c1.x, c1.y, c2.x, c2.y, e.x, e.y);
+  ctx.stroke();
+  
+  ctx.lineWidth = 1;
+}
+
+function getDistance(p1, p2) {
+  return Math.hypot(p2.x - p1.x, p2.y - p1.y);
+}
+
+function drawBezier1Touch(ctx, _status, pixelPattern, curve) {
   let start = pixelPattern.points[curve.points.start];
   let end = pixelPattern.points[curve.points.end];
   let touch = pixelPattern.points[curve.points.touch];
-
-  //to start, let control point be the touch point
-  // let cp1 = { x: touch.x, y: touch.y };
-
-  //now, let's calculate the control point so that the curve is close to the touch point
-
-
-
-  //for now, let's calculate the distance "touch" is from the start point to the end point, 0 being start, 1 being end
-  let dx = end.x - start.x;
-  let dy = end.y - start.y;
-  let length = Math.sqrt(dx * dx + dy * dy);
-
-  //print this distance on the ctx as T = ___, next to the control point
-  let distance = Math.sqrt(Math.pow(touch.x - start.x, 2) + Math.pow(touch.y - start.y, 2));
-  let t = distance / length;
+  let time = curve.time;
 
   let cp1 = { x: 0, y: 0 };
+  let distST = getDistance(start, touch);
+  let distTE = getDistance(touch, end);
+  let total = distST + distTE;
+  let ratio = distST / total;
 
-  cp1 = ctrlFromSTE(start, end, touch, time);
+  //if there is no provided time, set it to 0.5
+  if (time === undefined) {
+
+      //if there is no touch point, set time to 0.5, and use midRatio to get a nice mid-line curve
+      time = 0.5;
+      
+      let midRatio = (time + ratio) / 2;
+
+        console.log ('time', time)
+        console.log ('midRatio', midRatio)
+        console.log ('ratio', ratio)
+
+      cp1 = ctrlFromSTE(start, touch, end, midRatio);
+  } else {
+    //if there is a provided time, use that
+    cp1 = ctrlFromSTE(start, touch, end, time);
+  }
+
+
   
-  ctx.fillText('T = ' + t.toFixed(2), cp1.x + 25, cp1.y - 15);
+  ctx.fillText('T = ' + ratio.toFixed(2), cp1.x + 25, cp1.y - 15);
 
   //draw the control point
   ctx.beginPath();
@@ -331,8 +411,6 @@ function drawBezier1Touch(ctx, _status, pixelPattern, curve, time = 0.5) {
 }
 
 function ctrlFromSTE(s, t, e, time) {
-  console.log ('ctrlFromSTE')
-  console.log (s, t, e, time)
   let cx = ctrlFromSTE_single(s.x, t.x, e.x, time);
   let cy = ctrlFromSTE_single(s.y, t.y, e.y, time);
   let c = {label: 'c', x: cx, y: cy};
