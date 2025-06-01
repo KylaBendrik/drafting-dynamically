@@ -165,7 +165,7 @@ const steps = [
         status.pattern.points['2'] = setPoint(0 - inchesToPrecision(status, blade * 3 / 16), 0);
         
         status = setLine(status, '2', '3', 'dashed');
-        status = setCurve(status, {start: '1', end: '2'}, 3, 'ellipse');
+        status = setCurve(status, {start: '1', end: '2'}, 3);
         return status;
       }
     },
@@ -211,7 +211,7 @@ const steps = [
         status.pattern.points['11'] = setPointLineY(status, pointC, pointX, pointA.y)
         
         status = setLine(status, 'C', 'X', 'dashed');
-        status = status = setCurve(status, {start: '8', touch: '11', end: 'D'}, 0, 'bezier');
+        status = status = setCurve(status, {start: '8', touch: '11', end: 'D'});
         return status;
       }
     },
@@ -270,7 +270,7 @@ const steps = [
         const dist = parseFloat(status.measurements.breast.value) / 12;
         status.pattern.points['N'] = setPointAlongLine(status, pointF, pointG, dist);
         
-        status = setCurve(status, {start: 'E', end: 'N'}, 2, 'ellipse');
+        status = setCurve(status, {start: 'E', end: 'N'}, 2);
         
         return status;
       }
@@ -351,11 +351,11 @@ const steps = [
       action: (status) => {
         let pointG = status.pattern.points['G'];
         let distX = inchesToPrecision(status, 1/2);
-        status.pattern.points['Gx'] = setPoint(pointG.x - distX, pointG.y);
+        status.pattern.points['Gx'] = setPoint(pointG.x - distX, pointG.y, {}, false);
         let pointGx = status.pattern.points['Gx'];
         let pointN = status.pattern.points['N'];
         let pointH = status.pattern.points['H'];
-        status = setCurve(status, {start: 'N', touch: 'Gx', end: 'H'}, 0, 'bezier');
+        status = setCurve(status, {start: 'N', g1: 'Gx', g2: 'H', end: 10}, [0.38, 0.92]);
 
         return status;
       }
@@ -490,7 +490,7 @@ const steps = [
 
         status = setLine(status, '15', '14', 'dashed');
         //make the armhole fromm 14 to 13, touching 00
-        status = setCurve(status, {start: '14', touch: '00', end: '13'}, 0, 'bezier');
+        status = setCurve(status, {start: '14', touch: '00', end: '13'}, 0.55);
         return status;
       }
     },
@@ -512,10 +512,10 @@ const steps = [
         //make a bezier curve from 12 to 8z, touching 12r
         status.pattern.points['12r_8z'] = makeTouchPoint(status, point12r, point8z, 2, 0.25, false);
 
-        status = setCurve(status, {start: '8z', touch: '12r_8z', end: '12r'}, 0, 'bezier');
+        status = setCurve(status, {start: '8z', touch: '12r_8z', end: '12r'});
         //make a curve from 12 to 14, making a new Touch point
         status.pattern.points['12_14'] = makeTouchPoint(status, point14, point12, 2, 0.25, false);
-        status = setCurve(status, {start: '12', touch: '12_14', end: '14'}, 0, 'bezier');
+        status = setCurve(status, {start: '12', touch: '12_14', end: '14'});
         return status;
       }
     },
@@ -532,25 +532,8 @@ const steps = [
         let pointL2 = setPointLineY(status, point12r, point17, pointL.y);
         status.pattern.points['L2'] = pointL2;
 
-        //draw curves from 12 to L2 and from 12r to L2, both quarter 1
-        status.pattern.points['12_L2'] = makeTouchPoint(status, point12, pointL2, 1, 0.5, false);
-        status.pattern.points['12r_L2'] = makeTouchPoint(status, point12r, pointL2, 1, 0.5, false);
-        status = setCurve(status, {start: '12', touch: '12_L2', end: 'L2'}, 0, 'bezier');
-        //status = setCurve(status, {start: '12r', touch: '12r_L2', end: 'L2'}, 0, 'bezier');
-        
-        //create two points, left and right of the line from 12 to 17, 1/4 inch away
-
-        //find point 2/3 of the way from 12r to 17
-        let point12r17 = setPointLineY(status, point12r, point17, point12r.y + (distPointToPoint(point12r, point17) * 2/3));
-
-        //place two points, 1/4 left and right of point12r17
-        status.pattern.points['12r-17L'] = setPoint(point12r17.x - inchesToPrecision(status, 1/8), point12r17.y, {}, false);
-        status.pattern.points['12r-17R'] = setPoint(point12r17.x + inchesToPrecision(status, 1/4), point12r17.y, {}, false);
-
-        //draw curves from L2 to 17, touching the two new points
-        status = setCurve(status, {start: 'L2', touch: '12r-17L', end: '17'}, 0, 'bezier');
-        //status = setCurve(status, {start: 'L2', touch: '12r-17R', end: '17'}, 0, 'bezier');
-        status = setCurve(status, {start: '12r', touch: 'L2', end: '17'}, 0, 'bezier');
+        status = setCurve(status, {start: '12', touch: 'L2', end: '17'}, 0.4);
+        status = setCurve(status, {start: '12r', touch: 'L2', end: '17'}, 0.4);
 
         return status;
       }
@@ -575,8 +558,8 @@ const steps = [
         status.pattern.points['14_15l'] = point14_15l;
 
         //draw curves from 14 to 15r and 15l, touching the new points
-        status = setCurve(status, {start: '14', touch: '14_15r', end: '15r'}, 0, 'bezier');
-        status = setCurve(status, {start: '14', touch: '14_15l', end: '15l'}, 0, 'bezier');
+        status = setCurve(status, {start: '14', touch: '14_15r', end: '15r'});
+        status = setCurve(status, {start: '14', touch: '14_15l', end: '15l'});
 
         return status;
       }
@@ -661,11 +644,11 @@ const steps = [
         status.pattern.points['W_7low'] = pointW_7low;
 
         //draw curves from V to 4low and 5low, touching 4 and 5
-        status = setCurve(status, {start: 'V', touch: 'V_4low', end: '4low'}, 0, 'bezier');
-        status = setCurve(status, {start: 'V', touch: 'V_5low', end: '5low'}, 0, 'bezier');
+        status = setCurve(status, {start: 'V', touch: 'V_4low', end: '4low'});
+        status = setCurve(status, {start: 'V', touch: 'V_5low', end: '5low'});
         //draw curves from W to 6low and 7low, touching 6 and 7
-        status = setCurve(status, {start: 'W', touch: 'W_6low', end: '6low'}, 0, 'bezier');
-        status = setCurve(status, {start: 'W', touch: 'W_7low', end: '7low'}, 0, 'bezier');
+        status = setCurve(status, {start: 'W', touch: 'W_6low', end: '6low'});
+        status = setCurve(status, {start: 'W', touch: 'W_7low', end: '7low'});
 
         //draw lines from 10 to 4low, 5low to 6low, and 7low to 15l
         status = setLine(status, '10', '4low');
@@ -680,10 +663,10 @@ const steps = [
         status.pattern.points['16low'] = point16low;
         //draw a curve from 16low to 17, make new touch point
         status.pattern.points['16low_17'] = makeTouchPoint(status, point17, point16low, 1, 0.33, false);
-        status = setCurve(status, {start: '17', touch: '16low_17', end: '16low'}, 0, 'bezier');
+        status = setCurve(status, {start: '17', touch: '16low_17', end: '16low'});
 
         //draw curve from 8z to 16low, touching 11
-        status = setCurve(status, {start: '8z', touch: '11', end: '16low'}, 0, 'bezier');
+        status = setCurve(status, {start: '8z', touch: '11', end: '16low'});
 
         //create Dlow, following D down to match 16low
         let pointD = status.pattern.points['D'];
