@@ -2,12 +2,14 @@ import {keystone_bodice} from './keystone_bodice.js';
 import {keystone_single} from './keystone_single-breasted-vest.js';
 import {keystone_collars} from './keystone_collars.js';
 import {keystone_plain_sleeve} from './keystone_plain_sleeve.js';
+import {alice_collar} from './alice_collar.js';
 
 const designs = [
+  alice_collar,
   keystone_bodice,
   keystone_single,
   keystone_collars,
-  keystone_plain_sleeve
+  keystone_plain_sleeve,
 ].map((design) => {
   return {
     label: design.design_info.title,

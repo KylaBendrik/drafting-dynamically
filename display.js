@@ -4,7 +4,7 @@ import { drawPattern } from './drawing.js';
 
 const defaultCanvasSize = { x: 500, y: 500 };
 const defaultPixelsPerInch = 32;
-const defaultCanvasMargin = defaultPixelsPerInch + 100;
+const defaultCanvasMargin = defaultPixelsPerInch + 20;
 //change defaultDesign to whichever design you're working on, but make sure to change it back to the default (0) when you're done
 const defaultDesign = designs[0];
 const defaultPrecision = 8; //1/8 of an inch
