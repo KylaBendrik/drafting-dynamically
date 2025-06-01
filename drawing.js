@@ -55,14 +55,9 @@ export function drawPattern(status) {
       drawArc(ctx, status, pixelPattern, curve);
     } else if (curve.type === 'ellipse') {
       drawQuarterEllipse(ctx, status, pixelPattern, curve);
-    } else if (curve.type === 'bezier2') {
-      //bezier2
-      drawBezier2(ctx, status, pixelPattern, curve);
-    } else if (curve.type === 'bezier1Touch') {
-      //bezier1Touch
-      drawBezier1Touch(ctx, status, pixelPattern, curve);
+    } else if (curve.type === 'quadraticBezier') {
+      drawBezierQuadratic(ctx, status, pixelPattern, curve);
     } else if (curve.type === 'cubicBezier') {
-      //cubicBezier
       drawBezierCubic(ctx, status, pixelPattern, curve);
     }
   }
@@ -134,8 +129,8 @@ function drawLine(ctx, start, end, continued = false) {
 
 function drawQuarterEllipse(ctx, _status, pixelPattern, curve) {
   //assume quarter of an ellipse
-  let point1 = pixelPattern.points[curve.points.start];
-  let point2 = pixelPattern.points[curve.points.end];
+  let point1 = pixelPattern.points[curve.points.s];
+  let point2 = pixelPattern.points[curve.points.e];
   let quarter = curve.quarter;
   //quarter 1, 2, 3, or 4, clockwise from 12 o'clock (so 1 is top right, 2 is bottom right, 3 is bottom left, 4 is top left)
   //calculate center from start, end, and quarter
@@ -225,71 +220,14 @@ function drawQuarterEllipse(ctx, _status, pixelPattern, curve) {
 
 function drawArc(ctx, _status, pixelPattern, curve) {
   //assume part of a circle, with start, ent, and center points
-  let start = pixelPattern.points[curve.points.start];
-  let end = pixelPattern.points[curve.points.end];
-  let center = pixelPattern.points[curve.points.center];
+  let start = pixelPattern.points[curve.points.s];
+  let end = pixelPattern.points[curve.points.e];
+  let center = pixelPattern.points[curve.points.c];
   let startAngle = Math.atan2(start.y - center.y, start.x - center.x);
   let endAngle = Math.atan2(end.y - center.y, end.x - center.x);
   let radius = Math.sqrt(Math.pow(start.x - center.x, 2) + Math.pow(start.y - center.y, 2));
   ctx.beginPath();
   ctx.arc(center.x, center.y, radius, startAngle, endAngle);
-  ctx.stroke();
-}
-
-function drawBezier(ctx, _status, pixelPattern, curve) {
-  let start = pixelPattern.points[curve.points.start];
-  let end = pixelPattern.points[curve.points.end];
-  let control = pixelPattern.points[curve.points.cp1];
-  let touch = pixelPattern.points[curve.points.touch];
-  let cp1 = { x: 0, y: 0 };
-
-
-  if (control === undefined) {
-    let cx = 0;
-    let cy = 0;
-  
-    if (touch === undefined) {
-      //if there is no touch point, control point is at the corner of start and end points
-      cx = (start.x + end.x)/2
-      cy = (start.y + end.y)/2
-    } else {
-      //if there is a touch point, control point is calculated so the line should be close to the touch point
-      cx = 2 * touch.x - 0.5 * (start.x + end.x)
-      cy = 2 * touch.y - 0.5 * (start.y + end.y)
-    }
-    cp1 = {
-      x: cx,
-      y: cy
-    }
-  } else {
-    //if control point is defined, use that
-    cp1 = control;
-  }
-  //draw the control point
-  ctx.beginPath();
-  ctx.rect(cp1.x - 2, cp1.y - 2, 4, 4);
-  ctx.fillStyle = 'red';
-  ctx.fill();
-  ctx.strokeStyle = 'black';
-  ctx.beginPath();
-
-    ctx.moveTo(start.x, start.y);
-    ctx.strokeStyle = 'red';
-    ctx.moveTo(start.x, start.y);
-    ctx.quadraticCurveTo(cp1.x, cp1.y, end.x, end.y);
-    ctx.stroke();
-}
-
-function drawBezier2(ctx, _status, pixelPattern, curve) {
-  let start = pixelPattern.points[curve.points.start];
-  let end = pixelPattern.points[curve.points.end];
-  let control1 = pixelPattern.points[curve.points.cp1];
-  let control2 = pixelPattern.points[curve.points.cp2];
-
-  ctx.beginPath();
-  ctx.moveTo(start.x, start.y);
-  ctx.strokeStyle = 'black';
-  ctx.bezierCurveTo(control1.x, control1.y, control2.x, control2.y, end.x, end.y);
   ctx.stroke();
 }
 
@@ -315,8 +253,7 @@ function drawBezierCubic(ctx, _status, pixelPattern, curve) {
       e: pixelPattern.points[curve.points.e],
       g1: pixelPattern.points[curve.points.g1],
       g2: pixelPattern.points[curve.points.g2],
-      t1: curve.times.t1,
-      t2: curve.times.t2,
+      times: curve.times
     }
   }
 
@@ -326,26 +263,6 @@ function drawBezierCubic(ctx, _status, pixelPattern, curve) {
   let e = bezierCurve.e;
   let c1 = bezierCurve.c1;
   let c2 = bezierCurve.c2;
-
-  // //draw c1
-  //   ctx.beginPath();
-  //   //make a small solid green square for the point
-  //   ctx.fillStyle = 'green';
-  //   let pointSize = 4;
-  //   ctx.rect(c1.x - pointSize / 2, c1.y - pointSize / 2, pointSize, pointSize);
-  //   ctx.fill();
-  //   //set label to the upper right by 15 pixels
-  //   ctx.fillText("c1", c1.x + 5, c1.y - 5);
-
-  // //draw c2
-  //   ctx.beginPath();
-  //   //make a small solid green square for the point
-  //   ctx.fillStyle = 'green';
-  //   ctx.rect(c2.x - pointSize / 2, c2.y - pointSize / 2, pointSize, pointSize);
-  //   ctx.fill();
-  //   //set label to the upper right by 15 pixels
-  //   ctx.fillText("c2", c2.x + 5, c2.y - 5);
-
 
   ctx.beginPath();
   ctx.strokeStyle = 'black';
@@ -362,10 +279,10 @@ function getDistance(p1, p2) {
   return Math.hypot(p2.x - p1.x, p2.y - p1.y);
 }
 
-function drawBezier1Touch(ctx, _status, pixelPattern, curve) {
-  let start = pixelPattern.points[curve.points.start];
-  let end = pixelPattern.points[curve.points.end];
-  let touch = pixelPattern.points[curve.points.touch];
+function drawBezierQuadratic(ctx, _status, pixelPattern, curve) {
+  let start = pixelPattern.points[curve.points.s];
+  let end = pixelPattern.points[curve.points.e];
+  let touch = pixelPattern.points[curve.points.g];
   let time = curve.time;
 
   let cp1 = { x: 0, y: 0 };
@@ -392,19 +309,13 @@ function drawBezier1Touch(ctx, _status, pixelPattern, curve) {
     cp1 = ctrlFromSTE(start, touch, end, time);
   }
 
-
-  
-  ctx.fillText('T = ' + ratio.toFixed(2), cp1.x + 25, cp1.y - 15);
-
   //draw the control point
   ctx.beginPath();
-  ctx.rect(cp1.x - 2, cp1.y - 2, 4, 4);
-  ctx.fillStyle = 'blue';
-  ctx.fill();
+
  
   ctx.beginPath();
   ctx.moveTo(start.x, start.y);
-  ctx.strokeStyle = 'blue';
+  ctx.strokeStyle = 'black';
   ctx.moveTo(start.x, start.y);
   ctx.quadraticCurveTo(cp1.x, cp1.y, end.x, end.y);
   ctx.stroke();

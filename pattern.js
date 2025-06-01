@@ -254,41 +254,228 @@ export function setLine(status, start, end, style = 'solid', length = 'defined')
   return status;
 }
 
-export function setCurve(status, points, quarter, type = 'ellipse', style = 'solid'){
-  console.log('-------setCurve');
-  
-  console.log('points', points);
-  //quarter 1, 2, 3, or 4, clockwise from 12 o'clock (so 1 is top right, 2 is bottom right, 3 is bottom left, 4 is top left)
-  let curve = {};
-  if (type == 'cubicBezier') {
-    //sneak in t1 and t2 in the points object
-    //check if there's a "times" property in points
-    if (points.times === undefined) {
-      //only provided points in the points object, like normal
-      curve.times = { t1: 0.33, t2: 0.67 };
-      curve.points = points;
-    }  else {
-      console.log('points.times', points.times);
-
-      //separate points and times
-      curve.points = points.points;
-      curve.times = points.times;
-    }
-      curve.quarter = quarter;
-      curve.type = type;
-      curve.style = style;
-  } else {
-    curve = {
-      points: points,
-      quarter: quarter,
-      type: type,
-      style: style
-    };
+//new version of setCurve, using fewer parameters
+export function setCurve(status, points, info){
+  let curve = {
+    points: points
   }
-  console.log('curve', curve);
+
+  //info is either quarter, time, or times
+  //info = 1, 2, 3, or 4 (means quarter) (clockwise from 12 o'clock)
+  //info = a number between 0 and 0.99999 (means time) (quadratic bezier)
+  //info = an array of two numbers between 0 and 0.99999 (means times) (cubic bezier)
+  //info = no info means the curve is an arc
+
+  if (info === undefined){
+    //check if there's a center point
+    if (points.c === undefined && points.center === undefined){
+      //type is quadratic bezier, default time is 0.5   
+      curve.type = 'quadraticBezier';
+      curve.time = 0.5;
+      curve.points = checkPoints_quadraticBezier(points);
+    } else {
+      //type is arc
+      curve.type = 'arc';
+      curve.points = checkPoints_arc(points);
+    }
+
+  } else if (typeof info === 'number'){
+
+    //check if it's a quarter
+    if (info >= 0 && info < 1){
+      //type is quadratic bezier     
+      curve.type = 'quadraticBezier';
+      curve.time = info;
+      curve.points = checkPoints_quadraticBezier(points);
+    } else if (info >= 1 && info <= 4){
+      //type is ellipse
+      curve.type = 'ellipse';
+      curve.quarter = info;
+      curve.points = checkPoints_ellipse(points);
+    } else {
+      //error
+      console.log('error: info is not a valid quarter or time');
+    }
+
+  } else if (Array.isArray(info)){
+
+    curve.type = 'cubicBezier';
+    curve.times = info;
+    curve.points = checkPoints_cubicBezier(points);
+
+  } else {
+
+    //if info is an object, it'll probably be {t1: 0.33, t2: 0.67}
+    //check if it's an object
+    if (typeof info === 'object'){
+      //check if it's a cubic bezier
+      if (info.t1 !== undefined && info.t2 !== undefined){
+        console.log('curve is a cubic bezier');
+        curve.type = 'cubicBezier';
+        curve.times = [info.t1, info.t2];
+        curve.points = checkPoints_cubicBezier(points);
+        console.log('curve', curve);
+      } else {
+        //error
+        console.log('error: info is not a valid quarter or time');
+      }
+    } else {
+
+    //error
+    console.log('error: info is not a valid quarter or time');
+    }
+  }
   status.pattern.curves.push(curve);
   return status;
 }
+
+const findValue = function findValue(array, callback) {
+  for (const item of array) {
+    const result = callback(item);
+
+    if (result !== undefined) return result;
+  }
+  return undefined;
+};
+
+function checkPoints_SE(curve_points, input_points){
+  //check for start and end points
+
+  curve_points.s = findValue(
+    ['s', 'start', 'init'],
+    (key) => input_points[key]
+  );
+  curve_points.e = findValue(
+    ['e', 'end', 'finish'],
+    (key) => input_points[key]
+  );
+
+  return curve_points;
+}
+
+function checkPoints_arc(input_points){
+  //example of ideal points -- points: {s: 'K', c: 'G', e: 'E'}
+  let points = {
+    s: input_points.s,
+    c: input_points.c,
+    e: input_points.e
+  };
+  //check for start and end points
+  points = checkPoints_SE(points, input_points);
+
+  //check for center point
+  //if a point is missing, look for an alternative label
+  if (input_points.c === undefined){
+    if (input_points.center !== undefined){
+      points.c = input_points.center;
+    } else {
+      console.log('error: no center point for arc');
+    }
+  }
+  return points;
+}
+
+function checkPoints_ellipse(input_points){
+  //example of ideal points -- points: {s: 'K', e: 'E'}
+  let points = {
+    s: input_points.s,
+    e: input_points.e
+  };
+  //check for start and end points
+  points = checkPoints_SE(points, input_points);
+  return points;
+}
+
+function checkPoints_quadraticBezier(input_points){
+  //example of ideal points -- points: {s: 'K', g: 'G', e: 'E'}
+  let points = {
+    s: input_points.s,
+    g: input_points.g,
+    e: input_points.e
+  };
+  //check for start and end points
+  points = checkPoints_SE(points, input_points);
+  //check for guide point
+  //if a point is missing, look for an alternative label
+  if (input_points.g === undefined){
+    if (input_points.guide !== undefined){
+      points.g = input_points.guide;
+    } else if (input_points.t !== undefined){
+      points.g = input_points.t;
+    }  else if (input_points.touch !== undefined){
+      points.g = input_points.touch;
+    } else 
+      console.log('error: no guide point for quadratic bezier');
+    }
+  return points;
+}
+
+function checkPoints_cubicBezier(input_points){
+  //example of ideal points -- points: {s: 'K', g1: 'G1', g2: 'G2', e: 'E'}
+  let points = {
+    s: input_points.s,
+    g1: input_points.g1,
+    g2: input_points.g2,
+    e: input_points.e
+  };
+  //check for start and end points
+  points = checkPoints_SE(points, input_points);
+  //check for guide points
+  //if a point is missing, look for an alternative label
+  if (input_points.g1 === undefined){
+    if (input_points.guide1 !== undefined){
+      points.g1 = input_points.guide1;
+    } else if (input_points.t1 !== undefined){
+      points.g1 = input_points.t1;
+    } else 
+      console.log('error: no guide point for cubic bezier');
+    }
+  if (input_points.g2 === undefined){
+    if (input_points.guide2 !== undefined){
+      points.g2 = input_points.guide2;
+    } else if (input_points.t2 !== undefined){
+      points.g2 = input_points.t2;
+    } else 
+      console.log('error: no guide point for cubic bezier');
+    }
+  return points;
+}
+
+// function setCurve(status, points, quarter, type = 'ellipse', style = 'solid'){
+//   console.log('-------setCurve');
+  
+//   console.log('points', points);
+//   //quarter 1, 2, 3, or 4, clockwise from 12 o'clock (so 1 is top right, 2 is bottom right, 3 is bottom left, 4 is top left)
+//   let curve = {};
+//   if (type == 'cubicBezier') {
+//     //sneak in t1 and t2 in the points object
+//     //check if there's a "times" property in points
+//     if (points.times === undefined) {
+//       //only provided points in the points object, like normal
+//       curve.times = { t1: 0.33, t2: 0.67 };
+//       curve.points = points;
+//     }  else {
+//       console.log('points.times', points.times);
+
+//       //separate points and times
+//       curve.points = points.points;
+//       curve.times = points.times;
+//     }
+//       curve.quarter = quarter;
+//       curve.type = type;
+//       curve.style = style;
+//   } else {
+//     curve = {
+//       points: points,
+//       quarter: quarter,
+//       type: type,
+//       style: style
+//     };
+//   }
+//   console.log('curve', curve);
+//   status.pattern.curves.push(curve);
+//   return status;
+// }
 
 export function perimeterEllipse(_status, center, point1, point2){
   //calculates 1/4 of the ellipse circumference, based on the quarter

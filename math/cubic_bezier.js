@@ -12,27 +12,10 @@ export function cubicBezier(curve) {
     x: 0,
     y: 0
   }
-  let t1 = 0.33;
-  let t2 = 0.67;
-  // check if the curve object has c1 and c2 properties
-  if (curve.c1 && curve.c2) {
-    console.log("Curve already has c1 and c2 properties");
-    return curve;
-  } else {
-    console.log("Curve does not have c1 and c2 properties");
-    // return the curve object with c1 and c2 properties set to the correct values
+  let t1 = curve.times[0];
+  let t2 = curve.times[1];
 
-    // check for t1 and t2
-    if (curve.t1 === undefined || curve.t2 === undefined) {
-      console.log("Curve does not have t1 and t2 properties");
-      console.log("Using default t1 and t2 values");
-    } else {
-      console.log("Curve has t1 and t2 properties");
-      t1 = curve.t1;
-      t2 = curve.t2;
-      console.log("t1", t1);
-      console.log("t2", t2);
-    }
+    // return the curve object with c1 and c2 properties set to the correct values
     c1 = {
       x: findC1(curve.s.x, curve.e.x, curve.g1.x, curve.g2.x, t1, t2),
       y: findC1(curve.s.y, curve.e.y, curve.g1.y, curve.g2.y, t1, t2)
@@ -44,6 +27,10 @@ export function cubicBezier(curve) {
     console.log("c1", c1);
     console.log("c2", c2);
 
+      //estimate t1 and t2, just in case the editor doesn't know what to set.
+      console.log('estimate times for', curve)
+    estimateTimes(curve.s, curve.e, curve.g1, curve.g2);
+
     return {
       s: curve.s,
       e: curve.e,
@@ -54,7 +41,26 @@ export function cubicBezier(curve) {
       c1: c1,
       c2: c2
     };
-  }
+}
+
+function estimateTimes(s, e, g1, g2) {
+  //literally just console.log the estimated times. This is ONLY for designers
+  //to see what the times are. 
+  //This is not a function that should be used in production code.
+
+  //measure the distance between s and g1
+  const d1 = Math.sqrt((g1.x - s.x) ** 2 + (g1.y - s.y) ** 2);
+  //measure the distance between g1 and g2
+  const d2 = Math.sqrt((g2.x - g1.x) ** 2 + (g2.y - g1.y) ** 2);
+  //measure the distance between g2 and e
+  const d3 = Math.sqrt((e.x - g2.x) ** 2 + (e.y - g2.y) ** 2); 
+  //total distance
+  const d = d1 + d2 + d3;
+  //estimate t1 and t2 based on the distance
+  const t1 = d1 / d;
+  const t2 = (d1 + d2) / d;
+  console.log("estimated t1", t1);
+  console.log("estimated t2", t2);
 }
 
 function A(t){
