@@ -129,7 +129,7 @@ const steps = [
       const blade = parseFloat(status.measurements.blade.value);
       status.pattern.points['2'] = setPoint(0 - inchesToPrecision(status, blade * 3 / 16), 0);
       
-      status = setCurve(status, {start: '1', end: '2'}, 3, 'ellipse');
+      status = setCurve(status, {start: '1', end: '2'}, 3);
       return status;
     }
   },
@@ -290,8 +290,8 @@ const steps = [
     description: (_status) => { return `curve the armhole from 00 to 12, from 14 to 12, and from 00 to 3` },
     action: (status) => {
       
-      status = setCurve(status, {start:'14', touch: '00', end: '12'}, 0, 'bezier');
-      status = setCurve(status, {start: '3', end: '12'}, 2, 'ellipse')
+      status = setCurve(status, {start:'14', touch: '00', end: '12'});
+      status = setCurve(status, {start: '3', end: '12'}, 2)
       return status;
     }
   },
@@ -609,14 +609,14 @@ const steps = [
 
       if(point20.y <= pointN.y){
 
-        status = setCurve(status, {start: 'E', end: 'N'}, 2, 'ellipse', 'dashed');
-        status = setCurve(status, {start: 'N', touch: 'G1', end: 'H'}, 0, 'bezier');
+        status = setCurve(status, {start: 'E', end: 'N'}, 2);
+        status = setCurve(status, {start: 'N', touch: 'G1', end: 'H'});
 
         status.pattern.points[`21`] = point21a;
         status.pattern.points[`21`].visible = false
         status.pattern.points[`20`].visible = false
       } else {
-        status = setCurve(status, {start: 'E', end: 'N'}, 2, 'ellipse');
+        status = setCurve(status, {start: 'E', end: 'N'}, 2);
       
             //if neckline extends below G1, don't connect to G1
             if(point21a.y < pointG1.y){  
@@ -624,7 +624,7 @@ const steps = [
               status.pattern.points[`21`] = point21a;
               
               status = setLine(status, 'E', '21');
-               status = setCurve(status, {start: '21', touch: 'G1', end: 'H'}, 0, 'bezier');
+               status = setCurve(status, {start: '21', touch: 'G1', end: 'H'});
 
             } else {
       
@@ -670,16 +670,16 @@ const steps = [
 
 
 
-      status = setCurve(status, {start: '12', touch: '8a', end: 'e'}, 0, 'bezier');
-      status = setCurve(status, {start: '12', touch: '9ba', end: 'f'}, 0, 'bezier');
-
+      status = setCurve(status, {start: '12', touch: '8a', end: 'e'} );
+      status = setCurve(status, {start: '12', touch: '9ba', end: 'f'} );
+      
       //dart 1 curves
-      status = setCurve(status, {start: 'W', touch: '6', end: 'c'}, 0, 'bezier');
-      status = setCurve(status, {start: 'W', touch: '7', end: 'd'}, 0, 'bezier');
+      status = setCurve(status, {start: 'W', touch: '6', end: 'c'} );
+      status = setCurve(status, {start: 'W', touch: '7', end: 'd'} );
 
       //dart 2 curves
-      status = setCurve(status, {start: 'V', touch: '4', end: 'a'}, 0, 'bezier');
-      status = setCurve(status, {start: 'V', touch: '5', end: 'b'}, 0, 'bezier');
+      status = setCurve(status, {start: 'V', touch: '4', end: 'a'} );
+      status = setCurve(status, {start: 'V', touch: '5', end: 'b'} );
 
       //back dart
       //make points 15a and 15b, on 1/4 inch on either side of the line from 15 to 16, halfway down the line
@@ -706,8 +706,8 @@ const steps = [
       status.pattern.points['16a'] = point16a;
       status.pattern.points['16b'] = point16b;
 
-      status = setCurve(status, {start: '15', touch: '15a', end: '16a'}, 0, 'bezier');
-      status = setCurve(status, {start: '15', touch: '15b', end: '16b'}, 0, 'bezier');
+      status = setCurve(status, {start: '15', touch: '15a', end: '16a'} );
+      status = setCurve(status, {start: '15', touch: '15b', end: '16b'} );
       
       //lower edge curves     
       const pointb = status.pattern.points['b'];
@@ -719,19 +719,19 @@ const steps = [
       const pointde = setPoint((pointe.x + pointd.x) / 2, (pointe.y + pointd.y) / 2 - inchesToPrecision(status, 1/16)); 
       status.pattern.points['bc'] = pointbc;
       status.pattern.points['de'] = pointde;
-      status = setCurve(status, {start: 'b', touch: 'bc', end: 'c'}, 0, 'bezier');
-      status = setCurve(status, {start: 'd', touch: 'de', end: 'e'}, 0, 'bezier');
+      status = setCurve(status, {start: 'b', touch: 'bc', end: 'c'} );
+      status = setCurve(status, {start: 'd', touch: 'de', end: 'e'} );
       
       const pointf16 = setPoint((pointf.x + point16.x) / 2, ((pointf.y + point16.y) / 2) - inchesToPrecision(status, 1/16));
       pointf16.visible = false;
       status.pattern.points['f16'] = pointf16;
-      status = setCurve(status, {start: 'f', touch: 'f16', end: '16b'}, 0, 'bezier');
+      status = setCurve(status, {start: 'f', touch: 'f16', end: '16b'} );
       
       const pointg = status.pattern.points['g'];
       const point16g = setPoint((pointg.x + point16.x) / 2, ((pointg.y + point16.y) / 2) - inchesToPrecision(status, 1/16));
       point16g.visible = false;
       status.pattern.points['16g'] = point16g;
-      status = setCurve(status, {start: '16a', touch: '16g', end: 'g'}, 0, 'bezier');
+      status = setCurve(status, {start: '16a', touch: '16g', end: 'g'} );
 
 
       status.pattern.points['G1'].visible = false
