@@ -84,8 +84,8 @@ const steps = [
       status.pattern.points['Oa-1a'].visible = false;
       status.pattern.points['3a-4a'].visible = false;
       status.pattern.points['2a'].visible = false;
-      status = setCurve(status, {start: '(56) O', touch: 'Oa-1a', end: '1a'}, 0, 'bezier');
-      status = setCurve(status, {start: '3a', touch: '3a-4a',  end: '4a'}, 0, 'bezier');
+      status = setCurve(status, {start: '(56) O', touch: 'Oa-1a', end: '1a'});
+      status = setCurve(status, {start: '3a', touch: '3a-4a',  end: '4a'});
       status = setLine(status, '1a', '3a');
       status = setLine(status, '4a', '(56) O');
 
@@ -171,7 +171,7 @@ const steps = [
       //curve from 3 to 4
       status.pattern.points['3c-4c'] = setPoint((status.pattern.points['3c'].x + status.pattern.points['4c'].x)/2, (status.pattern.points['3c'].y + status.pattern.points['4c'].y)/2 - 2);
       status.pattern.points['3c-4c'].visible = false;
-      status = setCurve(status, {start: '3c', touch: '3c-4c', end: '4c'}, 0, 'bezier');
+      status = setCurve(status, {start: '3c', touch: '3c-4c', end: '4c'});
       return status;
     }
   },
@@ -229,7 +229,7 @@ const steps = [
 
       status.pattern.points['59c_e'] = setPoint((point59_C.x + point59_E.x) / 2, (point59_C.y + point59_E.y) / 2 - 3);
       status.pattern.points['59c_e'].visible = false;
-      status = setCurve(status, {start: 'Cd', touch: '59c_e', end: 'Ed'}, 0, 'bezier');
+      status = setCurve(status, {start: 'Cd', touch: '59c_e', end: 'Ed'});
       status = setSCurve(status, 'Bd', 'Dd');
 
       return status;
@@ -302,9 +302,9 @@ const steps = [
       status.pattern.points['C1e-Be'].visible = false;
       status.pattern.points['Be-De'].visible = false;
 
-      status = setCurve(status, {start: 'Ee', touch: 'Ee-C1e', end: 'C1e'}, 0, 'bezier');
-      status = setCurve(status, {start: 'C1e', touch: 'C1e-Be', end: 'Be'}, 0, 'bezier');
-      status = setCurve(status, {start: 'Be', touch: 'Be-De', end: 'De'}, 0, 'bezier');
+      status = setCurve(status, {start: 'Ee', touch: 'Ee-C1e', end: 'C1e'});
+      status = setCurve(status, {start: 'C1e', touch: 'C1e-Be', end: 'Be'});
+      status = setCurve(status, {start: 'Be', touch: 'Be-De', end: 'De'});
       
       // const neckSize = inchesToPrecision(status, parseFloat(status.design.measurements.neckSize.value)) / 2;
       // const collarWidth = inchesToPrecision(status, parseFloat(status.design.measurements.collarWidth.value)) * 1.5;
@@ -339,9 +339,9 @@ const steps = [
       status.pattern.points['C1f-Bf'].visible = false;
       status.pattern.points['Bf-Df'].visible = false;
 
-      status = setCurve(status, {start: 'Df', touch: 'Df-C1f', end: 'C1f'}, 0, 'bezier');
-      status = setCurve(status, {start: 'C1f', touch: 'C1f-Bf', end: 'Bf'}, 0, 'bezier');
-      status = setCurve(status, {start: 'Bf', touch: 'Bf-Df', end: 'Df'}, 0, 'bezier');
+      status = setCurve(status, {start: 'Df', touch: 'Df-C1f', end: 'C1f'});
+      status = setCurve(status, {start: 'C1f', touch: 'C1f-Bf', end: 'Bf'});
+      status = setCurve(status, {start: 'Bf', touch: 'Bf-Df', end: 'Df'});
 
 
 
@@ -374,8 +374,8 @@ function setSCurve(status, point1Key, point2Key){
         status.pattern.points[point1_25Key].visible = false;
         status.pattern.points[point1_75Key].visible = false;
   
-        status = setCurve(status, {start: point1Key, touch: point1_25Key, end: point1_5Key}, 0, 'bezier');
-        status = setCurve(status, {start: point1_5Key, touch: point1_75Key, end: point2Key}, 0, 'bezier');
+        status = setCurve(status, {start: point1Key, touch: point1_25Key, end: point1_5Key});
+        status = setCurve(status, {start: point1_5Key, touch: point1_75Key, end: point2Key});
         
         return status;
 }
