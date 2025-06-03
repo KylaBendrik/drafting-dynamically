@@ -5,6 +5,13 @@ export function inchesToPrecision(status, inches){
   return Math.round(inches * precision);
 }
 
+export function toInches(status, value) {
+  //the inverse of inchesToPrecision
+  //convert value to inches, using the precision from status
+  const precision = status.precision;
+  return Math.round(value / precision);
+}
+
 export function registerPoint(status, point, label = undefined) {
   // register point to the pattern
   status.pattern.points[label] = point;
@@ -58,7 +65,11 @@ export function setPointLineX(status, point1, point2, x, guides, visible = true)
   return point;
 }
 
-export function setPointAlongLine(status, point1, point2, to3inInches, guides, visible = true){
+export function setPointAlongLine(status, point1, point2, to3inInches, guides = {}, visible = true){
+  console.log('-------setPointAlongLine');
+  console.log('point1', point1);
+  console.log('point2', point2);
+  console.log('to3inInches', to3inInches);
   //find point distance from point1 along line to point2
   let x1 = point1.x;
   let y1 = point1.y;

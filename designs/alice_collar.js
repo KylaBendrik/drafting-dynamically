@@ -1,5 +1,6 @@
 import {
   inchesToPrecision,
+  toInches,
   registerPoints,
   registerPoint,
   setPoint,
@@ -144,6 +145,100 @@ const steps = [
       // Draw the curves
       status = setCurve(status, {s:'A', e: 'C', g: 'F'});
       status = setCurve(status, {s:'B', e: 'D', g: 'E'});
+
+      return status;
+    }
+  },
+  // Lining is done, now for the outer collar
+  {
+    description: (_status) => { return 'Now for the outer collar.'; },
+    action: (status) => {
+
+      let collarWidth = inchesToPrecision(status, status.measurements.collarWidth.value);
+      const distDown0 = (collarWidth * 7.5 ) + inchesToPrecision(status, 1)
+      let pointL0 = status.pattern.points['L0'];
+
+      let point0 =  setPoint(pointL0.x, pointL0.y + distDown0);
+
+      status = registerPoint(status, point0, '0');
+      return status;
+    }
+  },
+  {
+    description: (status) => { return `Point G is 1/3 the neck size ${printMeasure(status.measurements.neckSize, 1 / 3)} left of 0`; },
+    action: (status) => {
+      let thirdNeckSize = inchesToPrecision(status, status.measurements.neckSize.value / 3);
+
+      let point0 = status.pattern.points['0'];
+      let pointG = setPoint(point0.x - thirdNeckSize, point0.y);
+      status = registerPoint(status, pointG, 'G');
+      return status;
+    }
+  },
+  {
+    description: (status) => { return `Point H is 1.7 * collar width ${printMeasure(status.measurements.collarWidth)} above point G`;},
+    action: (status) => {
+      let collarWidth = inchesToPrecision(status, status.measurements.collarWidth.value);
+      // 1.7 * collar width = 1.7 * 1.25 = 2.125 inches
+      let heightH = collarWidth * 1.7;
+      let pointG = status.pattern.points['G'];
+      let pointH = setPoint(pointG.x, pointG.y - heightH);
+      status = registerPoint(status, pointH, 'H');
+      return status;
+    }
+  },
+  {
+    description: (status) => { return `Point I is the (neck size / 2pi) * 1.18 up from point H, and 1/4 right of H`; },
+    action: (status) => {
+      let neckSize = inchesToPrecision(status, status.measurements.neckSize.value);
+      let radius = neckSize / (2 * Math.PI);
+      let heightI = radius * 1.18;
+      // neck size is 12 inches. The radius of the neck is 12 / (2 * Math.PI) = 1.90986 inches.
+      // The height of point I is 1.18 * radius = 1.18 * 1.90986 = 2.25 inches.
+      let pointH = status.pattern.points['H'];
+      let pointI = setPoint(pointH.x + inchesToPrecision(status, 0.25), pointH.y - heightI);
+      status = registerPoint(status, pointI, 'I');
+      // draw dashed line from point I to point H
+      status = setLine(status, 'H', 'I', 'dashed');
+      return status;
+    }
+  },
+  {
+    description: (status) => { return `Arc around point I with radius of (neck size / 2pi) * 1.18 from Point H, clockwise 154 degrees. collarWidth * 2 past J is K`;},
+    action: (status) => {
+      let neckSize = inchesToPrecision(status, status.measurements.neckSize.value);
+      let pointH = status.pattern.points['H'];
+      let pointI = status.pattern.points['I'];
+      // the radius is the distance from the H to I
+      let radius = distPointToPoint(pointH, pointI);
+      let radiusInches = toInches(radius);
+
+      // Find point J, which is 154 degrees clockwise from point H around point I
+      //Point H is below and slightly to the left of point I.
+      //Point J is 154 degrees clockwise from point H around point I.
+
+      let angleH = Math.atan2(pointH.y - pointI.y, pointH.x - pointI.x);
+      let angleJ = angleH + (154 * Math.PI / 180); // Convert degrees to radians
+
+      // Calculate the coordinates of point J
+      let pointJ = setPoint(
+        pointI.x + radius * Math.cos(angleJ),
+        pointI.y + radius * Math.sin(angleJ)
+      );
+      status = registerPoint(status, pointJ, 'J');
+
+      // continue line from I to J, going past J by collarWidth * 2
+      let collarWidth = status.measurements.collarWidth.value;
+      let distItoK  = radiusInches + (collarWidth * 2)
+      let pointK = setPointAlongLine(status, pointI, pointJ, distItoK);
+      status = registerPoint(status, pointK, 'K');
+      console.log(`Point K: `, pointK);
+
+      // Draw the arc from H to J
+      status = setCurve(status, {s: 'H', e: 'J', c: 'I'});
+      // Draw the line from I to K
+      status = setLine(status, 'I', 'K', 'dashed');
+
 
       return status;
     }

@@ -27,17 +27,21 @@ export function drawPattern(status) {
     let start = pixelPattern.points[line.start];
     let end = pixelPattern.points[line.end];
 
-    if (line.style === 'dashed') {
-      ctx.setLineDash([5, 5]);
-      ctx.strokeStyle = 'gray';
-    } else {  //solid
-      ctx.setLineDash([]);
-      ctx.strokeStyle = 'black';
-    }
+    // if (line.style === 'dashed') {
+    //   ctx.setLineDash([5, 5]);
+    //   ctx.strokeStyle = 'gray';
+    // } else {  //solid
+    //   ctx.setLineDash([]);
+    //   ctx.strokeStyle = 'black';
+    // }
+
+    line.start = start;
+    line.end = end;
+    console.log('for Line', line);
     if (line.length === 'defined') {
-      drawLine(ctx, start, end);
+      drawLine(ctx, line);
     } else {
-      drawLine(ctx, start, end, true);
+      drawLine(ctx, line, true);
     }
   }
 
@@ -110,19 +114,52 @@ function drawPoint(ctx, status, pixelPattern, pointLabel) {
 
 }
 
-function drawLine(ctx, start, end, continued = false) {
+function drawLine(ctx, line, continued = false) {
   ctx.beginPath();
-  ctx.moveTo(start.x, start.y);
+  ctx.moveTo(line.start.x, line.start.y);
+
+  // style is either 'dashed', empty (for default solid), or {style: 'solid'}
+  const defaultStyle = { style: 'solid' , color: 'black' , label: {text: '', visible: false, side: 'a' } };
+  let style = {};
+  if (!line.style) {
+    style = defaultStyle;
+  } else if (typeof line.style === 'string') {
+    style = { style: line.style, color: 'black', label: { text: '', visible: false, side: 'a' } };
+  } else if (typeof line.style === 'object') {
+    // if style is an object, ensure it has a color and label
+    style = {
+      style: line.style.style || 'solid',
+      color: line.style.color || 'black',
+      label: line.style.label || { text: '', visible: false, side: 'a' }
+    };
+  }
+
+
+  console.log('drawLine object', line);
+
+
+  //style
+  if (style.style === 'dashed') {
+    console.log('drawLine dashed');
+    ctx.setLineDash([5, 5]);
+  } else {  //solid
+    console.log('drawLine solid');
+    ctx.setLineDash([]);
+    //ctx.strokeStyle = 'black';
+  }
+  
+    ctx.strokeStyle = style.color;
+
   if (continued) {
-    let dx = end.x - start.x;
-    let dy = end.y - start.y;
+    let dx = line.end.x - line.start.x;
+    let dy = line.end.y - line.start.y;
     let length = Math.sqrt(dx * dx + dy * dy);
     let scale = 400 / length;
     let offsetX = dx * scale;
     let offsetY = dy * scale;
-    ctx.lineTo(end.x + offsetX, end.y + offsetY);
+    ctx.lineTo(line.end.x + offsetX, line.end.y + offsetY);
   } else {
-    ctx.lineTo(end.x, end.y);
+    ctx.lineTo(line.end.x, line.end.y);
   }
   ctx.stroke();
 }
@@ -232,7 +269,6 @@ function drawArc(ctx, _status, pixelPattern, curve) {
 }
 
 function drawBezierCubic(ctx, _status, pixelPattern, curve) {
-  console.log('drawBezierCubic', curve);
   //first, fix curve to match what cubicBezier expects
     let fixedCurve = {
       s: pixelPattern.points[curve.points.s],
@@ -299,10 +335,6 @@ function drawBezierQuadratic(ctx, _status, pixelPattern, curve) {
       
       let midRatio = (time + ratio) / 2;
 
-        console.log ('time', time)
-        console.log ('midRatio', midRatio)
-        console.log ('ratio', ratio)
-
       cp1 = ctrlFromSTE(start, touch, end, midRatio);
   } else {
     //if there is a provided time, use that
@@ -335,10 +367,5 @@ function ctrlFromSTE_single(s, t, e, time) {
   //c = (t - e * time * time - s * (1 - time) * (1 - time)) / (2 * time * (1 - time))
   let c = (t - e * time * time - s * (1 - time) * (1 - time)) / (2 * time * (1 - time))
 
-  console.log ('s', s)
-  console.log ('t', t)
-  console.log ('e', e)
-  console.log ('time', time)
-  console.log ('c', c)
   return c;
 }
