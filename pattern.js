@@ -66,10 +66,6 @@ export function setPointLineX(status, point1, point2, x, guides, visible = true)
 }
 
 export function setPointAlongLine(status, point1, point2, to3inInches, guides = {}, visible = true){
-  console.log('-------setPointAlongLine');
-  console.log('point1', point1);
-  console.log('point2', point2);
-  console.log('to3inInches', to3inInches);
   //find point distance from point1 along line to point2
   let x1 = point1.x;
   let y1 = point1.y;
@@ -321,11 +317,9 @@ export function setCurve(status, points, info){
     if (typeof info === 'object'){
       //check if it's a cubic bezier
       if (info.t1 !== undefined && info.t2 !== undefined){
-        console.log('curve is a cubic bezier');
         curve.type = 'cubicBezier';
         curve.times = [info.t1, info.t2];
         curve.points = checkPoints_cubicBezier(points);
-        console.log('curve', curve);
       } else {
         //error
         console.log('error: info is not a valid quarter or time');
@@ -451,42 +445,6 @@ function checkPoints_cubicBezier(input_points){
     }
   return points;
 }
-
-// function setCurve(status, points, quarter, type = 'ellipse', style = 'solid'){
-//   console.log('-------setCurve');
-  
-//   console.log('points', points);
-//   //quarter 1, 2, 3, or 4, clockwise from 12 o'clock (so 1 is top right, 2 is bottom right, 3 is bottom left, 4 is top left)
-//   let curve = {};
-//   if (type == 'cubicBezier') {
-//     //sneak in t1 and t2 in the points object
-//     //check if there's a "times" property in points
-//     if (points.times === undefined) {
-//       //only provided points in the points object, like normal
-//       curve.times = { t1: 0.33, t2: 0.67 };
-//       curve.points = points;
-//     }  else {
-//       console.log('points.times', points.times);
-
-//       //separate points and times
-//       curve.points = points.points;
-//       curve.times = points.times;
-//     }
-//       curve.quarter = quarter;
-//       curve.type = type;
-//       curve.style = style;
-//   } else {
-//     curve = {
-//       points: points,
-//       quarter: quarter,
-//       type: type,
-//       style: style
-//     };
-//   }
-//   console.log('curve', curve);
-//   status.pattern.curves.push(curve);
-//   return status;
-// }
 
 export function perimeterEllipse(_status, center, point1, point2){
   //calculates 1/4 of the ellipse circumference, based on the quarter

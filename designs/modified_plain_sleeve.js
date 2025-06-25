@@ -20,12 +20,12 @@ import {
 } from '../pattern.js';
 
 const design_info = {
-  title: 'Keystone - Plain Sleeve',
+  title: 'Keystone (modified) - Plain Sleeve',
   source: {
     link: 'https://archive.org/details/keystonejacketdr00heck/page/56/mode/2up',
     label: 'The Keystone Jacket and Dress Cutter (pg 56)'
   },
-  designer: 'Charles Hecklinger'
+  designer: 'Charles Hecklinger (Edited by Kyla Bendrik)',
 }
 
 let measurements = {
@@ -70,61 +70,13 @@ const steps = [
     }
   },
   {
-    description: (status) => { return `A down to C is the length of sleeve under arm, ${printNum(status.measurements.length_underarm.value)} down from A` },
-    action: (status) => {
-      let lengthUnderarm = inchesToPrecision(status, status.design.measurements.length_underarm.value);
-      let pointA = status.pattern.points['A'];
-      let pointC = setPoint(pointA.x, pointA.y + lengthUnderarm, { l: true });
-
-      status = registerPoint(status, pointC, 'C');
-      return status;
-    }
-  },
-  {
-    description: (_status) => { return `B is in the middle of A and C` },
+    description: (status) => { return `Point G is at the same height as A, below J`},
     action: (status) => {
       let pointA = status.pattern.points['A'];
-      let pointC = status.pattern.points['C'];
-      let pointB = setPoint(pointA.x, (pointA.y + pointC.y) / 2, { l: true });
-
-      status = registerPoint(status, pointB, 'B');
-      return status;
-    }
-  },
-  {
-    description: (status) => { return `Point D is left of C 1/2 wrist size + 1/2 inch, ${printNum(status.measurements.width_wrist.value / 2 + 0.5)}` },
-    action: (status) => {
-      let wrist = inchesToPrecision(status, status.design.measurements.width_wrist.value);
-      let pointC = status.pattern.points['C'];
-      let pointD = setPoint(pointC.x - (wrist / 2 + 0.5), pointC.y, { d: true });
-
-      status = registerPoint(status, pointD, 'D');
-      return status;
-    }
-  },
-  {
-    description: (_status) => { return `E is 1 3/4 inches down from D` },
-    action: (status) => {
-      let pointD = status.pattern.points['D'];
-      let pointE = setPoint(pointD.x, pointD.y + inchesToPrecision(status, 1.75));
-
-      status = registerPoint(status, pointE, 'E');
-      return status;
-    }
-  },
-  {
-    description: (_status) => { return `Point F is left of B and G is left of A, both where the lines left cross the line down from J` },
-    action: (status) => {
-      let pointA = status.pattern.points['A'];
-      let pointB = status.pattern.points['B'];
       let pointJ = status.pattern.points['J'];
+      let pointG = setPoint(pointJ.x, pointA.y,);
 
-      //new points
-      let pointF = setPoint(pointJ.x, pointB.y);
-      let pointG = setPoint(pointJ.x, pointA.y);
-
-      status = registerPoints(status, { 'F': pointF, 'G': pointG });
-      status = setLine(status, 'F', 'E', 'dashed');
+      status = registerPoint(status, pointG, 'G');
       return status;
     }
   },
@@ -258,137 +210,143 @@ const steps = [
     }
   },
   {
-    description: (status) => { return `Point M is 1/2 elbow, ${printNum(status.measurements.width_elbow.value / 2)} right of F` },
+    description: (status) => { return `Point T is 1/2 elbow right of G` },
     action: (status) => {
+      let pointG = status.pattern.points['G'];
       let elbow = inchesToPrecision(status, status.design.measurements.width_elbow.value);
-      let pointF = status.pattern.points['F'];
-      let pointM = setPoint(pointF.x + elbow / 2, pointF.y);
+      let pointT = setPoint(pointG.x + elbow / 2, pointG.y, { d: true });
 
-      status = registerPoint(status, pointM, 'M');
-
-      //make points AM and CM, 1/3 of the way from A to M and C to M
+      status = registerPoint(status, pointT, 'T');
+      return status;
+    }
+  },
+  {
+    description: (status) => { return `Sweep 1/2 sleeve length, starting at A, to find M along the line down from T`},
+    action: (status) => {
       let pointA = status.pattern.points['A'];
-      let pointC = status.pattern.points['C'];
-      let pointAM = makeTouchPoint(status, pointM, pointA, 4, 0.25, false);
-      let pointCM = makeTouchPoint(status, pointC, pointM, 3, 0.25, false);
-      status = registerPoints(status, { 'AM': pointAM, 'CM': pointCM });
+      let pointT = status.pattern.points['T'];
 
-      status = setCurve(status, { start: 'AM', touch: 'M', end: 'CM' });
-      status = setLine(status, 'A', 'AM');
-      status = setLine(status, 'C', 'CM');
+      let halfSleeve = inchesToPrecision(status, status.design.measurements.length_underarm.value / 2);
+      let lengthAT = distPointToPoint(pointA, pointT);
+      let distm = Math.sqrt(halfSleeve * halfSleeve - lengthAT * lengthAT);
+      let pointM = setPoint(pointT.x, pointT.y + distm);
+      status = registerPoint(status, pointM, 'M');
+      //draw a line from A to M
+      status = setLine(status, 'A', 'M', 'dashed');
       return status;
     }
   },
   {
-    description: (status) => { return `Shape from K to G, past F clearing it by 1/2 inch, then curve to E.` },
+    description: (status) => { return `Point F is below G, left of M` },
+    action: (status) => {
+      let pointG = status.pattern.points['G'];
+      let pointM = status.pattern.points['M'];
+
+      let pointF = setPoint(pointG.x, pointM.y);
+      status = registerPoint(status, pointF, 'F');
+      //draw a line from F to M
+      status = setLine(status, 'F', 'M', 'dashed');
+      return status;
+    } 
+  },
+  {
+    description: (status) => { return `Point F2 is 1/2 inch left of F, point Q is 1/2 inch right of F` },
     action: (status) => {
       let pointF = status.pattern.points['F'];
+      let pointF2 = setPoint(pointF.x - inchesToPrecision(status, 0.5), pointF.y);
+      let pointQ = setPoint(pointF.x + inchesToPrecision(status, 0.5), pointF.y);
 
-      //set the line from K to G
-      //status = setLine(status, 'K', 'G');
-      //set point F2, 1/2 inch left of F
-      let pointF2 = setPoint(pointF.x - inchesToPrecision(status, 0.5), pointF.y, {});
-      status = registerPoint(status, pointF2, 'F2');
-
-      //try new cubic bezier
-      status = setCurve(status, { s: 'K', g1: 'G', g2: 'F2', e: 'E' }, [0.18, 0.59]);
-
+      status = registerPoints(status, { 'F2': pointF2, 'Q': pointQ });
       return status;
     }
   },
   {
-    description: (status) => { return `Curve the cuff from C to E` },
+    description: (status) => { return `Point B is below A, at the height of M. Point C is the same distance below B as B is below A` },
+    action: (status) => {
+      let pointA = status.pattern.points['A'];
+      let pointM = status.pattern.points['M'];
+
+      let pointB = setPoint(pointA.x, pointM.y);
+      let pointC = setPoint(pointB.x, pointB.y + distPointToPoint(pointB, pointA));
+
+      status = registerPoints(status, { 'B': pointB, 'C': pointC });
+      //draw a line from M to C
+      status = setLine(status, 'M', 'C', 'dashed');
+      return status;
+    }
+  },
+  {
+    description: (status) => { return `Point D is below C 1 and 3/4 in` },
     action: (status) => {
       let pointC = status.pattern.points['C'];
-      let pointE = status.pattern.points['E'];
+      let pointD = setPoint(pointC.x, pointC.y + inchesToPrecision(status, 1.75), { l: true });
 
-      let pointCE = makeTouchPoint(status, pointC, pointE, 4, 0.15, false);
-      status = registerPoint(status, pointCE, 'CE');
+      status = registerPoint(status, pointD, 'D');
+      //draw a line from C to D
+      status = setLine(status, 'C', 'D', 'dashed');
+      return status;
+    }
+  },
+  {
+    description: (status) => { return `Find Points E and 9 by taking the wrist measurement, dividing it by 2, add 1/4" to this (for E) and subtract 1/4" from this (for 9). Measure from C down to somewhere along the line left of D.` },
+    action: (status) => {
+      let wrist = inchesToPrecision(status, status.design.measurements.width_wrist.value);
+      let halfWrist = wrist / 2;
+      let pointC = status.pattern.points['C'];
+      let pointD = status.pattern.points['D'];
 
-      //set the line from C to E
+      let distCE = halfWrist + inchesToPrecision(status, 0.25);
+      let distC9 = halfWrist - inchesToPrecision(status, 0.25);
+
+      let distCD = distPointToPoint(pointC, pointD);
+
+      let distED = Math.sqrt(distCE * distCE - distCD * distCD);
+      let dist9D = Math.sqrt(distC9 * distC9 - distCD * distCD);
+
+      let pointE = setPoint(pointD.x - distED, pointD.y);
+      let point9 = setPoint(pointD.x - dist9D, pointD.y);
+
+      status = registerPoints(status, { 'E': pointE, '9': point9 });
+
+      
+      //draw a line from C to E and from C to 9
       status = setLine(status, 'C', 'E', 'dashed');
-      //set the curve from C to E
-      status = setCurve(status, { start: 'C', touch: 'CE', end: 'E' });
+      status = setLine(status, 'C', '9', 'dashed');
 
-
-
-      return status;
-    }
-  },
-  {
-    description: (status) => { return `Point 9 is 1/2 inch right of E` },
-    action: (status) => {
-      let pointE = status.pattern.points['E'];
-      let pointC = status.pattern.points['C'];
-      let point9 = setPoint(pointE.x + inchesToPrecision(status, 0.5), pointE.y);
-
+      //make the two curves from C to E and C to 9
       let pointC9 = makeTouchPoint(status, pointC, point9, 4, 0.15, {}, false);
-      status = registerPoint(status, pointC9, 'C9');
-      status = setCurve(status, { start: 'C', touch: 'C9', end: '9' });
+      let pointCE = makeTouchPoint(status, pointC, pointE, 4, 0.15, {}, false);
 
-      status = registerPoint(status, point9, '9');
+      status = registerPoints(status, { 'C9': pointC9, 'CE': pointCE });
+      status = setCurve(status, { start: 'C', g: 'C9', end: '9' });
+      status = setCurve(status, { start: 'C', g: 'CE', end: 'E' });
       return status;
     }
   },
   {
-    description: (status) => { return `Draw the elbow-seam of the under part from N to 1 straight down` },
+    description: (status) => { return `Shape the seams K-G-F2-E, N-1-Q-9, and R-A-M-C` },
     action: (status) => {
+      //add in point 1, beneath N and to the right of G
+      console.log(status.pattern.points);
       let pointN = status.pattern.points['N'];
       let pointG = status.pattern.points['G'];
+
       let point1 = setPoint(pointN.x, pointG.y);
-
       status = registerPoint(status, point1, '1');
+      //set the curves
+      status = setCurve(status, { s: 'K', g1: 'G', g2: 'F2', e: 'E' }, [0.18, 0.58]);
+      status = setCurve(status, { s: 'N', g1: '1', g2: 'Q', e: '9' }, [0.16, 0.65]);
+      status = setCurve(status, { s: 'A', g: 'M', e: 'C' });
 
-      //set the line from N to 1
-      //status = setLine(status, 'N', '1');
-      return status;
-    }
-  },
-  {
-    description: (status) => { return `Draw the seam from 1 to Point Q, which is 1/2 right of F` },
-    action: (status) => {
-      let pointF = status.pattern.points['F'];
-      let point1 = status.pattern.points['1'];
-      let pointQ = setPoint(pointF.x + inchesToPrecision(status, 0.5), pointF.y);
-      let point9 = status.pattern.points['9'];
-
-      let point1Q = makeTouchPoint(status, point1, pointQ, 4, 0.1, false);
-
-      let distX = Math.abs(point9.x - pointQ.x);
-      let distY = Math.abs(point9.y - pointQ.y);
-
-      let pointQ2 = setPoint(pointQ.x + distX * 0.1, pointQ.y + distY * 0.2, {}, false);
-
-      status = registerPoints(status, { 'Q': pointQ, '1Q': point1Q, 'Q2': pointQ2 });
-
-
-      //set curve from 1 to 9
-      //status = setCurve(status, {start: '1Q', touch: 'Q2', end: '9'}, 0, 'bezier');
-
-      //make cuff from 9 to C
-      let pointC = status.pattern.points['C'];
-      let point9C = makeTouchPoint(status, point9, pointC, 4, 0.15, false);
-      status = registerPoint(status, point9C, '9C');
-      //set the curve from 9 to C
-      //status = setCurve(status, {start: 'N', touch: '1', end: '1Q'}, 0, 'bezier');
-      status = setCurve(status, { start: 'N', g1: '1',g2: 'Q', end: '9'}, [0.17, 0.67] );
-
-      setLine(status, 'R', 'A');
-
-      //how long is the sleeve?
-      let pointK = status.pattern.points['K'];
-      let pointE = status.pattern.points['E'];
-      let sleeveLength = distPointToPoint(pointK, pointF) + distPointToPoint(pointF, pointE);
-      let sleeveLengthInches = sleeveLength / status.precision;
-      console.log('shoulder to cuff', sleeveLengthInches);
+      //set line from R to A
+      status = setLine(status, 'R', 'A');
 
       return status;
     }
   }
 ]
 
-
-export const keystone_plain_sleeve = {
+export const modified_plain_sleeve = {
   design_info: design_info,
   measurements: measurements,
   steps: steps

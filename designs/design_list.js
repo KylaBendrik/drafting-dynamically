@@ -2,9 +2,11 @@ import {keystone_bodice} from './keystone_bodice.js';
 import {keystone_single} from './keystone_single-breasted-vest.js';
 import {keystone_collars} from './keystone_collars.js';
 import {keystone_plain_sleeve} from './keystone_plain_sleeve.js';
+import {modified_plain_sleeve} from './modified_plain_sleeve.js';
 import {alice_collar} from './alice_collar.js';
 
 const designs = [
+  modified_plain_sleeve,
   alice_collar,
   keystone_bodice,
   keystone_single,

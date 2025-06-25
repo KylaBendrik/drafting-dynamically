@@ -28,7 +28,7 @@ export function cubicBezier(curve) {
     console.log("c2", c2);
 
       //estimate t1 and t2, just in case the editor doesn't know what to set.
-      console.log('estimate times for', curve)
+      console.log(`estimate times for ${curve.s.label}-${curve.g1.label}-${curve.g2.label}-${curve.e.label}:`);
     estimateTimes(curve.s, curve.e, curve.g1, curve.g2);
 
     return {
@@ -59,8 +59,7 @@ function estimateTimes(s, e, g1, g2) {
   //estimate t1 and t2 based on the distance
   const t1 = d1 / d;
   const t2 = (d1 + d2) / d;
-  console.log("estimated t1", t1);
-  console.log("estimated t2", t2);
+  console.log(`t1: ${t1}, t2: ${t2}`);
 }
 
 function A(t){
