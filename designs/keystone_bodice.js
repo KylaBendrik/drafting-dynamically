@@ -1,20 +1,23 @@
 import {
-    inchesToPrecision,
-    setPoint,
-    setLine,
-    setPointLineY,
-    setPointLineX,
-    setPointAlongLine,
-    setPointLineCircle,
-    setPointLineLine,
-    makeTouchPoint,
-    setCurve,
-    distPointToPoint,
-    distABC,
-    printNum,
-    printMeasure,
-    perimeterEllipse
-  } from '../pattern.js';
+  inchesToPrecision,
+  registerPoints,
+  registerPoint,
+  setPoint,
+  setLine,
+  setPointLineY,
+  setPointLineX,
+  setPointAlongLine,
+  setPointLineCircle,
+  setEquilateralThirdPoint,
+  setPointLineLine,
+  makeTouchPoint,
+  setCurve,
+  distPointToPoint,
+  distABC,
+  printNum,
+  printMeasure,
+  perimeterEllipse
+} from '../pattern.js';
   
   const design_info = {
     title: 'Keystone - Waist (Simple Bodice)',
@@ -682,9 +685,13 @@ const steps = [
         let point8 = status.pattern.points['8'];
         //make touch point, from X to 8, 1/8 inch right of X
         let dist8X = inchesToPrecision(status, 1/8);
-        status.pattern.points['X_8'] = setPoint(((pointX.x + point8.x) /2) + dist8X, (pointX.y + point8.y) / 2, {}, false);
 
-        status = setCurve(status, {start: 'X', touch: 'X_8', end: '8'}, 0, 'bezier');
+        let pointX_8 = makeTouchPoint(status, pointX, point8, 0, dist8X, false);
+
+        status = registerPoint(status, pointX_8, 'X_8');
+
+        status = setCurve(status, {s: 'X', t: 'X_8', e: '8'});
+
 
         return status;
       }

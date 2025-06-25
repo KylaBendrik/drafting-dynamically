@@ -166,7 +166,7 @@ export function setPointLineLine(status, point1, point2, point3, point4, visible
 export function makeTouchPoint(_status, point1, point2, quarter, depth = 0.5, visible = true) {
   //make a point that provides a touch point for a bezier curve. 
   //mid is the halfway point between point1 and point2
-  //corner is the outher corner of the curve, if it were a rectangle
+  //corner is the outer corner of the curve, if it were a rectangle
   //Depth is a percentage from mid to the corner, so 0.5 is halfway, 1 is all the way to the corner
   //quarter 1, 2, 3, or 4, clockwise from 12 o'clock (so 1 is top right, 2 is bottom right, 3 is bottom left, 4 is top left)
   //calculate center from point1, point2, and quarter
@@ -243,6 +243,27 @@ export function makeTouchPoint(_status, point1, point2, quarter, depth = 0.5, vi
     //find the x and y of the touch point
     touch.x = mid.x - dist.x * depth;
     touch.y = mid.y - dist.y * depth;
+  } else if (quarter === undefined || quarter === null || quarter === 0) {
+    //if quarter is not defined, assume it's horizontal or vertical
+    //first, figure out if it's horizontal or vertical
+    if (Math.abs(point1.y - point2.y) === 0) {
+      //horizontal line, so depth is up (if positive) or down (if negative)
+      //find the halfway point between point1 and point2
+      mid.x = (point1.x + point2.x) / 2;
+      mid.y = (point1.y + point2.y) / 2; 
+      //touch point is mid.x and mid.y + depth
+      touch.x = mid.x;
+      touch.y = mid.y + depth;
+    } else if (Math.abs(point1.x - point2.x) === 0) {
+      //vertical line, so depth is left (if positive) or right (if negative)
+      //find the halfway point between point1 and point2
+      mid.x = (point1.x + point2.x) / 2;
+      mid.y = (point1.y + point2.y) / 2;
+      //touch point is mid.x + depth and mid.y
+      touch.x = mid.x + depth;
+      touch.y = mid.y;
+    }
+      
   }
 
 

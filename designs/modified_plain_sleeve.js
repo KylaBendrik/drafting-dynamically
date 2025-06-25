@@ -31,7 +31,7 @@ const design_info = {
 let measurements = {
   width_armhole: { label: "Armhole", value: 16 },
   length_underarm: { label: "Length of sleeve under arm", value: 16.5 },
-  width_elbow: { label: "width at elbow", value: 12 },
+  width_elbow: { label: "Width at elbow", value: 12 },
   width_wrist: { label: "Width at wrist", value: 10 },
 };
 
