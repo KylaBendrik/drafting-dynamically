@@ -7,9 +7,9 @@ import {alice_collar} from './alice_collar.js';
 import {alice_slim_sleeve} from './alice_slim_sleeve.js';
 
 const designs = [
+  keystone_bodice,
   alice_slim_sleeve,
   modified_plain_sleeve,
-  keystone_bodice,
   alice_collar,
   keystone_single,
   keystone_collars,

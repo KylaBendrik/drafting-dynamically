@@ -2,6 +2,9 @@ import {
   inchesToPrecision,
   registerPoints,
   registerPoint,
+  registerLabel,
+  registerTwoPartLabel,
+  registerLabels,
   setPoint,
   setLine,
   setPointLineY,
@@ -20,7 +23,7 @@ import {
 } from '../pattern.js';
   
   const design_info = {
-    title: 'Keystone - Waist (Simple Bodice)',
+    title: 'Keystone - Waist',
     source: {
       link: 'https://archive.org/details/keystonejacketdr00heck/page/12/mode/2up',
       label: 'The Keystone Jacket and Dress Cutter (pg 12)'
@@ -691,6 +694,46 @@ const steps = [
         status = registerPoint(status, pointX_8, 'X_8');
 
         status = setCurve(status, {s: 'X', t: 'X_8', e: '8'});
+
+        //let's try adding a label
+        let pointP = status.pattern.points['P'];
+        let frontLabelPoint = setPoint(pointP.x - 20, pointP.y + 20);
+
+        // //side
+        let point15 = status.pattern.points['15'];
+        let sideLabelPoint = setPoint(point15.x + 10, point15.y - 5);
+        // //side back
+        let sideBackLabelPoint = setPoint(point17.x + 10, point17.y - 5);
+
+        let point11 = status.pattern.points['11'];
+        let backLabelPoint = setPoint(point11.x + 15, point11.y + 20);
+        //default size for labels
+        let defaultSize = 18;
+
+        let parts = {
+          'front': {
+            point: frontLabelPoint,
+            size: defaultSize,
+            direction: 'up',
+          },
+          'side': {
+            point: sideLabelPoint,
+            size: defaultSize,
+            direction: 'up',
+          },
+          'side back': {
+            point: sideBackLabelPoint,
+            size: defaultSize,
+            direction: 'up',
+          },
+          'back': {
+            point: backLabelPoint,
+            size: defaultSize,
+            direction: 'up',
+          }
+        }
+
+        status = registerLabels(status, parts);
 
 
         return status;

@@ -110,14 +110,22 @@ function drawPoint(ctx, status, pixelPattern, pointLabel) {
       ctx.stroke();
     }
   } else if (visible === 'label-right') {
+    console.log(point)
+    let size = point.size; //default size is 16px
+    console.log(`Drawing point ${pointLabel} at (${x}, ${y}), size ${size}, visible as label-right`);
     //if visible is 'label', just draw the label
     //set label font size to 12px
-    ctx.font = '18px serif';
+    ctx.font = `${size}px serif`;
     ctx.fillStyle = 'black';
     ctx.fillText(pointLabel, x + 5, y - 5);
   } else if (visible === 'label-up') {
+    console.log('drawing label-up')
+    console.log(point)
+    let size = point.size; //default size is 16px
+    console.log(`Drawing point ${pointLabel} at (${x}, ${y}), size ${size}, visible as label-up`);
+    //if visible is 'label', just draw the label
     //write text vertically, starting at the point
-    ctx.font = '24px serif';
+    ctx.font = `${size}px serif`;
     ctx.fillStyle = 'black';
     ctx.save();
     ctx.translate(x, y);

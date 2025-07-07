@@ -39,14 +39,106 @@ export function setPoint(x, y, guides, visible = true){
   return point;
 }
 
-export function registerLabel(status, point, label, direction = 'right'){
+export function registerLabel(status, point, label, direction = 'right', size = 16){
   point.visible = `label-${direction}`;
+  point.size = size;
   status.pattern.points[label] = point;
 
-  console.log(`Registered point ${label} at (${point.x}, ${point.y})`);
-  console.log(point)
+  return status;
+}
+
+export function registerTwoPartLabel(status, point, label1, label2, direction = 'right', size = 16){
+  //register a two part label, with a space in between
+  //point is the point to register the label at
+  //label1 is the first part of the label
+  //label2 is the second part of the label
+  //direction is the direction of the label (up, down, left, right)
+  //size is the size of the label
+  let point1 = point;
+  let point2 = {...point};
+  let margin = size / 4;
+  let size2 = size - 4;
+  if (direction === 'up'){
+    point2.x += margin;
+  } else if (direction === 'right'){
+    point2.y -= margin;
+  }
+  
+  status = registerLabel(status, point1, label1, direction, size);
+  status = registerLabel(status, point2, label2, direction, size2);
 
   return status;
+}
+
+export function registerLabels(status, parts) {
+  console.log('registerLabels');
+  //parts is an array of objects, each with a simple point object, a name, a size (in case of smaller pieces), and a direction (right or up)
+  //for example, let parts = {
+        //   'front': {
+        //     point: frontLabelPoint,
+        //     size: 14,
+        //     direction: 'up',
+        //   },
+        //   'side': {
+        //     point: sideLabelPoint,
+        //     size: 14,
+        //     direction: 'up',
+        //   }
+        // }
+  let designLabelText = status.design.design_info.title;
+  let measurements = status.design.measurements;
+  let measurementLabelText = '';
+
+  for (let key in measurements) {
+    console.log(`Adding measurement label for ${key}: ${measurements[key].value}`);
+    measurementLabelText += `${measurements[key].value}-`;
+    //if it's the last measurement, don't add a dash
+    if (key === Object.keys(measurements)[Object.keys(measurements).length - 1]) {
+      measurementLabelText = measurementLabelText.slice(0, -1); //remove the last dash
+    }
+  }
+
+  let numSpaces = 1;
+
+  for (let key in parts) {
+    let part = parts[key];
+    //part is an object with point, size, and direction
+    //register the two part label
+
+    //generate whitespace for the size label (so we can have multiple labels with the same text but different locations)
+    let whitespace = '';
+    //for each key in parts, add a space (not to the first. Second gets one space, third gets two, etc.)
+    for (let i = 1; i < numSpaces; i++) {
+      console.log(`Adding whitespace for key ${key}: ${i}`);
+      console.log(`Whitespaces before: ${i}`);
+      whitespace += ' ';
+    }
+
+    let sizeLabelText = `${measurementLabelText}${whitespace}`;
+    numSpaces++;
+
+    status = registerTwoPartLabel(status, part.point, `${designLabelText} (${key})`, `${sizeLabelText}`, part.direction, part.size);
+  }
+
+  return status;
+
+  // Example usage:
+  // let frontLabelPoint = setPoint(100, 100);
+  // let sideLabelPoint = setPoint(200, 100);
+  //
+  // let parts = {
+  //   'front': {
+  //     point: frontLabelPoint,
+  //     size: 14,
+  //     direction: 'up',
+  //   },
+  //   'side': {
+  //     point: sideLabelPoint,
+  //     size: 14,
+  //     direction: 'up',
+  //   }
+  // }
+  // status = registerLabels(status, parts);
 }
 
 export function setPointLineY(status, point1, point2, y, guides, visible = true){

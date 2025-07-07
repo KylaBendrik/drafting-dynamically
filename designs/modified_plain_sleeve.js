@@ -349,17 +349,11 @@ const steps = [
       let pointM = status.pattern.points['M'];
       let labelPoint = setPoint(((pointQ.x + pointM.x) /2) + 4, pointQ.y);
 
-      console.log('measurements', status.design.measurements);
 
       let armhole = status.design.measurements.width_armhole.value
       let sleeveLength = status.design.measurements.length_underarm.value;
       let elbow =  status.design.measurements.width_elbow.value;
       let wrist = status.design.measurements.width_wrist.value;
-
-      console.log('armhole', armhole);
-      console.log('sleeveLength', sleeveLength);
-      console.log('elbow', elbow);
-      console.log('wrist', wrist);
 
       let labelText = `${armhole}-${sleeveLength}-${elbow}-${wrist}`;
       //register the label

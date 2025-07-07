@@ -70,5 +70,5 @@ export function makePixels(status) {
 function convertPoint(label, point, pixelsPerInch, precision) {
   let x = (point.x / precision) * pixelsPerInch;
   let y = (point.y / precision) * pixelsPerInch;
-  return { label: label, x: x, y: y, guides: point.guides, visible: point.visible };
+  return { label: label, x: x, y: y, guides: point.guides, visible: point.visible, size: point.size};
 }
