@@ -37,7 +37,6 @@ export function drawPattern(status) {
 
     line.start = start;
     line.end = end;
-    console.log('for Line', line);
     if (line.length === 'defined') {
       drawLine(ctx, line);
     } else {
@@ -110,6 +109,21 @@ function drawPoint(ctx, status, pixelPattern, pointLabel) {
       ctx.lineTo(pixelPattern.canvasSize.x - margin, y);
       ctx.stroke();
     }
+  } else if (visible === 'label-right') {
+    //if visible is 'label', just draw the label
+    //set label font size to 12px
+    ctx.font = '18px serif';
+    ctx.fillStyle = 'black';
+    ctx.fillText(pointLabel, x + 5, y - 5);
+  } else if (visible === 'label-up') {
+    //write text vertically, starting at the point
+    ctx.font = '24px serif';
+    ctx.fillStyle = 'black';
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText(pointLabel, 0, 0);
+    ctx.restore();
   }
 
 }
@@ -135,15 +149,12 @@ function drawLine(ctx, line, continued = false) {
   }
 
 
-  console.log('drawLine object', line);
 
 
   //style
   if (style.style === 'dashed') {
-    console.log('drawLine dashed');
     ctx.setLineDash([5, 5]);
   } else {  //solid
-    console.log('drawLine solid');
     ctx.setLineDash([]);
     //ctx.strokeStyle = 'black';
   }

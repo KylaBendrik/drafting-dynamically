@@ -1,5 +1,6 @@
 import {
   inchesToPrecision,
+  toInches,
   registerPoints,
   registerPoint,
   registerLabel,
@@ -21,19 +22,19 @@ import {
 } from '../pattern.js';
 
 const design_info = {
-  title: 'Keystone (modified) - Plain Sleeve',
+  title: 'Alice Slim Sleeve',
   source: {
-    link: 'https://archive.org/details/keystonejacketdr00heck/page/56/mode/2up',
-    label: 'The Keystone Jacket and Dress Cutter (pg 56)'
+    link: 'https://youtube.com/playlist?list=PLZByZ9HlQcCKq3uJ8MjaXbjN1poxS_H8y&si=ZT5c6spRpksh4s8v',
+    label: 'The Alice Dress - Slim Sleeve',
   },
-  designer: 'Charles Hecklinger (Edited by Kyla Bendrik)',
+  designer: 'Kyla Bendrik',
 }
 
 let measurements = {
-  width_armhole: { label: "Armhole", value: 16 },
-  length_underarm: { label: "Length of sleeve under arm", value: 16.5 },
-  width_elbow: { label: "Width at elbow", value: 12 },
-  width_wrist: { label: "Width at wrist", value: 10 },
+  width_armhole: { label: "Armhole", value: 16.5 },
+  length_underarm: { label: "Length of sleeve under arm", value: 20 },
+  width_elbow: { label: "Width at elbow", value: 11.5 },
+  width_wrist: { label: "Width at wrist", value: 7.75 },
 };
 
 //all distances are in inches * precision
@@ -251,11 +252,11 @@ const steps = [
     } 
   },
   {
-    description: (status) => { return `Point F2 is 1/2 inch left of F, point Q is 1/2 inch right of F` },
+    description: (status) => { return `Point F2 is 5/8 inch left of F, point Q is 5/8 inch right of F` },
     action: (status) => {
       let pointF = status.pattern.points['F'];
-      let pointF2 = setPoint(pointF.x - inchesToPrecision(status, 0.5), pointF.y);
-      let pointQ = setPoint(pointF.x + inchesToPrecision(status, 0.5), pointF.y);
+      let pointF2 = setPoint(pointF.x - inchesToPrecision(status, 0.625), pointF.y);
+      let pointQ = setPoint(pointF.x + inchesToPrecision(status, 0.625), pointF.y);
 
       status = registerPoints(status, { 'F2': pointF2, 'Q': pointQ });
       return status;
@@ -289,15 +290,15 @@ const steps = [
     }
   },
   {
-    description: (status) => { return `Find Points E and 9 by taking the wrist measurement, dividing it by 2, add 1/4" to this (for E) and subtract 1/4" from this (for 9). Measure from C down to somewhere along the line left of D.` },
+    description: (status) => { return `Find Points E and 9 by taking the wrist measurement, dividing it by 2, add 5/8" to this (for E) and subtract 5/8" from this (for 9). Measure from C down to somewhere along the line left of D.` },
     action: (status) => {
       let wrist = inchesToPrecision(status, status.design.measurements.width_wrist.value);
       let halfWrist = wrist / 2;
       let pointC = status.pattern.points['C'];
       let pointD = status.pattern.points['D'];
 
-      let distCE = halfWrist + inchesToPrecision(status, 0.25);
-      let distC9 = halfWrist - inchesToPrecision(status, 0.25);
+      let distCE = halfWrist + inchesToPrecision(status, 0.625);
+      let distC9 = halfWrist - inchesToPrecision(status, 0.625);
 
       let distCD = distPointToPoint(pointC, pointD);
 
@@ -314,16 +315,75 @@ const steps = [
       status = setLine(status, 'C', 'E', 'dashed');
       status = setLine(status, 'C', '9', 'dashed');
 
-      //make the two curves from C to E and C to 9
-      let pointC9 = makeTouchPoint(status, pointC, point9, 4, 0.15, {}, false);
-      let pointCE = makeTouchPoint(status, pointC, pointE, 4, 0.15, {}, false);
+      // //make the two curves from C to E and C to 9
+      // let pointC9 = makeTouchPoint(status, pointC, point9, 2, 0.15);
+      // let pointCE = makeTouchPoint(status, pointC, pointE, 2, 0.15);
 
-      status = registerPoints(status, { 'C9': pointC9, 'CE': pointCE });
-      status = setCurve(status, { start: 'C', g: 'C9', end: '9' });
-      status = setCurve(status, { start: 'C', g: 'CE', end: 'E' });
+      //  status = registerPoints(status, { 'C9': pointC9, 'CE': pointCE });
+      //  console.log('pointC9', pointC9);
+      //  console.log('pointCE', pointCE);
+      // status = setCurve(status, { start: 'C', g: 'C9', end: '9' });
+      // status = setCurve(status, { start: 'C', g: 'CE', end: 'E' });
       return status;
     }
   },
+  {
+    description: (status) => { return `Take the distance from E to C, divide by 2.5, and set point EC that distance from E, along the line from E to C. Then, perpendicular from E-C, set point p at 1 5/8"` },
+    action: (status) => {
+      let pointE = status.pattern.points['E'];
+      let pointC = status.pattern.points['C'];
+      let distEC = distPointToPoint(pointE, pointC);
+      let distE_EC = toInches(status, distEC / 2.5);
+
+      //set point P along the line from E to C
+      let point_EC = setPointAlongLine(status, pointE, pointC, distE_EC);
+
+      status = registerPoint(status, point_EC, 'EC');
+
+      //draw a line, perpendicular to the line from E to C, from ec to the final point p
+      //find the angle of the line from E to C
+      let angleEC = Math.atan2(pointC.y - pointE.y, pointC.x - pointE.x);
+      //find the angle of the perpendicular line
+      let anglePerpendicular = angleEC + Math.PI / 2;
+      //set point P at a distance of 1 5/8 inches from EC, along the perpendicular line
+      let distP = inchesToPrecision(status, 1.625);
+      let pointp = setPoint(point_EC.x + distP * Math.cos(anglePerpendicular), point_EC.y + distP * Math.sin(anglePerpendicular));
+
+      status = registerPoint(status, pointp, 'p');
+
+      //draw lines from E to p, and p to C
+      status = setLine(status, 'E', 'p');
+      status = setLine(status, 'p', 'C');
+
+      return status;
+    }
+  },
+  {    description: (status) => { return `Point 9C is 1/2 of the way between 9 and C. Point q is 1 1/8 perpendicular from line 9-C` },
+    action: (status) => {
+      let point9 = status.pattern.points['9'];
+      let pointC = status.pattern.points['C'];
+
+      //find the midpoint between 9 and C
+      let point9C = setPoint((point9.x + pointC.x) / 2, (point9.y + pointC.y) / 2);
+      status = registerPoint(status, point9C, '9C');
+
+      //find the angle of the line from 9 to C
+      let angle9C = Math.atan2(pointC.y - point9.y, pointC.x - point9.x);
+      //find the angle of the perpendicular line
+      let anglePerpendicular = angle9C + Math.PI / 2;
+      //set point Q at a distance of 1 1/8 inches from 9-C, along the perpendicular line
+      let distq = inchesToPrecision(status, 1.125);
+      let pointq = setPoint(point9C.x + distq * Math.cos(anglePerpendicular), point9C.y + distq * Math.sin(anglePerpendicular));
+
+      status = registerPoint(status, pointq, 'q');
+
+      //draw a line from 9 to q, and from q to C
+      status = setLine(status, '9', 'q');
+      status = setLine(status, 'q', 'C');
+
+      return status;
+    }
+},
   {
     description: (status) => { return `Shape the seams K-G-F2-E, N-1-Q-9, and R-A-M-C` },
     action: (status) => {
@@ -367,14 +427,14 @@ const steps = [
 
       //add a label for the pattern name, same as the label we just made
       let designLabelPoint = setPoint(labelPoint.x - 5, labelPoint.y);
-      status = registerLabel(status, designLabelPoint, 'Keystone (mod) - sleeve', 'up');
+      status = registerLabel(status, designLabelPoint, 'Alice - slim sleeve', 'up');
 
       return status;
     }
   }
 ]
 
-export const modified_plain_sleeve = {
+export const alice_slim_sleeve = {
   design_info: design_info,
   measurements: measurements,
   steps: steps

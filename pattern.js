@@ -39,6 +39,16 @@ export function setPoint(x, y, guides, visible = true){
   return point;
 }
 
+export function registerLabel(status, point, label, direction = 'right'){
+  point.visible = `label-${direction}`;
+  status.pattern.points[label] = point;
+
+  console.log(`Registered point ${label} at (${point.x}, ${point.y})`);
+  console.log(point)
+
+  return status;
+}
+
 export function setPointLineY(status, point1, point2, y, guides, visible = true){
   //find x value where line between point1 and point2 crosses y
 
