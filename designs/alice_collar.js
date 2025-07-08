@@ -13,6 +13,8 @@ import {
   setEquilateralThirdPoint,
   setPointLineLine,
   makeTouchPoint,
+  mirrorPoint,
+  mirrorPoints,
   setCurve,
   distPointToPoint,
   distABC,
@@ -130,7 +132,7 @@ const steps = [
     }
   },
   {
-    description: (status) => { return `Draw the lines and curves to complete the collar. A to B is the center back. You will need to move things around to place the opening at the shoulder.`; },
+    description: (status) => { return `Draw the lines and curves to complete the collar. A to B is the center back. Slice shoulder along EF`; },
     action: (status) => {
       let pointA = status.pattern.points['A'];
       let pointB = status.pattern.points['B'];
@@ -180,8 +182,7 @@ const steps = [
     description: (status) => { return `Point H is 1.7 x collar width ${printNum(status.measurements.collarWidth.value * 1.7)} above point G`;},
     action: (status) => {
       let collarWidth = inchesToPrecision(status, status.measurements.collarWidth.value);
-      // 1.7 * collar width = 1.7 * 1.25 = 2.125 inches
-      let heightH = collarWidth * 1.7;
+      let heightH = radiusCW(status)
       let pointG = status.pattern.points['G'];
       let pointH = setPoint(pointG.x, pointG.y - heightH);
       status = registerPoint(status, pointH, 'H');
@@ -191,11 +192,7 @@ const steps = [
   {
     description: (status) => { return `Point I is (neck size / 2pi) x 1.18 ${printNum((status.measurements.neckSize.value / (2 * Math.PI)) * 1.18)} up from point H, and 3/8 left of H`; },
     action: (status) => {
-      let neckSize = inchesToPrecision(status, status.measurements.neckSize.value);
-      let radius = neckSize / (2 * Math.PI);
-      let heightI = radius * 1.18;
-      // neck size is 12 inches. The radius of the neck is 12 / (2 * Math.PI) = 1.90986 inches.
-      // The height of point I is 1.18 * radius = 1.18 * 1.90986 = 2.25 inches.
+      let heightI = radiusNS(status);
       let pointH = status.pattern.points['H'];
       let pointI = setPoint(pointH.x - inchesToPrecision(status, 3/8), pointH.y - heightI);
       status = registerPoint(status, pointI, 'I');
@@ -207,13 +204,11 @@ const steps = [
   {
     description: (status) => { return `Arc around point I with radius of (neck size / 2pi) * 1.18 from Point H, counter-clockwise 108 degrees to find J. At 168 degrees, find K.`;},
     action: (status) => {
-      let neckSize = inchesToPrecision(status, status.measurements.neckSize.value);
       let pointH = status.pattern.points['H'];
       let pointI = status.pattern.points['I'];
 
       // the radius is the distance from the H to I
       let radius = distPointToPoint(pointH, pointI);
-      let radiusInches = toInches(radius);
 
       // Find point J, which is 154 degrees clockwise from point H around point I
       //Point H is below and slightly to the left of point I.
@@ -272,14 +267,14 @@ const steps = [
     }
   },
   {
-    description: (_status) => { return 'L is right of point I, where it meets the line up from 0'; },
+    description: (_status) => { return 'Measure the distance from H to I and the distance from H to G. Add these together, add 1/8 inch, and this is your measure. Go this distance right of I to find L.'; },
     action: (status) => {
       let pointI = status.pattern.points['I'];
-      let point0 = status.pattern.points['0'];
+      let dist = radiusNS(status) + radiusCW(status) + inchesToPrecision(status, 1/8);
 
       // Find the intersection of the line from point I to point 0
       // and the line from point I to point L
-      let pointL = setPoint(point0.x, pointI.y);
+      let pointL = setPoint(pointI.x + dist, pointI.y);
       status = registerPoint(status, pointL, 'L');
 
       return status;
@@ -303,7 +298,6 @@ const steps = [
         pointI.y + distanceLI * Math.sin(angleM)
       );
       status = registerPoint(status, pointM, 'M');
-
       // draw solid line from J to M
       status = setLine(status, 'J', 'M', 'solid');
 
@@ -315,10 +309,7 @@ const steps = [
     action: (status) => {
       let pointI = status.pattern.points['I'];
       let pointH = status.pattern.points['H'];
-      let neckSize = status.measurements['neckSize'];
-      let collarWidth = status.measurements['collarWidth'];
-      let distINInches = (neckSize.value * 1.18) / (2 * Math.PI) + (1.7 * collarWidth.value) + 3/8;
-      let distIN = inchesToPrecision(status, distINInches);
+      let distIN = radiusNS(status) + radiusCW(status) + inchesToPrecision(status, 3/8);
 
 
       // Calculate the angle for point H
@@ -339,11 +330,185 @@ const steps = [
 
       return status;
     }
+  },
+  {
+    description: (_status) => { return 'Mirror points I, J, M, L, and N using H and G as the line of symmetry to find point Im.'; },
+    action: (status) => {
+      let pointH = status.pattern.points['H'];
+      let pointG = status.pattern.points['G'];
+
+      status = mirrorPoints(status, ['I', 'J', 'L', 'M', 'N'], pointH, pointG);
+      status = setLine(status, 'I', 'Im', 'dashed');
+
+      // draw all the other lines and curves
+      status = setLine(status, 'Jm', 'Im', 'dashed');
+      status = setLine(status, 'Jm', 'Mm', 'dashed');
+
+      status = setCurve(status, {s: 'H', e: 'Jm', c: 'Im'});
+      status = setCurve(status, {s: 'G', g1: 'Nm', g2: 'Lm', e: 'Mm'}, [0.35, 0.82]);
+      return status;
+    }
+  },
+  {
+    description: (_status) => { return 'Follow a line from Im through K to find point P, using distance of 2.1 x collar width.'; },
+    action: (status) => {
+      let pointIm = status.pattern.points['Im'];
+      let pointK = status.pattern.points['K'];
+      let collarWidth = inchesToPrecision(status, status.measurements.collarWidth.value);
+
+      // Calculate the distance from Im to P
+      let distanceIK = distPointToPoint(pointIm, pointK);
+      let distanceIP = collarWidth * 2 + distanceIK;
+      console.log(`Distance from Im to P: ${distanceIP}`);
+
+      // Calculate the angle for point P
+      let angleP = Math.atan2(pointK.y - pointIm.y, pointK.x - pointIm.x);
+
+      // Calculate the coordinates of point P
+      let pointP = setPoint(
+        pointIm.x + distanceIP * Math.cos(angleP),
+        pointIm.y + distanceIP * Math.sin(angleP)
+      );
+      status = registerPoint(status, pointP, 'P');
+
+      // Draw a dashed line from Im to P
+      status = setLine(status, 'Im', 'P', 'dashed');
+
+      return status;
+    }
+  },
+  {
+    description: (_status) => { return 'Starting from the line K to Im, swing around Im counter-clockwise 56 degrees to find point Q, (1/8" less distance), and only 35 degrees to find point R (same distance as Im to K). 11 degrees around is point T'; },
+    action: (status) => {
+      let pointIm = status.pattern.points['Im'];
+      let pointK = status.pattern.points['K'];
+      let distImK = distPointToPoint(pointIm, pointK);
+
+      let distQ = distImK - inchesToPrecision(status, 0.125);
+
+
+      // Calculate the angle for point K
+      let angleK = Math.atan2(pointK.y - pointIm.y, pointIm.x - pointK.x);
+
+      // Calculate the angle for point Q
+      let angleQ = angleK + (56 * Math.PI / 180);
+
+      // Calculate the coordinates of point Q
+      let pointQ = setPoint(
+        pointIm.x - distQ * Math.cos(angleQ),
+        pointIm.y + distQ * Math.sin(angleQ)
+      );
+      status = registerPoint(status, pointQ, 'Q');
+
+      //calculate the angle for point R
+      let angleR = angleK + (35 * Math.PI / 180);
+
+      // Calculate the coordinates of point R
+      let pointR = setPoint(
+        pointIm.x - distQ * Math.cos(angleR),
+        pointIm.y + distQ * Math.sin(angleR)
+      );
+      status = registerPoint(status, pointR, 'R');
+
+      //calculate angle for point T
+      let angleT = angleK + (11 * Math.PI / 180);
+      // Calculate the coordinates of point T
+      let pointT = setPoint(
+        pointIm.x - distImK * Math.cos(angleT),
+        pointIm.y + distImK * Math.sin(angleT)
+      );
+      status = registerPoint(status, pointT, 'T');
+
+
+      // Draw a dashed line from Im to Q
+      status = setLine(status, 'Im', 'Q', 'dashed');
+      status = setLine(status, 'Lm', 'Q', 'dashed');
+
+      return status;
+    }
+  },
+  {
+    description: (_status) => { return 'Point S is collar width x 1.7 past point R, along the line from Im to R. Point U is collar width x 2 past point T.'; },
+    action: (status) => {
+      let pointIm = status.pattern.points['Im'];
+      let pointR = status.pattern.points['R'];
+      let pointT = status.pattern.points['T'];
+      let collarWidth = inchesToPrecision(status, status.measurements.collarWidth.value);
+
+      // Calculate the distance from Im to R
+      let distanceIR = distPointToPoint(pointIm, pointR);
+      let distanceIS = collarWidth * 1.7 + distanceIR;
+
+      // Calculate the distance from Im to T
+      let distanceIT = collarWidth * 2 + distPointToPoint(pointIm, pointT);
+
+      // Calculate the angle for point S
+      let angleS = Math.atan2(pointR.y - pointIm.y, pointR.x - pointIm.x);
+
+      // Calculate the coordinates of point S
+      let pointS = setPoint(
+        pointIm.x + distanceIS * Math.cos(angleS),
+        pointIm.y + distanceIS * Math.sin(angleS)
+      );
+      status = registerPoint(status, pointS, 'S');
+
+      // Calculate the angle for point U
+      let angleU = Math.atan2(pointT.y - pointIm.y, pointT.x - pointIm.x);
+      // Calculate the coordinates of point U
+      let pointU = setPoint(
+        pointIm.x + distanceIT * Math.cos(angleU),
+        pointIm.y + distanceIT * Math.sin(angleU)
+      );
+      status = registerPoint(status, pointU, 'U');
+
+      // Draw a dashed line from Im to S
+      status = setLine(status, 'Im', 'S', 'dashed');
+
+      return status;
+    }
+  },
+  {
+    description: (_status) => { return 'mirror points S, R, Mm, Jm, Lm, and Q using Im to P as the line of symmetry to find points Sm, Rm, Mmm, Jmm, Lmm, and Qm. Double check curves by folding across symmetry lines'; },
+    action: (status) => {
+      let pointIm = status.pattern.points['Im'];
+      let pointP = status.pattern.points['P'];
+
+      // Mirror points S, R, Mm, Jm, Lm, and Q using Im to P as the line of symmetry
+      status = mirrorPoints(status, ['S', 'R', 'T', 'U', 'Mm', 'Jm', 'Lm', 'Q'], pointIm, pointP);
+
+      status = setCurve(status, {s: 'Mm', g1: 'S', g2: 'U', e: 'P'}, [0.3, 0.8]);
+      status = setCurve(status, {s: 'Jm', g1: 'R', g2: 'T', e: 'K'}, [0.3, 0.8]);
+
+      status = setCurve(status, {s: 'Lmm', g: 'Mmm', e: 'Sm'});
+      status = setCurve(status, {s: 'Sm', g: 'Um', e: 'P'}, 0.55);
+
+      //inner curves
+      status = setCurve(status, {s: 'K', g: 'Tm', e: 'Rm'});
+      status = setCurve(status, {s: 'Rm', g: 'Jmm', e: 'Qm'});
+
+      status = setLine(status, 'Qm', 'Lmm');
+
+      status = setLine(status, 'E', 'F', 'dashed');
+
+
+      return status;
+    }
   }
+
 ];
 
 export const alice_collar = {
   design_info: design_info,
   measurements: measurements,
   steps: steps
+}
+
+function radiusCW(status){
+  //to simplify several steps, this is 1.7 * collar width
+  return inchesToPrecision(status, status.measurements.collarWidth.value * 1.7);
+}
+
+function radiusNS(status){
+  //to simplify several steps, this is (neck size / 2pi) * 1.18
+  return inchesToPrecision(status, (status.measurements.neckSize.value / (2 * Math.PI)) * 1.18);
 }

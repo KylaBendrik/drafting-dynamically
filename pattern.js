@@ -141,6 +141,71 @@ export function registerLabels(status, parts) {
   // status = registerLabels(status, parts);
 }
 
+export function mirrorPoints(status, points, linePoint1, linePoint2) {
+  //mirror a set of points across a line defined by two points
+  //points is an object with keys as labels and values as points
+  let mirroredPoints = {};
+  for (let key in points) {
+    let point;
+    //if a point object is passed in, use it directly
+    if (typeof points[key] === 'object' && points[key].x !== undefined && points[key].y !== undefined) {
+    
+      //it's a point object, so use it directly
+      point = mirrorPoint(points[key], linePoint1, linePoint2);
+    } else {
+      //it's a label, so find the point in the status pattern
+      //find the point in the status pattern
+      point = status.pattern.points[points[key]];
+    }
+    let mirroredPoint = mirrorPoint(point, linePoint1, linePoint2);
+    status = registerPoint(status, mirroredPoint, `${points[key]}m`);
+  }
+  //register the mirrored points to the status pattern
+  return status;
+}
+
+export function mirrorPoint(point, linePoint1, linePoint2) {
+
+  //mirror a point across a line defined by two points
+  let x1 = linePoint1.x;
+  let y1 = linePoint1.y;
+  let x2 = linePoint2.x;
+  let y2 = linePoint2.y;
+  let x = point.x;
+  let y = point.y;
+  //find the slope of the line
+  let m = (y2 - y1) / (x2 - x1);
+
+  //if the line is vertical, we need to handle it differently
+  if (x1 === x2) {
+    //vertical line, so the slope is undefined
+    console.log('Line is vertical, mirroring point horizontally');
+    //the mirrored point will have the same y, but the x will be mirrored across the line
+    let mirroredX = 2 * x1 - x; //the x will be mirrored across the line
+    let mirroredY = y; //the y will stay the same
+    return setPoint(mirroredX, mirroredY);
+  }
+  //find the intercept of the line
+  let b = y1 - m * x1;
+  //find the perpendicular slope
+  let mPerp = -1 / m;
+  //find the intercept of the perpendicular line
+  let bPerp = y - mPerp * x;
+  //find the intersection of the two lines
+  let xIntersect = (bPerp - b) / (m - mPerp);
+  let yIntersect = m * xIntersect + b;
+  //find the distance from the point to the intersection
+  let dx = x - xIntersect;
+  let dy = y - yIntersect;
+  //find the mirrored point
+  let mirroredX = xIntersect - dx;
+  let mirroredY = yIntersect - dy;
+  let mirroredPoint = setPoint(mirroredX, mirroredY);
+
+  console.log(`Mirrored point is (${mirroredX}, ${mirroredY})`);
+  return mirroredPoint;
+}
+
 export function setPointLineY(status, point1, point2, y, guides, visible = true){
   //find x value where line between point1 and point2 crosses y
 
