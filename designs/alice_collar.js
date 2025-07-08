@@ -428,7 +428,7 @@ const steps = [
     }
   },
   {
-    description: (_status) => { return 'Point S is collar width x 1.7 past point R, along the line from Im to R. Point U is collar width x 2 past point T.'; },
+    description: (_status) => { return 'Point S is collar width x 1.7 + 1/8"  past point R, along the line from Im to R. Point U is collar width x 2 past point T.'; },
     action: (status) => {
       let pointIm = status.pattern.points['Im'];
       let pointR = status.pattern.points['R'];
@@ -437,7 +437,7 @@ const steps = [
 
       // Calculate the distance from Im to R
       let distanceIR = distPointToPoint(pointIm, pointR);
-      let distanceIS = collarWidth * 1.7 + distanceIR;
+      let distanceIS = collarWidth * 1.7 + distanceIR + inchesToPrecision(status, 0.125);
 
       // Calculate the distance from Im to T
       let distanceIT = collarWidth * 2 + distPointToPoint(pointIm, pointT);

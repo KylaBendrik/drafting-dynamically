@@ -9,7 +9,7 @@ export function toInches(status, value) {
   //the inverse of inchesToPrecision
   //convert value to inches, using the precision from status
   const precision = status.precision;
-  return Math.round(value / precision);
+  return value / precision;
 }
 
 export function registerPoint(status, point, label = undefined) {
