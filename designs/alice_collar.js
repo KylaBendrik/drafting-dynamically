@@ -3,6 +3,7 @@ import {
   toInches,
   registerPoints,
   registerPoint,
+  registerLabels,
   setPoint,
   setLine,
   setPointLineY,
@@ -21,7 +22,7 @@ import {
 } from '../pattern.js';
 
 const design_info = {
-  title: 'Alice - Collar pieces',
+  title: 'Alice - Collar',
   source: {
     link: 'https://www.youtube.com/playlist?list=PLZByZ9HlQcCKq3uJ8MjaXbjN1poxS_H8y',
     label: 'The Alice Dress - Video Series',
@@ -176,7 +177,7 @@ const steps = [
     }
   },
   {
-    description: (status) => { return `Point H is 1.7 * collar width ${printMeasure(status.measurements.collarWidth)} above point G`;},
+    description: (status) => { return `Point H is 1.7 x collar width ${printNum(status.measurements.collarWidth.value * 1.7)} above point G`;},
     action: (status) => {
       let collarWidth = inchesToPrecision(status, status.measurements.collarWidth.value);
       // 1.7 * collar width = 1.7 * 1.25 = 2.125 inches
@@ -188,7 +189,7 @@ const steps = [
     }
   },
   {
-    description: (status) => { return `Point I is the (neck size / 2pi) * 1.18 up from point H, and 1/4 right of H`; },
+    description: (status) => { return `Point I is (neck size / 2pi) x 1.18 ${printNum((status.measurements.neckSize.value / (2 * Math.PI)) * 1.18)} up from point H, and 3/8 left of H`; },
     action: (status) => {
       let neckSize = inchesToPrecision(status, status.measurements.neckSize.value);
       let radius = neckSize / (2 * Math.PI);
@@ -196,7 +197,7 @@ const steps = [
       // neck size is 12 inches. The radius of the neck is 12 / (2 * Math.PI) = 1.90986 inches.
       // The height of point I is 1.18 * radius = 1.18 * 1.90986 = 2.25 inches.
       let pointH = status.pattern.points['H'];
-      let pointI = setPoint(pointH.x + inchesToPrecision(status, 0.25), pointH.y - heightI);
+      let pointI = setPoint(pointH.x - inchesToPrecision(status, 3/8), pointH.y - heightI);
       status = registerPoint(status, pointI, 'I');
       // draw dashed line from point I to point H
       status = setLine(status, 'H', 'I', 'dashed');
@@ -204,11 +205,12 @@ const steps = [
     }
   },
   {
-    description: (status) => { return `Arc around point I with radius of (neck size / 2pi) * 1.18 from Point H, clockwise 154 degrees. collarWidth * 2 past J is K`;},
+    description: (status) => { return `Arc around point I with radius of (neck size / 2pi) * 1.18 from Point H, counter-clockwise 108 degrees to find J. At 168 degrees, find K.`;},
     action: (status) => {
       let neckSize = inchesToPrecision(status, status.measurements.neckSize.value);
       let pointH = status.pattern.points['H'];
       let pointI = status.pattern.points['I'];
+
       // the radius is the distance from the H to I
       let radius = distPointToPoint(pointH, pointI);
       let radiusInches = toInches(radius);
@@ -217,28 +219,123 @@ const steps = [
       //Point H is below and slightly to the left of point I.
       //Point J is 154 degrees clockwise from point H around point I.
 
-      let angleH = Math.atan2(pointH.y - pointI.y, pointH.x - pointI.x);
-      let angleJ = angleH + (154 * Math.PI / 180); // Convert degrees to radians
+      let angleH = Math.atan2(pointH.y - pointI.y, pointI.x - pointH.x);
+      let angleJ = angleH + (108 * Math.PI / 180); // Convert degrees to radians
+      let angleK = angleH + (168 * Math.PI / 180); // 180 degrees from H
 
       // Calculate the coordinates of point J
       let pointJ = setPoint(
-        pointI.x + radius * Math.cos(angleJ),
+        pointI.x - radius * Math.cos(angleJ),
         pointI.y + radius * Math.sin(angleJ)
       );
       status = registerPoint(status, pointJ, 'J');
 
-      // continue line from I to J, going past J by collarWidth * 2
-      let collarWidth = status.measurements.collarWidth.value;
-      let distItoK  = radiusInches + (collarWidth * 2)
-      let pointK = setPointAlongLine(status, pointI, pointJ, distItoK);
+      // Calculate the coordinates of point K
+      let pointK = setPoint(
+        pointI.x - radius * Math.cos(angleK),
+        pointI.y + radius * Math.sin(angleK)
+      );
       status = registerPoint(status, pointK, 'K');
-      console.log(`Point K: `, pointK);
 
       // Draw the arc from H to J
-      status = setCurve(status, {s: 'H', e: 'J', c: 'I'});
-      // Draw the line from I to K
+      status = setCurve(status, {s: 'J', e: 'H', c: 'I'});
+
+      // Draw dashed lines from J and K to the center point I
+      status = setLine(status, 'I', 'J', 'dashed');
       status = setLine(status, 'I', 'K', 'dashed');
 
+      // Make Labels
+      let defaultDirection = 'right';
+      let defaultSize = 14;
+
+      let pointC = status.pattern.points['C'];
+      let pointG = status.pattern.points['G'];
+      let liningLabelPoint = setPoint(pointC.x + 5, pointC.y - 2);
+      let outerLabelPoint = setPoint(pointG.x - 15, pointG.y - 6);
+
+
+      let parts = {
+        'lining': {
+          point: liningLabelPoint,
+          direction: defaultDirection,
+          size: defaultSize,
+        },
+        'outer': {
+          point: outerLabelPoint,
+          direction: defaultDirection,
+          size: defaultSize,
+        }
+      }
+
+      status = registerLabels(status, parts);
+      return status;
+    }
+  },
+  {
+    description: (_status) => { return 'L is right of point I, where it meets the line up from 0'; },
+    action: (status) => {
+      let pointI = status.pattern.points['I'];
+      let point0 = status.pattern.points['0'];
+
+      // Find the intersection of the line from point I to point 0
+      // and the line from point I to point L
+      let pointL = setPoint(point0.x, pointI.y);
+      status = registerPoint(status, pointL, 'L');
+
+      return status;
+    }
+  },
+  {
+    description: (_status) => { return 'Using the distance from point L to point I, swing around I counter-clockwise 19 degrees to find point M.'; },
+    action: (status) => {
+      let pointI = status.pattern.points['I'];
+      let pointL = status.pattern.points['L'];
+
+      // Calculate the distance from L to I
+      let distanceLI = distPointToPoint(pointL, pointI);
+
+      // Calculate the angle for point M
+      let angleM = Math.atan2(pointL.y - pointI.y, pointL.x - pointI.x) - (19 * Math.PI / 180);
+
+      // Calculate the coordinates of point M
+      let pointM = setPoint(
+        pointI.x + distanceLI * Math.cos(angleM),
+        pointI.y + distanceLI * Math.sin(angleM)
+      );
+      status = registerPoint(status, pointM, 'M');
+
+      // draw solid line from J to M
+      status = setLine(status, 'J', 'M', 'solid');
+
+      return status;
+    }
+  },
+  {
+    description: (status) => { return `From the line from I to H, swing around I counter-clockwise 37 degrees to find point N at (necksize x 1.18) / 2pi + (1.7 x collar width) + 3/8`; },
+    action: (status) => {
+      let pointI = status.pattern.points['I'];
+      let pointH = status.pattern.points['H'];
+      let neckSize = status.measurements['neckSize'];
+      let collarWidth = status.measurements['collarWidth'];
+      let distINInches = (neckSize.value * 1.18) / (2 * Math.PI) + (1.7 * collarWidth.value) + 3/8;
+      let distIN = inchesToPrecision(status, distINInches);
+
+
+      // Calculate the angle for point H
+      let angleH = Math.atan2(pointH.y - pointI.y, pointI.x - pointH.x);
+
+      // Calculate the angle for point N
+      let angleN = angleH + (37 * Math.PI / 180);
+
+      // Calculate the coordinates of point N
+      let pointN = setPoint(
+        pointI.x - distIN * Math.cos(angleN),
+        pointI.y + distIN * Math.sin(angleN)
+      );
+      status = registerPoint(status, pointN, 'N');
+
+      // draw quadratic curve from point L to N to G
+      status = setCurve(status, {s: 'G', g1: 'N', g2: 'L', e: 'M'}, [0.35, 0.82]);
 
       return status;
     }

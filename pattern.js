@@ -57,11 +57,11 @@ export function registerTwoPartLabel(status, point, label1, label2, direction = 
   let point1 = point;
   let point2 = {...point};
   let margin = size / 4;
-  let size2 = size - 4;
+  let size2 = size - 2;
   if (direction === 'up'){
     point2.x += margin;
   } else if (direction === 'right'){
-    point2.y -= margin;
+    point2.y += margin;
   }
   
   status = registerLabel(status, point1, label1, direction, size);
