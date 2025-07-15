@@ -313,15 +313,16 @@ const steps = [
       }
     },
     {
-      description: (_status) => { return `Point 00 is left of K, the same distance 3 is left of X (not distance between 3 and X) It is also 2/5 of the distance down from Z to L` },
+      description: (_status) => { return `Point 00 is 1 inch left of K. It is also 2/5 of the distance down from Z to L` },
       action: (status) => {
         let pointK = status.pattern.points['K'];
-        let point3 = status.pattern.points['3'];
-        let pointX = status.pattern.points['X'];
+
         let pointZ = status.pattern.points['Z'];
         let pointL = status.pattern.points['L'];
 
-        let distX = Math.abs(point3.x - pointX.x);
+        let oneInchPrecision = inchesToPrecision(status, 1);
+
+        let distX = oneInchPrecision;
         let distY = Math.abs(pointZ.y - pointL.y) * 2/5;
 
         status.pattern.points['00'] = setPoint(pointK.x - distX, pointZ.y + distY);
@@ -434,8 +435,8 @@ const steps = [
         let pointV = status.pattern.points['V'];
 
         //make two points, one 1/2 higher than V, and another several inches to the right, both invisible
-        let pointV2 = setPoint(pointV.x, pointV.y + inchesToPrecision(status, 1/2), {}, false);
-        let pointV3 = setPoint(pointV.x + inchesToPrecision(status, 5), pointV.y + inchesToPrecision(status, 1/2), {}, false);
+        let pointV2 = setPoint(pointV.x, pointV.y - inchesToPrecision(status, 1/2), {}, false);
+        let pointV3 = setPoint(pointV.x + inchesToPrecision(status, 5), pointV.y - inchesToPrecision(status, 1/2), {}, false);
 
         //find the intersection of the line from T to R, and the line from V2 to V3
         status.pattern.points['W'] = setPointLineLine(status, pointT, pointR, pointV2, pointV3);
