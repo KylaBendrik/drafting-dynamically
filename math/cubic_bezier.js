@@ -24,8 +24,6 @@ export function cubicBezier(curve) {
       x: findC2(curve.s.x, curve.e.x, curve.g1.x, t1, c1.x),
       y: findC2(curve.s.y, curve.e.y, curve.g1.y, t1, c1.y)
     };
-    console.log("c1", c1);
-    console.log("c2", c2);
 
       //estimate t1 and t2, just in case the editor doesn't know what to set.
       console.log(`estimate times for ${curve.s.label}-${curve.g1.label}-${curve.g2.label}-${curve.e.label}:`);

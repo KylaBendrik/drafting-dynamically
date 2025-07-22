@@ -12,6 +12,11 @@ export function toInches(status, value) {
   return value / precision;
 }
 
+export function seeDist(status, length, label = "") {
+  //this is just for debugging purposes, to see the distance in precision units and inches
+  console.log(`Distance ${label}: ${length} precision units, ${length / status.precision} inches`);
+}
+
 export function registerPoint(status, point, label = undefined) {
   // register point to the pattern
   status.pattern.points[label] = point;
@@ -71,7 +76,6 @@ export function registerTwoPartLabel(status, point, label1, label2, direction = 
 }
 
 export function registerLabels(status, parts) {
-  console.log('registerLabels');
   //parts is an array of objects, each with a simple point object, a name, a size (in case of smaller pieces), and a direction (right or up)
   //for example, let parts = {
         //   'front': {
@@ -90,7 +94,6 @@ export function registerLabels(status, parts) {
   let measurementLabelText = '';
 
   for (let key in measurements) {
-    console.log(`Adding measurement label for ${key}: ${measurements[key].value}`);
     measurementLabelText += `${measurements[key].value}-`;
     //if it's the last measurement, don't add a dash
     if (key === Object.keys(measurements)[Object.keys(measurements).length - 1]) {
@@ -109,8 +112,6 @@ export function registerLabels(status, parts) {
     let whitespace = '';
     //for each key in parts, add a space (not to the first. Second gets one space, third gets two, etc.)
     for (let i = 1; i < numSpaces; i++) {
-      console.log(`Adding whitespace for key ${key}: ${i}`);
-      console.log(`Whitespaces before: ${i}`);
       whitespace += ' ';
     }
 
@@ -179,7 +180,6 @@ export function mirrorPoint(point, linePoint1, linePoint2) {
   //if the line is vertical, we need to handle it differently
   if (x1 === x2) {
     //vertical line, so the slope is undefined
-    console.log('Line is vertical, mirroring point horizontally');
     //the mirrored point will have the same y, but the x will be mirrored across the line
     let mirroredX = 2 * x1 - x; //the x will be mirrored across the line
     let mirroredY = y; //the y will stay the same
@@ -202,7 +202,6 @@ export function mirrorPoint(point, linePoint1, linePoint2) {
   let mirroredY = yIntersect - dy;
   let mirroredPoint = setPoint(mirroredX, mirroredY);
 
-  console.log(`Mirrored point is (${mirroredX}, ${mirroredY})`);
   return mirroredPoint;
 }
 
@@ -250,7 +249,7 @@ export function setPointAlongLine(status, point1, point2, to3inInches, guides = 
   return status;
 }
 
-export function setPointLineCircle(status, point1, point2, center, radius, visible = true){
+export function setPointLineCircle(status, point1, point2, center, radius, visible = true, flip = false) {
   //first, find the slope of the line between point1 and point2
   let x1 = point1.x;
   let y1 = point1.y;
@@ -275,11 +274,48 @@ export function setPointLineCircle(status, point1, point2, center, radius, visib
   //solve for x
   let x = Math.round((-b2 - Math.sqrt(b2 * b2 - 4 * a * c)) / (2 * a));
   let y = Math.round(m * x + b);
-  status = setPoint(x, y, undefined, visible);
+  let newPoint = setPoint(x, y, undefined, visible);
   //there may be two solutions, but we'll just use the first one for now
+  if (flip) {
+    //find the other intersection point
+    x = Math.round((-b2 + Math.sqrt(b2 * b2 - 4 * a * c)) / (2 * a));
+    y = Math.round(m * x + b);
+    newPoint = setPoint(x, y, undefined, visible);
+  }
 
-  return status;
+  return newPoint;
 
+}
+
+export function setPointCircleCircle(_status, center1, r1, center2, r2, flip = false) {
+  //find the intersection of two circles
+  //the "flip" parameter is true or false, it determines which of the two points is used.
+  //there wasn't a simple way to define which point to use, so this is a workaround that requires trial and error.
+  let x1 = center1.x;
+  let y1 = center1.y;
+  let x2 = center2.x;
+  let y2 = center2.y;
+
+  let r1Squared = r1 * r1;
+  let r2Squared = r2 * r2;
+  let d = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+  if (d > r1 + r2 || d < Math.abs(r1 - r2)) {
+    //no intersection
+    return null;
+  } 
+  //find the intersection points
+  let a = (r1Squared - r2Squared + d * d) / (2 * d);
+  let h = Math.sqrt(r1Squared - a * a);
+  let x0 = x1 + a * (x2 - x1) / d;
+  let y0 = y1 + a * (y2 - y1) / d;
+  let intersection1 = setPoint(x0 + h * (y2 - y1) / d, y0 - h * (x2 - x1) / d);
+  let intersection2 = setPoint(x0 - h * (y2 - y1) / d, y0 + h * (x2 - x1) / d);
+
+  if (flip) {
+    return intersection2;
+  } else {
+    return intersection1;
+  }
 }
 
 export function setEquilateralThirdPoint(_status, point1, point2) {

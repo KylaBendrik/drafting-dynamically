@@ -1,5 +1,6 @@
 import {
   inchesToPrecision,
+  seeDist,
   registerPoints,
   registerPoint,
   registerLabel,
@@ -11,6 +12,7 @@ import {
   setPointLineX,
   setPointAlongLine,
   setPointLineCircle,
+  setPointCircleCircle,
   setEquilateralThirdPoint,
   setPointLineLine,
   makeTouchPoint,
@@ -33,11 +35,12 @@ import {
   
   let measurements = {
     backLength: { label: "Back Length", value: 14 },
-    frontLength: { label: "Front Length", value: 17 },
+    frontLength: { label: "Front Length", value: 16.75 },
     blade: { label: "Blade", value: 7.25 },
     heightUnderArm: { label: "Height Under Arm", value: 6.75 },
     breast: { label: "Breast", value: 26 },
-    waist: { label: "Waist", value: 22 }
+    waist: { label: "Waist", value: 22 },
+    necksize: { label: "Neck Size", value: 12 }, //May want to use this to redefine the neckline in the lining?
   };
 
   //all distances are in inches * precision
@@ -412,9 +415,6 @@ const steps = [
 
         status = registerPoints(status, {'Q': pointQ, 'R': pointR});
 
-        console.log(`distance from H to Q: ${distPointToPoint(pointH, pointQ) / status.precision} inches`);
-        console.log(`distance from J to R: ${distPointToPoint(pointJ, pointR) / status.precision} inches`);
-
         return status;
       }
     },
@@ -431,7 +431,6 @@ const steps = [
         let waist = parseFloat(status.measurements.waist.value) / 2 * status.precision;
         let space = ((distBD + dist16H) - waist);
         let dist = space / 4; //half the space, to place points 6 and 7
-        console.log(`space in inches: ${space / status.precision}, dist in inches: ${dist / status.precision}`);
         
         //place 4 and 5 on either side of Q
         let pointQ = status.pattern.points['Q'];
@@ -660,11 +659,6 @@ const steps = [
     {
       description: (_status) => { return `Finish off the bottom of the bodice.`},
       action: (status) => {
-        let pointH = status.pattern.points['H'];
-        let point4 = status.pattern.points['4'];
-        let point5 = status.pattern.points['5'];
-        let point6 = status.pattern.points['6'];
-        let point7 = status.pattern.points['7'];
         let point15 = status.pattern.points['15'];
         let point17 = status.pattern.points['17'];
 
@@ -675,18 +669,18 @@ const steps = [
 
         //let's try adding a label
         let pointP = status.pattern.points['P'];
-        let frontLabelPoint = setPoint(pointP.x - 20, pointP.y + 20);
+        let frontLabelPoint = setPoint(pointP.x - 15, pointP.y + 15);
 
         // //side
         //let point15 = status.pattern.points['15'];
         let sideLabelPoint = setPoint(point15.x + 10, point15.y - 5);
         // //side back
-        let sideBackLabelPoint = setPoint(point17.x + 10, point17.y - 5);
+        let sideBackLabelPoint = setPoint(point17.x + 5, point17.y - 5);
 
         let point11 = status.pattern.points['11'];
-        let backLabelPoint = setPoint(point11.x + 15, point11.y + 20);
+        let backLabelPoint = setPoint(point11.x + 10, point11.y + 20);
         //default size for labels
-        let defaultSize = 18;
+        let defaultSize = 14;
 
         let parts = {
           'front': {
@@ -716,10 +710,381 @@ const steps = [
 
         return status;
       }
+    },
+    {
+      description: (_status) => { return `Start the outer bodice piece by copying points 00, 8, 13, 14. Points are suffixed with 'b' for 'bodice'`},
+      action: (status) => {
+        //copy the points 00, 8, 13, 14, 15, X, and 2 to the outer bodice piece
+        const outerBodicePoints = ['00', '8', '13', '14'];
+        for (const point of outerBodicePoints) {
+          status.pattern.points[`${point}b`] = setPoint(status.pattern.points[point].x, status.pattern.points[point].y);
+        }
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `Move 00b 1" left, and move 8b 1/2" right`},
+      action: (status) => {
+        const point00b = status.pattern.points['00b'];
+        const point8b = status.pattern.points['8b'];
+        const dist00b = inchesToPrecision(status, 1);
+        const dist8b = inchesToPrecision(status, 1/2);
+
+        status.pattern.points['00b'].x =  point00b.x - dist00b;
+        status.pattern.points['8b'].x =  point8b.x + dist8b;
+
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `The bodice back shoulder seam is on a line parallel to the line 2-X, 3/4" above this line.`},
+      action: (status) => {
+        const point2 = status.pattern.points['2'];
+        const pointX = status.pattern.points['X'];
+        //make new points 2b and Xb, which are 3/4" above the line from 2 to X
+        const distX_Xb = inchesToPrecision(status, 3/4);
+
+        //the angle from 2-X to X-Xb is a right angle. Move from X to distX_Xb to find Xb
+        //calculate the angle from 2 to X
+        const angle2X = Math.atan2(pointX.y - point2.y, pointX.x - point2.x);
+        //calculate the distance to move in x and y
+        const distXbX = distX_Xb * Math.cos(angle2X);
+        const distYbX = distX_Xb * Math.sin(angle2X);
+        let pointXb = setPoint(pointX.x + distXbX, pointX.y - distYbX);
+        let point2b = setPoint(point2.x + distXbX, point2.y - distYbX);
+        status.pattern.points['Xb'] = pointXb;
+        status.pattern.points['2b'] = point2b;
+
+        status = setLine(status, '2b', 'Xb', 'dashed');
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `Along this line from Xb, go 1" to find point X1b. This is the shoulder line from Xb to X1b`},
+      action: (status) => {
+        const pointXb = status.pattern.points['Xb'];
+        const distX1b = 1; // 1 inch
+        //find the point X1b, which is 1" along the line from Xb to 2b
+        status.pattern.points['X1b'] = setPointAlongLine(status, pointXb, status.pattern.points['2b'], distX1b);
+
+        status = setLine(status, 'Xb', 'X1b',);
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `Shape the armhole from 13b to 14b, touching 00b, and from 14b to Xb, touching 8b`},
+      action: (status) => {
+        const point13b = status.pattern.points['13b'];
+        const point14b = status.pattern.points['14b'];
+        const point00b = status.pattern.points['00b'];
+        const point8b = status.pattern.points['8b'];
+        //create the lines for the armhole
+        status = setCurve(status, {s: '13b', g: '00b', e: '14b'});
+        status = setCurve(status, {s: '14b', g: '8b', e: 'Xb'}, 0.65);
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `To form the under arm seams of these pieces, make 15fb 1/2" left and 1/8" down from 15, and 15bb 7/8" left and 1/2" down from 15`},
+      action: (status) => {
+        const point15 = status.pattern.points['15'];
+        const dist15fbX = inchesToPrecision(status, 1/2);
+        const dist15fbY = inchesToPrecision(status, 1/8);
+        const dist15bbX = inchesToPrecision(status, 7/8);
+        const dist15bbY = inchesToPrecision(status, 1/2);
+
+        //find the points 15fb and 15bb
+        status.pattern.points['15fb'] = setPoint(point15.x - dist15fbX, point15.y + dist15fbY);
+        status.pattern.points['15bb'] = setPoint(point15.x + dist15bbX, point15.y + dist15bbY);
+
+        //draw the lines from 14b to 15fb and 14b to 15bb
+        status = setLine(status, '14b', '15fb');
+        status = setLine(status, '14b', '15bb');
+
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `To form the bottom of the back bodice, add up distance from 15 to 16 and from D to B, and multiply this by 1.67. Going from 15bb at 96 degrees, draw a line this distance to find point Bb.`},
+      action: (status) => {
+        const point15bb = status.pattern.points['15bb'];
+        const point14b = status.pattern.points['14b'];
+        const point16 = status.pattern.points['16'];
+        const pointD = status.pattern.points['D'];
+        const pointB = status.pattern.points['B'];
+
+        const dist15to16 = point16.x - point15bb.x;
+        const distDtoB = pointB.x - pointD.x;
+        const totalDist = dist15to16 + distDtoB;
+
+        const dist15bbtoBb = totalDist * 1.67; //multiply by 1.67 to get extra length for gathers.
+
+        const angle = 96 * Math.PI / 180; //convert to radians
+        //find the angle from 14b to 15bb
+        const angle15bb = Math.atan2(point14b.x - point15bb.x, point14b.y - point15bb.y);
+        //calculate the angle from 15bb to Bb
+        //angle + angle15bb puts it on the left, it should be on the right
+        //so we add the angle15bb to the angle
+        //const angle15bbToBb = angle - angle15bb;
+        const angle15bbToBb = angle15bb - angle;
+        //calculate the distance to move in x and y
+        const distX = dist15bbtoBb * Math.sin(angle15bbToBb);
+        const distY = dist15bbtoBb * Math.cos(angle15bbToBb);
+        const pointBb = setPoint(point15bb.x + distX, point15bb.y + distY);
+        status.pattern.points['Bb'] = pointBb;
+
+        status = setLine(status, '15bb', 'Bb');
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `The center back of the bodice is found by taking the distance 1 to B and multiplying by 7/9. Next, go up from Bb at a right angle from the line 15bb-Bb this distance to find 1b.`; },
+      action: (status) => {
+        const point1 = status.pattern.points['1'];
+        const pointB = status.pattern.points['B'];
+        const pointBb = status.pattern.points['Bb'];
+        const point15bb = status.pattern.points['15bb'];
+
+        const dist1toB = distPointToPoint(point1, pointB);
+
+        const angle15bbToBb = Math.atan2(pointBb.y - point15bb.y, pointBb.x - point15bb.x);
+        const dist1b = dist1toB * 7 / 9;
+        //calculate the distance to move in x and y
+        const distX = dist1b * Math.sin(angle15bbToBb);
+        const distY = dist1b * Math.cos(angle15bbToBb);
+        const point1b = setPoint(pointBb.x + distX, pointBb.y - distY);
+        status.pattern.points['1b'] = point1b;
+        status = setLine(status, 'Bb', '1b');
+        status = setLine(status, '1b', 'X1b', 'dashed');
+        //make a curve from 1b to X1b, slightly curved
+        let point1bX1b = makeTouchPoint(status, point1b, status.pattern.points['X1b'], 3, 0.25, false);
+        status = registerPoints(status, {'1bX1b': point1bX1b});
+        status = setCurve(status, {s: '1b', g: '1bX1b', e: 'X1b'}, 0.5);
+        return status;
+      } 
+    },
+    {
+      description: (_status) => { return `To make the bottom of the bodice front, start from 15fb. From the line from this lower corner to 14b, go counter-clockwise 116 degrees, and draw a line 1.86 times the distance from H to 4, 5 to 6, and 7 to 15. This is the distance from 15fb to Hb.`; },
+      action: (status) => {
+        const point15fb = status.pattern.points['15fb'];
+        const point14b = status.pattern.points['14b'];
+        const pointH = status.pattern.points['H'];
+        const point4 = status.pattern.points['4'];
+        const point5 = status.pattern.points['5'];
+        const point6 = status.pattern.points['6'];
+        const point7 = status.pattern.points['7'];
+        const point15 = status.pattern.points['15'];
+
+        //calculate the distances
+        const distHto4 = distPointToPoint(pointH, point4);
+        const dist5to6 = distPointToPoint(point5, point6);
+        const dist7to15 = distPointToPoint(point7, point15);
+
+        const distTotal = distHto4 + dist5to6 + dist7to15;
+
+        //calculate the angle
+        const angle = 113 * Math.PI / 180;
+
+        //calculate the angle from 15fb to 14b
+        const angle15fbTo14b = Math.atan2(point14b.x - point15fb.x, point14b.y - point15fb.y);
+        //calculate the angle from 15fb to Hb
+        //we want to go counter-clockwise, so we subtract the angle from 15fb to 14b from the angle
+        const angle15fbToHb = angle - angle15fbTo14b;
+
+        //calculate the distance from 15fb to Hb
+        const dist15fbtoHb = distTotal * 1.86;
+
+        //calculate the new point
+        const newPoint = setPoint(point15fb.x + dist15fbtoHb * Math.sin(angle15fbToHb), point15fb.y + dist15fbtoHb * Math.cos(angle15fbToHb));
+        status.pattern.points['Hb'] = newPoint;
+
+        status = setLine(status, '15fb', 'Hb');
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `The center front of the bodice is found by taking the distance H to N and multiplying by 3/4. Next, go up from Hb at a right angle from the line 15fb-Hb (counter-clockwise) this distance to find Nb.`; },
+      action: (status) => {
+        const pointH = status.pattern.points['H'];
+        const pointN = status.pattern.points['N'];
+        const pointHb = status.pattern.points['Hb'];
+        const point15fb = status.pattern.points['15fb'];
+
+        const distHtoN = distPointToPoint(pointH, pointN);
+        //calculate the angle from 15fb to Hb
+        const angle = Math.PI / 2; //90 degrees in radians, since we want to go up from Hb
+        const angle15fbToHb = Math.atan2(pointHb.y - point15fb.y, pointHb.x - point15fb.x);
+        //calculate the distance from Hb to Nb
+        //we want to go counter-clockwise, so we subtract the angle from 15fb to Hb from the angle
+        const angleHbToNb = angle15fbToHb - angle;  
+        const distNb = distHtoN * 3 / 4;
+        //calculate the distance to move in x and y
+        const distX = distNb * Math.cos(angleHbToNb);
+        const distY = distNb * Math.sin(angleHbToNb);
+        const pointNb = setPoint(pointHb.x - distX, pointHb.y - distY);
+
+        status.pattern.points['Nb'] = pointNb;
+        status = setLine(status, 'Hb', 'Nb');
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `The shoulder point of 13b1 is somewhere 1 inch away from 13b. It is also the breast measure * 0.58 away from Nb. Use a compass to find the exact location.`; },
+      action: (status) => {
+        const point13b = status.pattern.points['13b'];
+        const pointNb = status.pattern.points['Nb'];
+        const breast = parseFloat(status.measurements.breast.value) * status.precision;
+        const dist13b = inchesToPrecision(status, 1);
+        const distNb = breast * 0.58;
+        //find the point 13b1, which is 1 inch away from 13b, and breast * 0.58 away from Nb
+        //we can use the compass to find the point, by drawing a circle around 13b with radius dist13b, and a circle around Nb with radius distNb, and finding the intersection of the two circles
+        const point13b1 = setPointCircleCircle(status, point13b, dist13b, pointNb, distNb, true);
+        status.pattern.points['13b1'] = point13b1;
+
+        //draw the lines from 13b to 13b1
+        status = setLine(status, '13b', '13b1');
+        //draw the line from 13b1 to Nb
+        status = setLine(status, '13b1', 'Nb');
+
+        //now, we need to move all the points down. 
+        //first, let's find the distance from E to 5
+        const point5 = status.pattern.points['5'];
+        const pointE = status.pattern.points['E'];
+        const distEto5 = distPointToPoint(pointE, point5);
+
+        const margin = inchesToPrecision(status, 3/4);
+
+        const distDown = distEto5 + margin;
+
+        let pointList = ['00b', '1b', '2b', '8b', '13b', '13b1','1bX1b', '14b', '15fb', '15bb', 'Bb', 'Hb', 'Nb', 'X1b', 'Xb'];
+        //console.log the point list in alphabetical order
+        pointList.sort();
+        console.log('Moving points down:', pointList);
+        for (const point of pointList) {
+          const p = status.pattern.points[point];
+          //move the point down by distDown
+          status.pattern.points[point] = setPoint(p.x, p.y + distDown);
+        }
+
+        //make labels
+        let pointHb = status.pattern.points['Hb'];
+        let frontLabelPoint = setPoint(pointHb.x, pointHb.y - 40);
+
+        let point15bb = status.pattern.points['15bb'];
+        let backLabelPoint = setPoint(point15bb.x, point15bb.y - 40);
+        //default size for labels
+        let defaultSize = 14;
+
+        let parts = {
+          'front outer': {
+            point: frontLabelPoint,
+            size: defaultSize,
+            direction: 'right',
+          },
+          'back outer': {
+            point: backLabelPoint,
+            size: defaultSize,
+            direction: 'right',
+          }
+        }
+
+        status = registerLabels(status, parts);
+
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `To make the back yoke, start with point Oy. Point Ay is 1/2" below point Oy.`; },
+      action: (status) => {
+        const pointO = status.pattern.points['O'];
+        const pointGx = status.pattern.points['Gx'];
+        const margin = inchesToPrecision(status, 1);
+
+        //place Oy at the level of O, and 1" (margin) to the left of Gx
+        const pointOy = setPoint(pointGx.x - margin, pointO.y);
+        const pointAy = setPoint(pointOy.x, pointOy.y + inchesToPrecision(status, 1/2));
+
+        status = registerPoints(status, {'Oy': pointOy, 'Ay': pointAy});
+        status = setLine(status, 'Oy', 'Ay', 'dashed');
+
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `Take the (neck size / 2 pi) x 2.1. This is the radiusNS (which will be used several times). Point By is left of A this distance, and Point Cy is below A this distance`; },
+      action: (status) => {
+        const radius = radiusNS(status); //get the radius in precision units
+        console.log(`radiusNS: ${radius} precision units, ${radius / status.precision} inches`);
+
+        const pointAy = status.pattern.points['Ay'];
+        const pointBy = setPoint(pointAy.x - radius, pointAy.y);
+        const pointCy = setPoint(pointAy.x, pointAy.y + radius);
+
+        status = registerPoints(status, {'By': pointBy, 'Cy': pointCy});
+        status = setLine(status, 'Ay', 'By', 'dashed');
+        status = setLine(status, 'Ay', 'Cy', 'dashed');
+
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `To find point Ey, take the distance from 2 to X, subtract the distance from Xb to X1b, then sweep this distance from B to find the location on the line left of Oy.` },
+      action: (status) => {
+        const point2 = status.pattern.points['2'];
+        const pointX = status.pattern.points['X'];
+        const pointXb = status.pattern.points['Xb'];
+        const pointOy = status.pattern.points['Oy'];
+        const pointBy = status.pattern.points['By'];
+
+        //find the distance from 2 to X
+        const dist2toX = distPointToPoint(point2, pointX);
+        //find the distance from Xb to X1b
+        const distXbtoX1b = distPointToPoint(pointXb, status.pattern.points['X1b']);
+        //subtract the two distances
+        const distEy = dist2toX - distXbtoX1b;
+
+        const pointOyX = setPoint(  pointOy.x - 50, pointOy.y, {}, false);
+
+        //now, we can find the point Ey, which is left of Oy, at this distance
+        const pointEy = setPointLineCircle(status, pointOy, pointOyX, pointBy, distEy, true);
+
+        status = registerPoints(status, {'Ey': pointEy});
+        status = setLine(status, 'By', 'Ey');
+
+        return status;
+      } 
+    },
+    {
+      description: (_status) => { return `To find point Dy, take the distance from N to H and divide by 3.09. This is the distance from Cy down to Gy.`; },
+      action: (status) => {
+        const pointN = status.pattern.points['N'];
+        const pointH = status.pattern.points['H'];
+        //calculate the distance from N to H
+        const distNH = distPointToPoint(pointN, pointH);
+        const distGy = distNH / 3.09; //divide by 3.09 to get the distance from Cy down to Gy
+
+        const pointCy = status.pattern.points['Cy'];
+
+        status = registerPoints(status, {'Dy': setPoint(pointCy.x, pointCy.y + distGy)});
+
+        status = setLine(status, 'Cy', 'Dy');
+
+        return status;
+      }
     }
 ]
 
-
+function radiusNS(status, precision = true) {
+  //returns the radiusNS, which is (neck size / 2 pi) x 2.1
+  const neckSize = parseFloat(status.measurements.necksize.value);
+  const radius = (neckSize / (2 * Math.PI)); //convert to precision units
+  //if precision is false, return the radius in inches
+  if (!precision) {
+    return radius * 1.11; //convert to inches
+  } else {
+    return radius * 1.11 * status.precision; //convert to precision units
+  }
+}
 
 function widthTopBack(status){
   //returns the width of the top of the back, the quarter ellipse 1-2 around O
@@ -750,7 +1115,6 @@ function findPointE(status, pointJ, pointP) {
   const a = Math.abs(pointP.x - pointj.x);
   const c = frontLength - wtb;
 
-  console.log(`c: ${c}, c in inches: ${c / status.precision}`);
   //b is along y, on x of point P.
   //a^2 + b^2 = c^2
   //b = sqrt(c^2 - a^2)
@@ -772,7 +1136,6 @@ function calculateA1Dist(status) {
   //we can use this same t to find the distance from A to A1 in the original keystone pattern
   const a1Dist = keyCB * t;
 
-  console.log(`A1 distance: ${a1Dist * status.precision}, in inches: ${a1Dist }`);
   return a1Dist * status.precision; //return in precision units
 
 }
