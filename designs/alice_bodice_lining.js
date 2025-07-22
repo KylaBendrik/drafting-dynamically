@@ -1055,19 +1055,65 @@ const steps = [
       } 
     },
     {
-      description: (_status) => { return `To find point Dy, take the distance from N to H and divide by 3.09. This is the distance from Cy down to Gy.`; },
+      description: (_status) => { return `To find point Gy, take the distance from N to H and divide by 3.25. This is the distance from Cy down to Gy.`; },
       action: (status) => {
         const pointN = status.pattern.points['N'];
         const pointH = status.pattern.points['H'];
         //calculate the distance from N to H
         const distNH = distPointToPoint(pointN, pointH);
-        const distGy = distNH / 3.09; //divide by 3.09 to get the distance from Cy down to Gy
+        const distGy = distNH / 3.25; //divide by 3.25 to get the distance from Cy down to Gy
 
         const pointCy = status.pattern.points['Cy'];
 
-        status = registerPoints(status, {'Dy': setPoint(pointCy.x, pointCy.y + distGy)});
+        status = registerPoints(status, {'Gy': setPoint(pointCy.x, pointCy.y + distGy)});
 
-        status = setLine(status, 'Cy', 'Dy');
+        status = setLine(status, 'Cy', 'Gy');
+
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `Points Dy and Fy are at 45 degrees from point Ay, to define the inner and outer curves. Dy is 1 3/4" along this line, and Fy is 5 1/8" along this line.`; },
+      action: (status) => {
+        const pointAy = status.pattern.points['Ay'];
+
+        //45 degrees, down and left from Ay
+        const angleADF = Math.PI / 4; //45 degrees in radians
+
+        //calculate the distance from Ay to Dy and Fy
+        const distDy = inchesToPrecision(status, 1 + 3/4); //1 3/4" for Dy
+        const distFy = inchesToPrecision(status, 5 + 1/8); //5 1/8" for Fy
+
+        //find the points Dy and Fy
+        const pointDy = setPoint(pointAy.x - distDy * Math.sin(angleADF), pointAy.y + distDy * Math.cos(angleADF));
+        const pointFy = setPoint(pointAy.x - distFy * Math.sin(angleADF), pointAy.y + distFy * Math.cos(angleADF));
+
+        status = registerPoints(status, {'Dy': pointDy, 'Fy': pointFy});
+        status = setLine(status, 'Ay', 'Dy', 'dashed');
+        status = setLine(status, 'Ay', 'Fy', 'dashed');
+
+        status = setCurve(status, {s: 'By', g: 'Dy', e: 'Cy'}, 0.5);
+        status = setCurve(status, {s: 'Ey', g: 'Fy', e: 'Gy'}, 0.5);
+
+
+        let pointBy = status.pattern.points['By'];
+
+        // add label for the back yoke
+        let backYokeLabelPoint = setPoint(pointFy.x - 5, pointFy.y - 10);
+        let parts = {
+          'back yoke': {
+            point: backYokeLabelPoint,
+            size: 10,
+            direction: 'right',
+          }
+        };
+        status = registerLabels(status, parts);
+
+        //let's double check the lengths By to Ey, Oy to Gy
+        const distBytoEy = distPointToPoint(pointBy, status.pattern.points['Ey']);
+        const distOytoGy = distPointToPoint(status.pattern.points['Oy'], status.pattern.points['Gy']);
+        seeDist(status, distBytoEy, 'By to Ey');
+        seeDist(status, distOytoGy, 'Oy to Gy');
 
         return status;
       }
