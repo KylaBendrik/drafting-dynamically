@@ -25,10 +25,10 @@ import {
 } from '../pattern.js';
   
   const design_info = {
-    title: 'Alice Bodice Lining',
+    title: 'Alice Bodice',
     source: {
       link: 'https://youtube.com/playlist?list=PLZByZ9HlQcCKq3uJ8MjaXbjN1poxS_H8y&si=ZT5c6spRpksh4s8v',
-      label: 'The Alice Bodice Lining'
+      label: 'The Alice Bodice'
     },
     designer: 'Kyla Bendrik'
   }
@@ -1055,13 +1055,13 @@ const steps = [
       } 
     },
     {
-      description: (_status) => { return `To find point Gy, take the distance from N to H and divide by 3.25. This is the distance from Cy down to Gy.`; },
+      description: (_status) => { return `To find point Gy, take the distance from 1 to B and divide by 3.39. This is the distance from Cy down to Gy.`; },
       action: (status) => {
-        const pointN = status.pattern.points['N'];
-        const pointH = status.pattern.points['H'];
-        //calculate the distance from N to H
-        const distNH = distPointToPoint(pointN, pointH);
-        const distGy = distNH / 3.25; //divide by 3.25 to get the distance from Cy down to Gy
+        const point1 = status.pattern.points['1'];
+        const pointB = status.pattern.points['B'];
+        //calculate the distance from 1 to B
+        const dist1toB = distPointToPoint(point1, pointB);
+        const distGy = dist1toB / 3.39; //divide by 3.39 to get the distance from Cy down to Gy
 
         const pointCy = status.pattern.points['Cy'];
 
@@ -1073,16 +1073,25 @@ const steps = [
       }
     },
     {
-      description: (_status) => { return `Points Dy and Fy are at 45 degrees from point Ay, to define the inner and outer curves. Dy is 1 3/4" along this line, and Fy is 5 1/8" along this line.`; },
+      description: (_status) => { return `Points Dy and Fy are at 45 degrees from point Ay, to define the inner and outer curves. Dy is radiusNS / 1.21 along this line, and Fy is (Oy to Gy) / 1.3 along this line.`; },
       action: (status) => {
         const pointAy = status.pattern.points['Ay'];
 
         //45 degrees, down and left from Ay
         const angleADF = Math.PI / 4; //45 degrees in radians
 
+        //find dist Oy to Gy
+        const pointOy = status.pattern.points['Oy'];
+        const pointGy = status.pattern.points['Gy'];
+        const distOyGy = distPointToPoint(pointOy, pointGy);
+
+        seeDist(status, distOyGy, 'Oy to Gy');
+
         //calculate the distance from Ay to Dy and Fy
-        const distDy = inchesToPrecision(status, 1 + 3/4); //1 3/4" for Dy
-        const distFy = inchesToPrecision(status, 5 + 1/8); //5 1/8" for Fy
+        const radius = radiusNS(status); //get the radius in precision units
+
+        const distDy = radius / 1.21; //1 3/4" for Dy
+        const distFy = distOyGy / 1.3; //5 1/8" for Fy
 
         //find the points Dy and Fy
         const pointDy = setPoint(pointAy.x - distDy * Math.sin(angleADF), pointAy.y + distDy * Math.cos(angleADF));
@@ -1096,24 +1105,193 @@ const steps = [
         status = setCurve(status, {s: 'Ey', g: 'Fy', e: 'Gy'}, 0.5);
 
 
-        let pointBy = status.pattern.points['By'];
-
         // add label for the back yoke
-        let backYokeLabelPoint = setPoint(pointFy.x - 5, pointFy.y - 10);
+        // let backYokeLabelPoint = setPoint(pointFy.x - 5, pointFy.y - 10);
+        // let parts = {
+        //   'back yoke': {
+        //     point: backYokeLabelPoint,
+        //     size: 10,
+        //     direction: 'right',
+        //   }
+        // };
+        // status = registerLabels(status, parts);
+
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `To make the front yoke, start with point 0y. Point 1y is neck size / 3 down from 0y.`; },
+      action: (status) => {
+        //place 0y below the back yoke Gy 1"
+        const pointGy = status.pattern.points['Gy'];
+        const point0y = setPoint(pointGy.x, pointGy.y + inchesToPrecision(status, 1));
+
+        //calculate the distance from 0y to 1y, which is neck size / 3
+        const neckSize = parseFloat(status.measurements.necksize.value) * status.precision; //convert to precision units
+        const dist1y = neckSize / 3; //convert to precision units
+
+        const point1y = setPoint(point0y.x, point0y.y + dist1y);
+
+        status = registerPoints(status, {'0y': point0y, '1y': point1y});
+        status = setLine(status, '0y', '1y', 'dashed');
+
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `Point 2y is radiusNS to the left of 1. Point 3y is radiusNS down from 1.`; },
+      action: (status) => {
+        const point1y = status.pattern.points['1y'];
+        const radius = radiusNS(status); //get the radius in precision units
+
+        //find point 2y, which is radiusNS to the left of 1y
+        const point2y = setPoint(point1y.x - radius, point1y.y);
+        //find point 3, which is radiusNS down from 1y
+        const point3y = setPoint(point1y.x, point1y.y + radius);
+
+        status = registerPoints(status, {'2y': point2y, '3y': point3y});
+        status = setLine(status, '1y', '2y', 'dashed');
+        status = setLine(status, '1y', '3y', 'dashed');
+
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `Point4y is radiusNS + 3/8" to the left of 0y.`; },
+      action: (status) => {
+        const point0y = status.pattern.points['0y'];
+        const radius = radiusNS(status); //get the radius in precision units
+        const dist4y = radius + inchesToPrecision(status, 3/8); //3/8" to the left of 0y
+        const point4y = setPoint(point0y.x - dist4y, point0y.y);
+
+        status = registerPoints(status, {'4y': point4y});
+        status = setLine(status, '0y', '4y', 'dashed');
+
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `To find point 5y, take the distance from E to 13, subtract the distance from 13b to 13b1, and sweep this distance from 4y to find the location on a line straight up and down, 1/2" left of 0y.`; },
+      action: (status) => {
+        const pointE = status.pattern.points['E'];
+        const point13 = status.pattern.points['13'];
+        const point4y = status.pattern.points['4y'];
+        const point3y = status.pattern.points['3y'];
+        const point0y = status.pattern.points['0y'];
+        const point13b1 = status.pattern.points['13b1'];
+        const point13b = status.pattern.points['13b'];
+
+        //find the distance from E to 13
+        const distEto13 = distPointToPoint(pointE, point13);
+        //find the distance from 13b to 13b1
+        const dist13bto13b1 = distPointToPoint(point13b, point13b1);
+        //subtract the two distances
+        const dist5y = distEto13 - dist13bto13b1;
+
+        //find the point 5y, which is 1/2" left of 0y, and straight up and down from 4y
+        let distLine = inchesToPrecision(status, 1/2); //1/2" left of 0y
+        let newlineA = setPoint(point0y.x - distLine, point0y.y, {}, false);
+        let newlineB = setPoint(point0y.x - distLine, point3y.y, {}, false);
+        //find the point 5y, which is on the line from newlineA to newlineB, at the distance dist5y from 4y
+        let point5y = setPointLineCircle(status, newlineA, newlineB, point4y, dist5y, true, false);
+
+        console.log(point5y);
+        console.log(newlineA);
+        console.log(newlineB);
+
+        status = registerPoints(status, {'5y': point5y});
+        status = setLine(status, '4y', '5y');
+
+        return status;
+      }
+    }, 
+    {
+      description: (_status) => { return `To find point 7y, take the distance from N to H, divide by 3.51, and go down from 3y this distance.`; },
+      action: (status) => {
+        const pointN = status.pattern.points['N'];
+        const pointH = status.pattern.points['H'];
+        const point3y = status.pattern.points['3y'];
+
+        //find the distance from N to H
+        const distNtoH = distPointToPoint(pointN, pointH);
+        seeDist(status, distNtoH, 'N to H');
+        //divide by 3.51 to get the distance from 3y to 7y
+        const dist7y = distNtoH / 3.51;
+        seeDist(status, dist7y, '3y to 7y');
+
+        //find the point 7y, which is down from 3y this distance
+        const point7y = setPoint(point3y.x, point3y.y + dist7y);
+
+        status = registerPoints(status, {'7y': point7y});
+        status = setLine(status, '3y', '7y');
+
+        return status;
+      } 
+    },
+    {
+      description: (_status) => { return `To find point 6y, take the distance from 1y to 4y, divide by 2.1, and go left from 2y this distance.`; },
+      action: (status) => {
+        const point1y = status.pattern.points['1y'];
+        const point4y = status.pattern.points['4y'];
+        const point2y = status.pattern.points['2y'];
+
+        //find the distance from 1y to 4y
+        const dist1yto4y = distPointToPoint(point1y, point4y);
+        seeDist(status, dist1yto4y, '1y to 4y');
+        //divide by 2.1 to get the distance from 2y to 6y
+        const dist6y = dist1yto4y / 2.1;
+        seeDist(status, dist6y, '2y to 6y');
+
+        //find the point 6y, which is left from 2y this distance
+        const point6y = setPoint(point2y.x - dist6y, point2y.y);
+
+        status = registerPoints(status, {'6y': point6y});
+        status = setLine(status, '2y', '6y');
+
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `Point 8y and 9y are 45 degrees from 1y. Point 8 is radiusNS, point 9 is radiusNS / 0.7 down from 1y.`; },
+      action: (status) => {
+        const point1y = status.pattern.points['1y'];
+        const radius = radiusNS(status); //get the radius in precision units
+
+        //45 degrees, down and left from 1y
+        const angleAD = Math.PI / 4; //45 degrees in radians
+
+        //find point 8, which is radiusNS to the left of 1y
+        const point8y = setPoint(point1y.x - radius * Math.sin(angleAD), point1y.y + radius * Math.cos(angleAD));
+        //find point 9, which is radiusNS / 0.7 along the line from 1y to 8y
+        const dist9 = radius / 0.7;
+        const point9y = setPoint(point8y.x - dist9 * Math.sin(angleAD), point8y.y + dist9 * Math.cos(angleAD));
+
+        status = registerPoints(status, {'8y': point8y, '9y': point9y});
+        status = setLine(status, '1y', '8y', 'dashed');
+        status = setLine(status, '1y', '9y', 'dashed');
+
+        status = setCurve(status, {s: '5y', g1: '2y', g2: '8y', e: '3y'}, [0.3, 0.6]);
+        status = setCurve(status, {s: '4y', g1: '6y', g2: '9y', e: '7y'}, [0.35, 0.66]);
+
+        //add labels for front and back yokes
+        let pointFy = status.pattern.points['Fy'];
+        let frontYokeLabelPoint = setPoint(point9y.x - 4, point9y.y - 7);
+        let backYokeLabelPoint = setPoint(pointFy.x - 4, pointFy.y - 7);
+        //default size for labels
+        let defaultSize = 9; 
         let parts = {
+          'front yoke': {
+            point: frontYokeLabelPoint,
+            size: defaultSize,
+            direction: 'right',
+          },
           'back yoke': {
             point: backYokeLabelPoint,
-            size: 10,
+            size: defaultSize,
             direction: 'right',
           }
-        };
+        } 
         status = registerLabels(status, parts);
-
-        //let's double check the lengths By to Ey, Oy to Gy
-        const distBytoEy = distPointToPoint(pointBy, status.pattern.points['Ey']);
-        const distOytoGy = distPointToPoint(status.pattern.points['Oy'], status.pattern.points['Gy']);
-        seeDist(status, distBytoEy, 'By to Ey');
-        seeDist(status, distOytoGy, 'Oy to Gy');
 
         return status;
       }
@@ -1186,7 +1364,7 @@ function calculateA1Dist(status) {
 
 }
 
-export const alice_bodice_lining = {
+export const alice_bodice = {
   design_info: design_info,
   measurements: measurements,
   steps: steps

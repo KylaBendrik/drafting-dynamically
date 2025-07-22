@@ -271,6 +271,17 @@ export function setPointLineCircle(status, point1, point2, center, radius, visib
   let b2 = 2 * (m * (b - h) - k);
   let c = k * k + (b - h) * (b - h) - radius * radius;
 
+  //if the line is vertical, we need to handle it differently
+  if (x1 === x2) {
+    //vertical line, so the slope is undefined
+    //the mirrored point will have the same y, but the x will be mirrored across the line
+    let newPoint = setPoint(x1, h + Math.sqrt(radius * radius - (x1 - k) * (x1 - k)), {}, visible);
+    if (flip) {
+      newPoint = setPoint(x1, h - Math.sqrt(radius * radius - (x1 - k) * (x1 - k)), {}, visible);
+    }
+    return newPoint;
+  }
+
   //solve for x
   let x = Math.round((-b2 - Math.sqrt(b2 * b2 - 4 * a * c)) / (2 * a));
   let y = Math.round(m * x + b);
@@ -282,6 +293,7 @@ export function setPointLineCircle(status, point1, point2, center, radius, visib
     y = Math.round(m * x + b);
     newPoint = setPoint(x, y, undefined, visible);
   }
+
 
   return newPoint;
 
