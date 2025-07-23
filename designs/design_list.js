@@ -4,12 +4,16 @@ import {keystone_collars} from './keystone_collars.js';
 import {keystone_plain_sleeve} from './keystone_plain_sleeve.js';
 import {modified_plain_sleeve} from './modified_plain_sleeve.js';
 import {alice_collar} from './alice_collar.js';
-import {alice_slim_sleeve} from './alice_slim_sleeve.js';
+import {alice_sleeve} from './alice_sleeve.js';
 import { alice_bodice } from './alice_bodice.js';
 
+//during development, you can reorder the designs here to put the one you are working on first.
+//Please return the designs to this order before submitting a pull request:
+// All Alice designs first (alphabedically),
+// then Keystone designs (alphabetically)
 const designs = [
-  alice_slim_sleeve,
   alice_bodice,
+  alice_sleeve,
   alice_collar,
   keystone_bodice,
   modified_plain_sleeve,

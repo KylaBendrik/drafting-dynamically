@@ -3,8 +3,6 @@ import {
   seeDist,
   registerPoints,
   registerPoint,
-  registerLabel,
-  registerTwoPartLabel,
   registerLabels,
   setPoint,
   setLine,
@@ -279,7 +277,6 @@ const steps = [
         const pointB = status.pattern.points['B'];
         status.pattern.points['H'] = setPointLineY(status, pointF, pointG, pointB.y);
 
-        console.log(`distance from H to B: ${distPointToPoint(status.pattern.points['H'], pointB) / status.precision} inches`);
         return status;
       }
     },
@@ -667,46 +664,7 @@ const steps = [
         status = setLine(status, '7', '15');
         status = setLine(status, '15', '17');
 
-        //let's try adding a label
-        let pointP = status.pattern.points['P'];
-        let frontLabelPoint = setPoint(pointP.x - 15, pointP.y + 15);
-
-        // //side
-        //let point15 = status.pattern.points['15'];
-        let sideLabelPoint = setPoint(point15.x + 10, point15.y - 5);
-        // //side back
-        let sideBackLabelPoint = setPoint(point17.x + 5, point17.y - 5);
-
-        let point11 = status.pattern.points['11'];
-        let backLabelPoint = setPoint(point11.x + 10, point11.y + 20);
-        //default size for labels
-        let defaultSize = 14;
-
-        let parts = {
-          'front': {
-            point: frontLabelPoint,
-            size: defaultSize,
-            direction: 'up',
-          },
-          'side': {
-            point: sideLabelPoint,
-            size: defaultSize,
-            direction: 'up',
-          },
-          'side back': {
-            point: sideBackLabelPoint,
-            size: defaultSize,
-            direction: 'up',
-          },
-          'back': {
-            point: backLabelPoint,
-            size: defaultSize,
-            direction: 'up',
-          }
-        }
-
-        status = registerLabels(status, parts);
-
+        
 
         return status;
       }
@@ -774,10 +732,6 @@ const steps = [
     {
       description: (_status) => { return `Shape the armhole from 13b to 14b, touching 00b, and from 14b to Xb, touching 8b`},
       action: (status) => {
-        const point13b = status.pattern.points['13b'];
-        const point14b = status.pattern.points['14b'];
-        const point00b = status.pattern.points['00b'];
-        const point8b = status.pattern.points['8b'];
         //create the lines for the armhole
         status = setCurve(status, {s: '13b', g: '00b', e: '14b'});
         status = setCurve(status, {s: '14b', g: '8b', e: 'Xb'}, 0.65);
@@ -929,16 +883,30 @@ const steps = [
       }
     },
     {
-      description: (_status) => { return `The shoulder point of 13b1 is somewhere 1 inch away from 13b. It is also the breast measure * 0.58 away from Nb. Use a compass to find the exact location.`; },
+      description: (_status) => { return `The shoulder point of 13b1 is 29 degrees clockwise of the line from 13 to E, 1" away from 13b`; },
       action: (status) => {
         const point13b = status.pattern.points['13b'];
         const pointNb = status.pattern.points['Nb'];
         const breast = parseFloat(status.measurements.breast.value) * status.precision;
         const dist13b = inchesToPrecision(status, 1);
         const distNb = breast * 0.58;
-        //find the point 13b1, which is 1 inch away from 13b, and breast * 0.58 away from Nb
-        //we can use the compass to find the point, by drawing a circle around 13b with radius dist13b, and a circle around Nb with radius distNb, and finding the intersection of the two circles
-        const point13b1 = setPointCircleCircle(status, point13b, dist13b, pointNb, distNb, true);
+        //find the point 13b1
+
+        //what is the angle of E to 13?
+        let pointE = status.pattern.points['E'];
+        let point13 = status.pattern.points['13'];
+        let angle13toE = Math.atan2(pointE.y - point13.y, pointE.x - point13.x);
+
+        let angleDiffDegrees = 29; //29 degrees is the angle difference we want to use
+        let angleDiffRadians = angleDiffDegrees * Math.PI / 180; //convert to radians
+        let angleto13b1 = angle13toE + angleDiffRadians;
+
+        //calculate the distance to move in x and y
+        const distX = dist13b * Math.cos(angleto13b1);
+        const distY = dist13b * Math.sin(angleto13b1);
+        const point13b1 = setPoint(point13b.x + distX, point13b.y + distY);
+
+
         status.pattern.points['13b1'] = point13b1;
 
         //draw the lines from 13b to 13b1
@@ -949,46 +917,38 @@ const steps = [
         //now, we need to move all the points down. 
         //first, let's find the distance from E to 5
         const point5 = status.pattern.points['5'];
-        const pointE = status.pattern.points['E'];
         const distEto5 = distPointToPoint(pointE, point5);
 
         const margin = inchesToPrecision(status, 3/4);
 
         const distDown = distEto5 + margin;
 
-        let pointList = ['00b', '1b', '2b', '8b', '13b', '13b1','1bX1b', '14b', '15fb', '15bb', 'Bb', 'Hb', 'Nb', 'X1b', 'Xb'];
-        //console.log the point list in alphabetical order
+        let pointList = [
+          '00b', 
+          '1b', 
+          '2b', 
+          '8b', 
+          '13b', 
+          '13b1',
+          '1bX1b', 
+          '14b', 
+          '15fb', 
+          '15bb', 
+          'Bb', 
+          'Hb', 
+          'Nb', 
+          'X1b', 
+          'Xb'];
         pointList.sort();
-        console.log('Moving points down:', pointList);
-        for (const point of pointList) {
-          const p = status.pattern.points[point];
+        for (let point of pointList) {
+          let p = status.pattern.points[point];
+          //if the point is null, warn.
+          if (!p) {
+            console.warn(`Point ${point} is null`);
+          }
           //move the point down by distDown
           status.pattern.points[point] = setPoint(p.x, p.y + distDown);
         }
-
-        //make labels
-        let pointHb = status.pattern.points['Hb'];
-        let frontLabelPoint = setPoint(pointHb.x, pointHb.y - 40);
-
-        let point15bb = status.pattern.points['15bb'];
-        let backLabelPoint = setPoint(point15bb.x, point15bb.y - 40);
-        //default size for labels
-        let defaultSize = 14;
-
-        let parts = {
-          'front outer': {
-            point: frontLabelPoint,
-            size: defaultSize,
-            direction: 'right',
-          },
-          'back outer': {
-            point: backLabelPoint,
-            size: defaultSize,
-            direction: 'right',
-          }
-        }
-
-        status = registerLabels(status, parts);
 
         return status;
       }
@@ -1014,7 +974,6 @@ const steps = [
       description: (_status) => { return `Take the (neck size / 2 pi) x 2.1. This is the radiusNS (which will be used several times). Point By is left of A this distance, and Point Cy is below A this distance`; },
       action: (status) => {
         const radius = radiusNS(status); //get the radius in precision units
-        console.log(`radiusNS: ${radius} precision units, ${radius / status.precision} inches`);
 
         const pointAy = status.pattern.points['Ay'];
         const pointBy = setPoint(pointAy.x - radius, pointAy.y);
@@ -1105,16 +1064,7 @@ const steps = [
         status = setCurve(status, {s: 'Ey', g: 'Fy', e: 'Gy'}, 0.5);
 
 
-        // add label for the back yoke
-        // let backYokeLabelPoint = setPoint(pointFy.x - 5, pointFy.y - 10);
-        // let parts = {
-        //   'back yoke': {
-        //     point: backYokeLabelPoint,
-        //     size: 10,
-        //     direction: 'right',
-        //   }
-        // };
-        // status = registerLabels(status, parts);
+
 
         return status;
       }
@@ -1195,10 +1145,6 @@ const steps = [
         //find the point 5y, which is on the line from newlineA to newlineB, at the distance dist5y from 4y
         let point5y = setPointLineCircle(status, newlineA, newlineB, point4y, dist5y, true, false);
 
-        console.log(point5y);
-        console.log(newlineA);
-        console.log(newlineB);
-
         status = registerPoints(status, {'5y': point5y});
         status = setLine(status, '4y', '5y');
 
@@ -1273,22 +1219,79 @@ const steps = [
         status = setCurve(status, {s: '5y', g1: '2y', g2: '8y', e: '3y'}, [0.3, 0.6]);
         status = setCurve(status, {s: '4y', g1: '6y', g2: '9y', e: '7y'}, [0.35, 0.66]);
 
-        //add labels for front and back yokes
+        // add labels for front and back yokes
         let pointFy = status.pattern.points['Fy'];
+
         let frontYokeLabelPoint = setPoint(point9y.x - 4, point9y.y - 7);
         let backYokeLabelPoint = setPoint(pointFy.x - 4, pointFy.y - 7);
+
+        // outer label points
+
+        let pointHb = status.pattern.points['Hb'];
+        let outerfrontLabelPoint = setPoint(pointHb.x, pointHb.y - 40);
+
+        let point15bb = status.pattern.points['15bb'];
+        let outerbackLabelPoint = setPoint(point15bb.x, point15bb.y - 40);
+
+        // lining label points
+        let pointP = status.pattern.points['P'];
+        let frontLabelPoint = setPoint(pointP.x - 15, pointP.y + 15);
+
+        let point15 = status.pattern.points['15'];
+        let sideLabelPoint = setPoint(point15.x + 10, point15.y - 5);
+
+        let point17 = status.pattern.points['17'];
+        let sideBackLabelPoint = setPoint(point17.x + 5, point17.y - 5);
+
+        let point11 = status.pattern.points['11'];
+        let backLabelPoint = setPoint(point11.x + 10, point11.y + 20);
+
+
         //default size for labels
-        let defaultSize = 9; 
+        let outerSize = 14;
+        let yokeSize = 9; 
+        let liningSize = 14;
+
         let parts = {
           'front yoke': {
             point: frontYokeLabelPoint,
-            size: defaultSize,
+            size: yokeSize,
             direction: 'right',
           },
           'back yoke': {
             point: backYokeLabelPoint,
-            size: defaultSize,
+            size: yokeSize,
             direction: 'right',
+          },
+          'front outer': {
+            point: outerfrontLabelPoint,
+            size: outerSize,
+            direction: 'right',
+          },
+          'back outer': {
+            point: outerbackLabelPoint,
+            size: outerSize,
+            direction: 'right',
+          },
+          'front': {
+            point: frontLabelPoint,
+            size: liningSize,
+            direction: 'up',
+          },
+          'side': {
+            point: sideLabelPoint,
+            size: liningSize,
+            direction: 'up',
+          },
+          'side back': {
+            point: sideBackLabelPoint,
+            size: liningSize,
+            direction: 'up',
+          },
+          'back': {
+            point: backLabelPoint,
+            size: liningSize,
+            direction: 'up',
           }
         } 
         status = registerLabels(status, parts);

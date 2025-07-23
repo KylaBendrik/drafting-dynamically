@@ -23,10 +23,10 @@ import {
 } from '../pattern.js';
 
 const design_info = {
-  title: 'Alice Slim Sleeve',
+  title: 'Alice Sleeve',
   source: {
     link: 'https://youtube.com/playlist?list=PLZByZ9HlQcCKq3uJ8MjaXbjN1poxS_H8y&si=ZT5c6spRpksh4s8v',
-    label: 'The Alice Dress - Slim Sleeve',
+    label: 'The Alice Dress - Sleeve',
   },
   designer: 'Kyla Bendrik',
 }
@@ -537,7 +537,7 @@ function armholeRatio(status) {
   return status.design.measurements.width_armhole.value / 14.5;
 }
 
-export const alice_slim_sleeve = {
+export const alice_sleeve = {
   design_info: design_info,
   measurements: measurements,
   steps: steps
