@@ -3,7 +3,8 @@ import {
   toInches,
   registerPoints,
   registerPoint,
-  registerLabel,
+  registerLabels,
+  seeDist,
   setPoint,
   setLine,
   setPointLineY,
@@ -31,10 +32,10 @@ const design_info = {
 }
 
 let measurements = {
-  width_armhole: { label: "Armhole", value: 16.5 },
-  length_underarm: { label: "Length of sleeve under arm", value: 20 },
-  width_elbow: { label: "Width at elbow", value: 11.5 },
-  width_wrist: { label: "Width at wrist", value: 7.75 },
+  width_armhole: { label: "Armhole", value: 14.5 },
+  length_underarm: { label: "Length of sleeve under arm", value: 16.5 },
+  width_elbow: { label: "Width at elbow", value: 9.5 },
+  width_wrist: { label: "Width at wrist", value: 7.5 },
 };
 
 //all distances are in inches * precision
@@ -314,16 +315,6 @@ const steps = [
       //draw a line from C to E and from C to 9
       status = setLine(status, 'C', 'E', 'dashed');
       status = setLine(status, 'C', '9', 'dashed');
-
-      // //make the two curves from C to E and C to 9
-      // let pointC9 = makeTouchPoint(status, pointC, point9, 2, 0.15);
-      // let pointCE = makeTouchPoint(status, pointC, pointE, 2, 0.15);
-
-      //  status = registerPoints(status, { 'C9': pointC9, 'CE': pointCE });
-      //  console.log('pointC9', pointC9);
-      //  console.log('pointCE', pointCE);
-      // status = setCurve(status, { start: 'C', g: 'C9', end: '9' });
-      // status = setCurve(status, { start: 'C', g: 'CE', end: 'E' });
       return status;
     }
   },
@@ -394,6 +385,7 @@ const steps = [
 
       let point1 = setPoint(pointN.x, pointG.y);
       status = registerPoint(status, point1, '1');
+      
       //set the curves
       status = setCurve(status, { s: 'K', g1: 'G', g2: 'F2', e: 'E' }, [0.18, 0.62]);
       status = setCurve(status, { s: 'N', g1: '1', g2: 'Q', e: '9' }, [0.16, 0.65]);
@@ -402,37 +394,148 @@ const steps = [
       //set line from R to A
       status = setLine(status, 'R', 'A');
 
-      //this is the last step, so let's add the size labels
-      //find a good place for the labels
-      //in this case, let's put the label between Q and M
-      let pointQ = status.pattern.points['Q'];
-      let pointM = status.pattern.points['M'];
-      let labelPoint = setPoint(((pointQ.x + pointM.x) /2) + 4, pointQ.y);
+      return status;
+    }
+  },
+  {
+    description: (_status) => { return `Start the sleeve puff with point 0` },
+    action: (status) => {
+      let pointp = status.pattern.points['p'];
+      status.pattern.points['0p'] = setPoint(0, pointp.y + 10, { d: true, l: true });
 
-      console.log('measurements', status.design.measurements);
+      return status;
+    }
+  },
+  {
+    description: (status) => { return `Point1p is 1/2" down from 0p, Point2p is 3/4" down from 0p, Point3p is 1 7/8" down from 0p, Point4p is 4 1/2" down from 0p, Point5p is 10" down from 0p, and Point6p is 13" down from 0p.` },
+    action: (status) => {
+      let point0p = status.pattern.points['0p'];
+      let point1p = setPoint(point0p.x, point0p.y + inchesToPrecision(status, 0.5));
+      let point2p = setPoint(point0p.x, point0p.y + inchesToPrecision(status, 0.75));
+      let point3p = setPoint(point0p.x, point0p.y + inchesToPrecision(status, 1.875));
+      let point4p = setPoint(point0p.x, point0p.y + inchesToPrecision(status, 4.5));
+      let point5p = setPoint(point0p.x, point0p.y + inchesToPrecision(status, 10));
+      let point6p = setPoint(point0p.x, point0p.y + inchesToPrecision(status, 13));
 
-      let armhole = status.design.measurements.width_armhole.value
-      let sleeveLength = status.design.measurements.length_underarm.value;
-      let elbow =  status.design.measurements.width_elbow.value;
-      let wrist = status.design.measurements.width_wrist.value;
+      status = registerPoints(status, { '1p': point1p, '2p': point2p, '3p': point3p, '4p': point4p, '5p': point5p, '6p': point6p });
 
-      console.log('armhole', armhole);
-      console.log('sleeveLength', sleeveLength);
-      console.log('elbow', elbow);
-      console.log('wrist', wrist);
+      return status;
+    }
+  },
+  {
+    description: (status) => { return `To find most of the puff points, we will need a ratio based on the original Alice dress and your custom measurements. Alice's armhole measurement was 14.5. Yours is ${status.design.measurements.width_armhole.value}. The ratio is ${printNum(armholeRatio(status))}. Point Ap is 13 x ratio = ${printNum(armholeRatio(status))} left of 0p.` },
+    action: (status) => {
+      let point0p = status.pattern.points['0p'];
+      let ratio = armholeRatio(status);
+      let pointAp = setPoint(point0p.x - inchesToPrecision(status, 13 * ratio), point0p.y, { d: true });
 
-      let labelText = `${armhole}-${sleeveLength}-${elbow}-${wrist}`;
-      //register the label
-      status = registerLabel(status, labelPoint, labelText, 'up');
+      status = registerPoints(status, { 'Ap': pointAp });
+      return status;
+    }
+  }, 
+  {
+    description: (status) => { return `Point Bp is ratio x 10 ${printNum(10 * armholeRatio(status))} left of 0p. Point Cp is ratio x 7 1/4" ${printNum(7.25 * armholeRatio(status))} left of 1p.` },
+    action: (status) => {
+      let point0p = status.pattern.points['0p'];
+      let ratio = armholeRatio(status);
+      let pointBp = setPoint(point0p.x - inchesToPrecision(status, 10 * ratio), point0p.y);
 
-      //add a label for the pattern name, same as the label we just made
-      let designLabelPoint = setPoint(labelPoint.x - 5, labelPoint.y);
-      status = registerLabel(status, designLabelPoint, 'Alice - slim sleeve', 'up');
+      let point1p = status.pattern.points['1p'];
+      let pointCp = setPoint(point1p.x - inchesToPrecision(status, 7.25 * ratio), point1p.y);
+
+      status = registerPoints(status, { 'Bp': pointBp, 'Cp': pointCp });
+      return status;
+    }
+  },
+  {
+    description: (status) => { return `Point Dp does not use the ratio. Dp is 1" left of 2p. Draw a line from Dp to 4p. This is the underarm seam.` },
+    action: (status) => {
+      let point2p = status.pattern.points['2p'];
+      let pointDp = setPoint(point2p.x - inchesToPrecision(status, 1), point2p.y);
+
+      status = registerPoints(status, { 'Dp': pointDp });
+
+      //draw a line from Dp to 4p
+      status = setLine(status, 'Dp', '4p'); 
+
+      return status;
+    }
+  },
+  {
+    description: (status) => { return `Point Ep is 3" x ratio ${printNum(3 * armholeRatio(status))} left of 3p. Draw the shoulder seam from Ap, through Bp, Cp, Ep, ending at Dp.` },
+    action: (status) => {
+      let point3p = status.pattern.points['3p'];
+      let pointEp = setPoint(point3p.x - inchesToPrecision(status, 3 * armholeRatio(status)), point3p.y);
+
+      status = registerPoints(status, { 'Ep': pointEp });
+
+      //draw the shoulder seam from Ap to Cp, through Bp, Dp, and Ep
+
+      status = setLine(status, 'Ap', 'Bp');
+      status = setCurve(status, {s: 'Bp', g1: 'Cp', g2: 'Ep', e: 'Dp'}, [0.2, 0.75]);
+
+      return status;
+    }
+  },
+  {
+    description: (status) => { return `Point Fp is 7" x ratio ${printNum(7 * armholeRatio(status))} left of 5p.` },
+    action: (status) => {
+      let point5p = status.pattern.points['5p'];
+      let pointFp = setPoint(point5p.x - inchesToPrecision(status, 7 * armholeRatio(status)), point5p.y);
+
+      status = registerPoints(status, { 'Fp': pointFp });
+
+      return status;
+    }
+  },
+  {
+    description: (status) => { return `Point Gp is left of 6p and directly under Ap. Draw curve from 4p through Fp to Gp.` },
+    action: (status) => {
+      let point6p = status.pattern.points['6p'];
+      let pointAp = status.pattern.points['Ap'];
+      let pointGp = setPoint(pointAp.x, point6p.y);
+
+      status = registerPoints(status, { 'Gp': pointGp });
+
+      //draw a curve from 4p through Fp to Gp
+      status = setCurve(status, { s: '4p', g: 'Fp', e: 'Gp' }, 0.5);
+      status = setLine(status, 'Ap', 'Gp');
+
+      //add labels
+      //add labels for slim sleeve and puff sleeve
+        let point4p = status.pattern.points['4p'];
+        pointAp = status.pattern.points['Ap'];
+
+        let pointP = status.pattern.points['P'];
+        let pointQ = status.pattern.points['Q'];
+
+        let slimsleevePoint = setPoint(pointP.x, pointQ.y);
+        let puffPoint = setPoint(pointAp.x + 10, point4p.y);
+
+      //default size for labels
+        let defaultSize = 18; 
+        let parts = {
+          'slim sleeve': {
+            point: slimsleevePoint,
+            size: defaultSize,
+            direction: 'up',
+          },
+          'sleeve puff': {
+            point: puffPoint,
+            size: defaultSize,
+            direction: 'right',
+          }
+        } 
+        status = registerLabels(status, parts);
 
       return status;
     }
   }
 ]
+
+function armholeRatio(status) {
+  return status.design.measurements.width_armhole.value / 14.5;
+}
 
 export const alice_slim_sleeve = {
   design_info: design_info,

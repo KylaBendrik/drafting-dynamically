@@ -5,13 +5,13 @@ import {keystone_plain_sleeve} from './keystone_plain_sleeve.js';
 import {modified_plain_sleeve} from './modified_plain_sleeve.js';
 import {alice_collar} from './alice_collar.js';
 import {alice_slim_sleeve} from './alice_slim_sleeve.js';
-import { alice_bodice_lining } from './alice_bodice.js';
+import { alice_bodice } from './alice_bodice.js';
 
 const designs = [
+  alice_slim_sleeve,
   alice_bodice,
   alice_collar,
   keystone_bodice,
-  alice_slim_sleeve,
   modified_plain_sleeve,
   keystone_single,
   keystone_collars,
