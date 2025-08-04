@@ -537,7 +537,7 @@ export function setCurve(status, points, info){
       curve.points = checkPoints_ellipse(points);
     } else {
       //error
-      console.log('error: info is not a valid quarter or time');
+      console.warn('error: info is not a valid quarter or time');
     }
 
   } else if (Array.isArray(info)){
@@ -558,12 +558,12 @@ export function setCurve(status, points, info){
         curve.points = checkPoints_cubicBezier(points);
       } else {
         //error
-        console.log('error: info is not a valid quarter or time');
+        console.warn('error: info is not a valid quarter or time');
       }
     } else {
 
     //error
-    console.log('error: info is not a valid quarter or time');
+    console.warn('error: info is not a valid quarter or time');
     }
   }
   status.pattern.curves.push(curve);
@@ -610,7 +610,7 @@ function checkPoints_arc(input_points){
     if (input_points.center !== undefined){
       points.c = input_points.center;
     } else {
-      console.log('error: no center point for arc');
+      console.warn('error: no center point for arc');
     }
   }
   return points;
@@ -645,8 +645,8 @@ function checkPoints_quadraticBezier(input_points){
       points.g = input_points.t;
     }  else if (input_points.touch !== undefined){
       points.g = input_points.touch;
-    } else 
-      console.log('error: no guide point for quadratic bezier');
+    } else
+      console.warn('error: no guide point for quadratic bezier');
     }
   return points;
 }
@@ -668,8 +668,8 @@ function checkPoints_cubicBezier(input_points){
       points.g1 = input_points.guide1;
     } else if (input_points.t1 !== undefined){
       points.g1 = input_points.t1;
-    } else 
-      console.log('error: no guide point for cubic bezier');
+    } else
+      console.warn('error: no guide point for cubic bezier');
     }
   if (input_points.g2 === undefined){
     if (input_points.guide2 !== undefined){
@@ -677,7 +677,7 @@ function checkPoints_cubicBezier(input_points){
     } else if (input_points.t2 !== undefined){
       points.g2 = input_points.t2;
     } else 
-      console.log('error: no guide point for cubic bezier');
+      console.warn('error: no guide point for cubic bezier');
     }
   return points;
 }

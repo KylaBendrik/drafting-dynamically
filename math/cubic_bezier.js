@@ -26,8 +26,8 @@ export function cubicBezier(curve) {
     };
 
       //estimate t1 and t2, just in case the editor doesn't know what to set.
-      console.log(`estimate times for ${curve.s.label}-${curve.g1.label}-${curve.g2.label}-${curve.e.label}:`);
-    estimateTimes(curve.s, curve.e, curve.g1, curve.g2);
+      let times = estimateTimes(curve.s, curve.e, curve.g1, curve.g2);
+      console.log(`estimate times for ${curve.s.label}-${curve.g1.label}-${curve.g2.label}-${curve.e.label}: ${times}`);
 
     return {
       s: curve.s,
@@ -41,8 +41,8 @@ export function cubicBezier(curve) {
     };
 }
 
-function estimateTimes(s, e, g1, g2) {
-  //literally just console.log the estimated times. This is ONLY for designers
+function estimateTimes(s, e, g1, g2, rounding = 3) {
+  //literally just return the estimated times. This is ONLY for designers
   //to see what the times are. 
   //This is not a function that should be used in production code.
 
@@ -55,9 +55,13 @@ function estimateTimes(s, e, g1, g2) {
   //total distance
   const d = d1 + d2 + d3;
   //estimate t1 and t2 based on the distance
-  const t1 = d1 / d;
-  const t2 = (d1 + d2) / d;
-  console.log(`t1: ${t1}, t2: ${t2}`);
+  let t1 = d1 / d;
+  let t2 = (d1 + d2) / d;
+
+  //round t1 and t2 to the specified number of decimal places
+  t1 = Math.round(t1 * (10 ** rounding)) / (10 ** rounding);
+  t2 = Math.round(t2 * (10 ** rounding)) / (10 ** rounding);
+  return (`t1: ${t1}, t2: ${t2}`);
 }
 
 function A(t){
@@ -83,7 +87,7 @@ function F(s, e, g_2, t_1, t_2) {
 };
 
 function findC1(s, e, g_1, g_2, t_1, t_2) {
-  console.log("findC1", s, e, g_1, g_2, t_1, t_2);
+  //console.log("findC1", s, e, g_1, g_2, t_1, t_2);
   const e_for_c = E(s, e, g_1, t_1);
   const f_for_c = F(s, e, g_2, t_1, t_2);
 

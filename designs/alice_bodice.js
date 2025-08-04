@@ -1,5 +1,6 @@
 import {
   inchesToPrecision,
+  toInches,
   seeDist,
   registerPoints,
   registerPoint,
@@ -138,9 +139,9 @@ const steps = [
 
         let pointE = setPoint(pointP.x - a1dist, pointO.y);
         let pointI = setPoint(pointK.x - a1dist, pointO.y);
-        let pointV = setPoint(pointL.x - a1dist, pointO.y, { d: true });
+        let pointVo = setPoint(pointL.x - a1dist, pointO.y, { d: true });
 
-        status = registerPoints(status, {'E': pointE, 'I': pointI, 'V': pointV});
+        status = registerPoints(status, {'E': pointE, 'I': pointI, 'Vo': pointVo});
 
         status = setLine(status, 'P', 'E', 'dashed');
         status = setLine(status, 'K', 'I', 'dashed');
@@ -151,7 +152,7 @@ const steps = [
       description: (_status) => { return 'Point Z is halfway between the height of Point L and Point V, directly below V'},
       action: (status) => {
         let pointL = status.pattern.points['L'];
-        let pointV = status.pattern.points['V'];
+        let pointV = status.pattern.points['Vo'];
         let newY = (pointL.y + pointV.y) / 2
         status.pattern.points['Z'] = setPoint(pointV.x, newY)
         return status
@@ -161,7 +162,7 @@ const steps = [
       description: (_status) => { return 'Point ZV is halfway between Point Z and Point V'},
       action: (status) => {
         let pointZ = status.pattern.points['Z'];
-        let pointV = status.pattern.points['V'];
+        let pointV = status.pattern.points['Vo'];
         let newY = (pointZ.y + pointV.y) / 2
         status.pattern.points['ZV'] = setPoint(pointZ.x, newY)
 
@@ -423,26 +424,51 @@ const steps = [
         let point16 = status.pattern.points['16'];
         let pointH = status.pattern.points['H'];
 
+        let pointR = status.pattern.points['R'];
+
         let distBD = distPointToPoint(pointB, pointD);
         let dist16H = distPointToPoint(point16, pointH);
         let waist = parseFloat(status.measurements.waist.value) / 2 * status.precision;
         let space = ((distBD + dist16H) - waist);
-        let dist = space / 4; //half the space, to place points 6 and 7
+        let dist = space / 4; //how far from the center points of the darts to place the dart points
         
         //place 4 and 5 on either side of Q
         let pointQ = status.pattern.points['Q'];
         let point4 = setPoint(pointQ.x - dist, pointQ.y);
         let point5 = setPoint(pointQ.x + dist, pointQ.y);
 
+        //The dart around R needs to have enough room. 
+        let distPoint5R = distPointToPoint(point5, pointR);
+        const margin = inchesToPrecision(status, 1/2); // at least 1/2 inch between point 5 and 6
+        let minDist = dist + margin;
+
+        let diff = distPoint5R - dist;
+        //if point 5 is too close to point R, we need to adjust the dart
+        if (distPoint5R < minDist) {
+          console.warn(`The dart around R is too close to point 5. by ${toInches(status, diff)} inches. Adjusting the dart points.`);
+          console.log(`pointR.x ${pointR.x}, point5.x ${point5.x}`);
+          //move point R
+          status.pattern.points['oldR'] = pointR;
+          pointR.x = point5.x + minDist;
+          status.pattern.points['R'] = pointR;
+
+          console.log(`New pointR.x`, pointR.x, `point5.x`, point5.x);
+        }
+
         //place 6 and 7 on either side of R
-        let pointR = status.pattern.points['R'];
+        //let pointR = status.pattern.points['R'];
         let point6 = setPoint(pointR.x - dist, pointR.y);
         let point7 = setPoint(pointR.x + dist, pointR.y);
 
-        //if 6 is left of 5, just swap them
-        if (point6.x < point5.x) {
-          [point5, point6] = [point6, point5];
-        }
+        // //if 6 is left of 5, just swap them
+        // if (point6.x < point5.x) {
+        //   [point5, point6] = [point6, point5];
+        // }
+
+        //let's see how close 5 and 6 are
+        console.log('distPointToPoint(point5, point6)', distPointToPoint(point5, point6));
+
+
 
         status = registerPoints(status, {
           '4': point4,
@@ -508,28 +534,32 @@ const steps = [
         let distRW = distPointToPoint(pointR, pointW) / status.precision;
 
         // //find the points g4, g5, g6, and g7
-        let qv = setPointAlongLine(status, pointQ, pointV, distQV * 1/2);
-        let rw = setPointAlongLine(status, pointR, pointW, distRW * 1/2);
+        let qv = setPointAlongLine(status, pointQ, pointV, distQV * 2/5);
+        let rw = setPointAlongLine(status, pointR, pointW, distRW * 2/5);
 
-        let dist4Q = distPointToPoint(point4, pointQ);
-        let dist5Q = distPointToPoint(point5, pointQ);
-        let dist6R = distPointToPoint(point6, pointR);
-        let dist7R = distPointToPoint(point7, pointR);
+        //distances from points 4, 5, 6, and 7 to Q and R
+        let ratio = 0.85; //how far out from the dart points to place the g points
+
+        let dist4Q = distPointToPoint(point4, pointQ) * ratio;
+        let dist5Q = distPointToPoint(point5, pointQ) * ratio;
+        let dist6R = distPointToPoint(point6, pointR) * ratio;
+        let dist7R = distPointToPoint(point7, pointR) * ratio;
 
         //find the points g4, g5, g6, and g7
-        let g4 = setPoint(qv.x - dist4Q, qv.y, {}, false);
-        let g5 = setPoint(qv.x + dist5Q, qv.y, {}, false);
-        let g6 = setPoint(rw.x - dist6R, rw.y, {}, false);
-        let g7 = setPoint(rw.x + dist7R, rw.y, {}, false);
+        let g4 = setPoint(qv.x - dist4Q, qv.y, {});
+        let g5 = setPoint(qv.x + dist5Q, qv.y, {});
+        let g6 = setPoint(rw.x - dist6R, rw.y, {});
+        let g7 = setPoint(rw.x + dist7R, rw.y, {});
 
         status = registerPoints(status, 
           {'g4': g4, 'g5': g5, 'g6': g6, 'g7': g7});
 
         //draw the curves
-        status = setCurve(status, {s: '4', g: 'g4', e: 'V'});
-        status = setCurve(status, {s: '5', g: 'g5', e: 'V'});
-        status = setCurve(status, {s: '6', g: 'g6', e: 'W'});
-        status = setCurve(status, {s: '7', g: 'g7', e: 'W'});
+        let time = 0.4;
+        status = setCurve(status, {s: '4', g: 'g4', e: 'V'}, time);
+        status = setCurve(status, {s: '5', g: 'g5', e: 'V'}, time);
+        status = setCurve(status, {s: '6', g: 'g6', e: 'W'}, time);
+        status = setCurve(status, {s: '7', g: 'g7', e: 'W'}, time);
 
         return status;
       }
@@ -811,9 +841,19 @@ const steps = [
         status = setLine(status, 'Bb', '1b');
         status = setLine(status, '1b', 'X1b', 'dashed');
         //make a curve from 1b to X1b, slightly curved
-        let point1bX1b = makeTouchPoint(status, point1b, status.pattern.points['X1b'], 3, 0.25, false);
+        //find the point 1bX1b, which is 1/2" left of 1b, at a right angle to the line Bb-1b
+        const dist1bX1b = inchesToPrecision(status, 1/2);
+        const angleBbTo1b = Math.atan2(point1b.y - pointBb.y, point1b.x - pointBb.x);
+        //calculate the angle from Bb to 1b
+        //we want to go counter-clockwise, so we subtract the angle from Bb to 1b from the angle
+        const angleBbTo1bX1b = angleBbTo1b - Math.PI / 2; //90 degrees in radians, since we want to go left from 1b
+        //calculate the distance from 1b to 1bX1b
+        const dist1bX1bX = dist1bX1b * Math.cos(angleBbTo1bX1b);
+        const dist1bX1bY = dist1bX1b * Math.sin(angleBbTo1bX1b);
+        const point1bX1b = setPoint(point1b.x + dist1bX1bX, point1b.y + dist1bX1bY);
+        status.pattern.points['1bX1b'] = point1bX1b;
         status = registerPoints(status, {'1bX1b': point1bX1b});
-        status = setCurve(status, {s: '1b', g: '1bX1b', e: 'X1b'}, 0.5);
+        status = setCurve(status, {s: '1b', g: '1bX1b', e: 'X1b'}, 0.1);
         return status;
       } 
     },
@@ -879,6 +919,10 @@ const steps = [
 
         status.pattern.points['Nb'] = pointNb;
         status = setLine(status, 'Hb', 'Nb');
+
+        
+
+        
         return status;
       }
     },
@@ -912,14 +956,14 @@ const steps = [
         //draw the lines from 13b to 13b1
         status = setLine(status, '13b', '13b1');
         //draw the line from 13b1 to Nb
-        status = setLine(status, '13b1', 'Nb');
+        status = setLine(status, '13b1', 'Nb', 'dashed');
 
         //now, we need to move all the points down. 
         //first, let's find the distance from E to 5
         const point5 = status.pattern.points['5'];
         const distEto5 = distPointToPoint(pointE, point5);
 
-        const margin = inchesToPrecision(status, 3/4);
+        const margin = inchesToPrecision(status, 1.5);
 
         const distDown = distEto5 + margin;
 
@@ -951,6 +995,97 @@ const steps = [
         }
 
         return status;
+      }
+    },
+    {
+      description: (_status) => { return `To form the top seam and ruffle, go from Nb at a right angle to the line from Hb to Nb, 1/2" to the right. To find point N1b`; },
+      action: (status) => {
+        const pointHb = status.pattern.points['Hb'];
+        const pointNb = status.pattern.points['Nb'];
+
+        //calculate the angle from Hb to Nb
+        const angleHbToNb = Math.atan2(pointNb.y - pointHb.y, pointNb.x - pointHb.x);
+        //calculate the distance to move in x and y
+        const distX = inchesToPrecision(status, 1/2) * Math.cos(angleHbToNb + Math.PI / 2); //90 degrees to the right
+        const distY = inchesToPrecision(status, 1/2) * Math.sin(angleHbToNb + Math.PI / 2);
+        const pointN1b = setPoint(pointNb.x + distX, pointNb.y + distY);
+
+        status.pattern.points['N1b'] = pointN1b;
+
+        //draw the line from Hb to N1b. This should create a smooth front.
+        status = setLine(status, 'Nb', 'N1b');
+        status = setCurve(status, {s: 'Nb', g: 'N1b', e: '13b1'}, 0.1);
+
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `To finish the ruffles on both the front and back, move the top curves up by the ruffle width (3/4") to mark the fold line, then once more to mark the seam line.`; },
+      action: (status) => {
+        //first, the front.
+        const pointNb = status.pattern.points['Nb'];
+        const pointN1b = status.pattern.points['N1b'];
+        const point13b1 = status.pattern.points['13b1'];
+        const pointHb = status.pattern.points['Hb'];
+
+        // Follow the front line up by 3/4" to find the fold line, and then again to find the seam line.
+        const distUp = 3/4;
+        let foldDist = distPointToPoint(pointHb, pointNb)/status.precision + distUp;
+        let seamDist = foldDist + distUp;
+        const pointNba = setPointAlongLine(status, pointHb, pointNb, foldDist);
+        const pointNbb = setPointAlongLine(status, pointHb, pointNb, seamDist);
+
+        //following the same angle and distance, find the point N1ba
+        //find the difference in x and y between Nb and N1b
+        const distN1bX = pointN1b.x - pointNb.x;
+        const distN1bY = pointN1b.y - pointNb.y;
+        const pointN1ba = setPoint(pointNba.x + distN1bX, pointNba.y + distN1bY);
+        const pointN1bb = setPoint(pointNbb.x + distN1bX, pointNbb.y + distN1bY);
+
+        //do the same for point13b1
+        const dist13b1X = point13b1.x - pointNb.x;
+        const dist13b1Y = point13b1.y - pointNb.y;
+        const point13b1a = setPoint(pointNba.x + dist13b1X, pointNba.y + dist13b1Y);
+        const point13b1b = setPoint(pointNbb.x + dist13b1X, pointNbb.y + dist13b1Y);
+
+        status = registerPoints(status, {'Nba': pointNba, 'N1ba': pointN1ba, '13b1a': point13b1a, '13b1b': point13b1b, 'Nbb': pointNbb, 'N1bb': pointN1bb});
+
+        status = setCurve(status, {s: 'Nba', g: 'N1ba', e: '13b1a'}, 0.1);
+        status = setCurve(status, {s: 'Nbb', g: 'N1bb', e: '13b1b'}, 0.1);
+
+        status = setLine(status, 'Nbb', 'Hb');
+        status = setCurve(status, {s: '13b1b', g: '13b1a', e: '13b1'}, 0.5);
+
+        //now, the back
+        const pointX1b = status.pattern.points['X1b'];
+        const point1b = status.pattern.points['1b'];
+        const point1bX1b = status.pattern.points['1bX1b'];
+        const pointBb = status.pattern.points['Bb'];
+
+        // Follow the back line up by 3/4" to find the fold line, and then again to find the seam line.
+        foldDist = distPointToPoint(pointBb, point1b)/status.precision + distUp;
+        seamDist = foldDist + distUp;
+        const point1ba = setPointAlongLine(status, pointBb, point1b, foldDist);
+        const point1bb = setPointAlongLine(status, pointBb, point1b, seamDist);
+
+        const dist1bX1bX = point1bX1b.x - point1b.x;
+        const dist1bX1bY = point1bX1b.y - point1b.y;
+        const point1bX1ba = setPoint(point1ba.x + dist1bX1bX, point1ba.y + dist1bX1bY);
+        const point1bX1bb = setPoint(point1bb.x + dist1bX1bX, point1bb.y + dist1bX1bY);
+
+        const distX1bx = pointX1b.x - point1b.x;
+        const distX1by = pointX1b.y - point1b.y;
+        const pointX1ba = setPoint(point1ba.x + distX1bx, point1ba.y + distX1by);
+        const pointX1bb = setPoint(point1bb.x + distX1bx, point1bb.y + distX1by);
+
+        status = registerPoints(status, { '1ba': point1ba, '1bb': point1bb, 'X1ba': pointX1ba, 'X1bb': pointX1bb, '1bX1ba': point1bX1ba, '1bX1bb': point1bX1bb });
+
+        status = setCurve(status, {s: '1ba', g: '1bX1ba', e: 'X1ba'}, 0.1);
+        status = setCurve(status, {s: '1bb', g: '1bX1bb', e: 'X1bb'}, 0.1);
+
+        status = setCurve(status, {s: 'X1b', g: 'X1ba', e: 'X1bb'}, 0.5);
+        status = setLine(status, '1bb', 'Bb');
+        return status
       }
     },
     {
@@ -1043,8 +1178,6 @@ const steps = [
         const pointOy = status.pattern.points['Oy'];
         const pointGy = status.pattern.points['Gy'];
         const distOyGy = distPointToPoint(pointOy, pointGy);
-
-        seeDist(status, distOyGy, 'Oy to Gy');
 
         //calculate the distance from Ay to Dy and Fy
         const radius = radiusNS(status); //get the radius in precision units
@@ -1160,10 +1293,8 @@ const steps = [
 
         //find the distance from N to H
         const distNtoH = distPointToPoint(pointN, pointH);
-        seeDist(status, distNtoH, 'N to H');
         //divide by 3.51 to get the distance from 3y to 7y
         const dist7y = distNtoH / 3.51;
-        seeDist(status, dist7y, '3y to 7y');
 
         //find the point 7y, which is down from 3y this distance
         const point7y = setPoint(point3y.x, point3y.y + dist7y);
@@ -1183,10 +1314,8 @@ const steps = [
 
         //find the distance from 1y to 4y
         const dist1yto4y = distPointToPoint(point1y, point4y);
-        seeDist(status, dist1yto4y, '1y to 4y');
         //divide by 2.1 to get the distance from 2y to 6y
         const dist6y = dist1yto4y / 2.1;
-        seeDist(status, dist6y, '2y to 6y');
 
         //find the point 6y, which is left from 2y this distance
         const point6y = setPoint(point2y.x - dist6y, point2y.y);
@@ -1295,6 +1424,36 @@ const steps = [
           }
         } 
         status = registerLabels(status, parts);
+
+        return status;
+      }
+    },
+    {
+      description: (_status) => { return `To double check sizing, measure from center neck to bust point, and side neck to bust point. Check your measurements against the pattern.`; },
+      action: (status) => {
+        let centerNeck = status.pattern.points['N'];
+        let sideNeck = status.pattern.points['E'];
+        let bustPoint = status.pattern.points['P'];
+
+        let centerNeckToBust = distPointToPoint(centerNeck, bustPoint);
+        let sideNeckToBust = distPointToPoint(sideNeck, bustPoint);
+
+        status = setLine(status, 'N', 'P', 'dashed');
+        //status = setLine(status, 'E', 'P', 'dashed'); //this line is already set in a previous step
+
+        //now, let's add the measurements to the pattern by making points with the measurement as labels
+        let centerNeckLabel = `N to P: ${printNum(centerNeckToBust, 1 / status.precision)}`;
+        let centerNeckPoint = setPoint((centerNeck.x + bustPoint.x) / 2, (centerNeck.y + bustPoint.y) / 2);
+
+        let sideNeckLabel = `E to P: ${printNum(sideNeckToBust, 1 / status.precision)}`;
+        let sideNeckPoint = setPoint((sideNeck.x + bustPoint.x) / 2, (sideNeck.y + bustPoint.y) / 2);
+
+        status = registerPoints(status, 
+          {
+            [centerNeckLabel]: centerNeckPoint,
+            [sideNeckLabel]: sideNeckPoint
+          }
+        );
 
         return status;
       }

@@ -163,7 +163,12 @@ const steps = [
       let pointSR = makeTouchPoint(status, pointS2, pointR, 3, 0.25, false);
 
 
-      status = registerPoints(status, { 'S2': pointS2, 'SR': pointSR });
+      status = registerPoints(status, 
+        { 
+          'S2': pointS2, 
+          'SR': pointSR 
+        }
+      );
       status = setCurve(status, { start: 'R', g: 'SR', end: 'S2' });
       return status;
     }
