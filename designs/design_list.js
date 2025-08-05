@@ -6,12 +6,14 @@ import {modified_plain_sleeve} from './modified_plain_sleeve.js';
 import {alice_collar} from './alice_collar.js';
 import {alice_sleeve} from './alice_sleeve.js';
 import { alice_bodice } from './alice_bodice.js';
+import {symington_31400} from './symington_31400.js';
 
 //during development, you can reorder the designs here to put the one you are working on first.
 //Please return the designs to this order before submitting a pull request:
 // All Alice designs first (alphabedically),
 // then Keystone designs (alphabetically)
 const designs = [
+  symington_31400,
   alice_bodice,
   alice_sleeve,
   alice_collar,

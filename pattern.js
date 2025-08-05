@@ -11,6 +11,10 @@ export function toInches(status, value) {
   const precision = status.precision;
   return value / precision;
 }
+ export function half(num, gap = 0) {
+  //used for corsets, returning half of (number - gap)
+  return (num - gap) / 2;
+ }
 
 export function seeDist(status, length, label = "") {
   //this is just for debugging purposes, to see the distance in precision units and inches
