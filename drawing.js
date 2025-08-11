@@ -115,7 +115,8 @@ function drawPoint(ctx, status, pixelPattern, pointLabel) {
     //set label font size to 12px
     ctx.font = `${size}px serif`;
     ctx.fillStyle = 'black';
-    ctx.fillText(pointLabel, x + 5, y - 5);
+    let pixelsPerInch = status.canvasInfo.pixelsPerInch;
+    ctx.fillText(pointLabel, x + pixelsPerInch / 4, y - pixelsPerInch / 4);
   } else if (visible === 'label-up') {
     let size = point.size; //default size is 16px
     //if visible is 'label', just draw the label

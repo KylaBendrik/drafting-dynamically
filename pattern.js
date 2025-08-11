@@ -1,5 +1,20 @@
 //turn design into pattern
 
+//these two are interchangeable.
+export const H = new Proxy({}, {
+  //in the design file, use H.bust(status) to get the bust measurement
+  get(target, prop, receiver) {
+    return (status) => {
+      return status.measurements[prop].value;
+    }
+  }
+});
+export function measure(status, measurement) {
+  //in the design file, use measure(status, 'bust') to get the bust measurement
+  return status.measurements[measurement].value;
+}
+
+
 export function inchesToPrecision(status, inches){
   const precision = status.precision;
   return Math.round(inches * precision);
@@ -11,6 +26,8 @@ export function toInches(status, value) {
   const precision = status.precision;
   return value / precision;
 }
+
+
  export function half(num, gap = 0) {
   //used for corsets, returning half of (number - gap)
   return (num - gap) / 2;
@@ -65,7 +82,10 @@ export function registerTwoPartLabel(status, point, label1, label2, direction = 
   //size is the size of the label
   let point1 = point;
   let point2 = {...point};
-  let margin = size / 4;
+  let pixelsPerInch = status.canvasInfo.pixelsPerInch;
+  let margin = size - (0.35 * pixelsPerInch); //needs to be bigger when pixels per inch is smaller
+
+  console.log(margin, pixelsPerInch, size)//4 8 16 for skirt, 3.5, 32, 14
   let size2 = size - 2;
   if (direction === 'up'){
     point2.x += margin;

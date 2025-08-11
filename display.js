@@ -128,6 +128,7 @@ window.onload = function() {
 window.addEventListener('resize', updateListLayout);
 updateListLayout();
 
+status.precision = defaultPrecision;
 inputDesign(status.design);
 inputMeasurements(status.design.measurements);
 status = makePattern(status);
@@ -150,6 +151,8 @@ designSelect.addEventListener('change', function() {
 
   status.design = design;
   status.measurements = design.measurements;
+  //if pattern includes a pixelsPerInch, use that, otherwise use the default
+  
   status.pattern = {
     points: {},
     lines: [],
@@ -159,6 +162,7 @@ designSelect.addEventListener('change', function() {
 
   measurementsList.innerHTML = '';
   stepsList.innerHTML = '';
+  status.canvasInfo.pixelsPerInch = defaultPixelsPerInch;
   inputDesign(status.design);
   inputMeasurements(status.design.measurements);
   status = makePattern(status);

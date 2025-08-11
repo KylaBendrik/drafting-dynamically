@@ -6,6 +6,7 @@ import {modified_plain_sleeve} from './modified_plain_sleeve.js';
 import {alice_collar} from './alice_collar.js';
 import {alice_sleeve} from './alice_sleeve.js';
 import { alice_bodice } from './alice_bodice.js';
+import { alice_skirt } from './alice_skirt.js';
 import {symington_31400} from './symington_31400.js';
 
 //during development, you can reorder the designs here to put the one you are working on first.
@@ -13,7 +14,8 @@ import {symington_31400} from './symington_31400.js';
 // All Alice designs first (alphabedically),
 // then Keystone designs (alphabetically)
 const designs = [
-  symington_31400,
+  alice_skirt,
+//  symington_31400,
   alice_bodice,
   alice_sleeve,
   alice_collar,
