@@ -271,10 +271,11 @@ function drawQuarterEllipse(ctx, _status, pixelPattern, curve) {
 }
 
 function drawArc(ctx, _status, pixelPattern, curve) {
-  //assume part of a circle, with start, ent, and center points
+  //assume part of a circle, with start, end, and center points
   let start = pixelPattern.points[curve.points.s];
   let end = pixelPattern.points[curve.points.e];
   let center = pixelPattern.points[curve.points.c];
+
   let startAngle = Math.atan2(start.y - center.y, start.x - center.x);
   let endAngle = Math.atan2(end.y - center.y, end.x - center.x);
   let radius = Math.sqrt(Math.pow(start.x - center.x, 2) + Math.pow(start.y - center.y, 2));

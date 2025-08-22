@@ -83,9 +83,9 @@ export function registerTwoPartLabel(status, point, label1, label2, direction = 
   let point1 = point;
   let point2 = {...point};
   let pixelsPerInch = status.canvasInfo.pixelsPerInch;
-  let margin = size - (0.35 * pixelsPerInch); //needs to be bigger when pixels per inch is smaller
+  let margin = size - (0.35 * pixelsPerInch ); //needs to be bigger when pixels per inch is smaller
 
-  console.log(margin, pixelsPerInch, size)//4 8 16 for skirt, 3.5, 32, 14
+//  console.log(margin, pixelsPerInch, size)//4 8 16 for skirt, 3.5, 32, 14
   let size2 = size - 2;
   if (direction === 'up'){
     point2.x += margin;
@@ -332,11 +332,13 @@ export function setPointCircleCircle(_status, center1, r1, center2, r2, flip = f
   let x2 = center2.x;
   let y2 = center2.y;
 
+
   let r1Squared = r1 * r1;
   let r2Squared = r2 * r2;
   let d = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
   if (d > r1 + r2 || d < Math.abs(r1 - r2)) {
     //no intersection
+    console.warn('No intersection between circles')
     return null;
   } 
   //find the intersection points
@@ -520,6 +522,7 @@ export function setLine(status, start, end, style = 'solid', length = 'defined')
 
   return status;
 }
+
 
 //new version of setCurve, using fewer parameters
 export function setCurve(status, points, info){

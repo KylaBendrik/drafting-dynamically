@@ -1,5 +1,6 @@
 import {keystone_bodice} from './keystone_bodice.js';
 import {keystone_single} from './keystone_single-breasted-vest.js';
+import {keystone_skirt} from './keystone_skirt.js';
 import {keystone_collars} from './keystone_collars.js';
 import {keystone_plain_sleeve} from './keystone_plain_sleeve.js';
 import {modified_plain_sleeve} from './modified_plain_sleeve.js';
@@ -15,12 +16,13 @@ import {symington_31400} from './symington_31400.js';
 // then Keystone designs (alphabetically)
 const designs = [
   alice_skirt,
-//  symington_31400,
+  //symington_31400,
   alice_bodice,
   alice_sleeve,
   alice_collar,
   keystone_bodice,
   modified_plain_sleeve,
+  keystone_skirt,
   keystone_single,
   keystone_collars,
   keystone_plain_sleeve,
