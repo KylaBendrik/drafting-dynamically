@@ -15,9 +15,9 @@ import {symington_31400} from './symington_31400.js';
 // All Alice designs first (alphabedically),
 // then Keystone designs (alphabetically)
 const designs = [
+  alice_bodice,
   alice_skirt,
   //symington_31400,
-  alice_bodice,
   alice_sleeve,
   alice_collar,
   keystone_bodice,
