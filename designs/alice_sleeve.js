@@ -394,10 +394,7 @@ const steps = [
       //set the curves
       status = setCurve(status, { s: 'K', g1: 'G', g2: 'F2', e: 'E' }, [0.18, 0.62]);
       status = setCurve(status, { s: 'N', g1: '1', g2: 'Q', e: '9' }, [0.16, 0.65]);
-      status = setCurve(status, { s: 'A', g: 'M', e: 'C' });
-
-      //set line from R to A
-      status = setLine(status, 'R', 'A');
+      status = setCurve(status, { s: 'R', g: 'M', e: 'C' });
 
       return status;
     }

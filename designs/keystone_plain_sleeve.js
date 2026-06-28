@@ -273,7 +273,8 @@ const steps = [
       let pointCM = makeTouchPoint(status, pointC, pointM, 3, 0.25, false);
       status = registerPoints(status, { 'AM': pointAM, 'CM': pointCM });
 
-      status = setCurve(status, { start: 'AM', touch: 'M', end: 'CM' });
+      status = setCurve(status, { s: 'R', g: 'M', e: 'C' });
+      //status = setCurve(status, { start: 'AM', touch: 'M', end: 'CM' });
       status = setLine(status, 'A', 'AM');
       status = setLine(status, 'C', 'CM');
       return status;
