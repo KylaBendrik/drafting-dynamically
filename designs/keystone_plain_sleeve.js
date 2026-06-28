@@ -269,8 +269,8 @@ const steps = [
       //make points AM and CM, 1/3 of the way from A to M and C to M
       let pointA = status.pattern.points['A'];
       let pointC = status.pattern.points['C'];
-      let pointAM = makeTouchPoint(status, pointM, pointA, 4, 0.25, false);
-      let pointCM = makeTouchPoint(status, pointC, pointM, 3, 0.25, false);
+      let pointAM = makeTouchPoint(status, pointM, pointA, 4, 0.25, true);
+      let pointCM = makeTouchPoint(status, pointC, pointM, 3, 0.25, true);
       status = registerPoints(status, { 'AM': pointAM, 'CM': pointCM });
 
       status = setCurve(status, { s: 'R', g: 'M', e: 'C' });
@@ -362,19 +362,12 @@ const steps = [
 
       status = registerPoints(status, { 'Q': pointQ, '1Q': point1Q, 'Q2': pointQ2 });
 
-
-      //set curve from 1 to 9
-      //status = setCurve(status, {start: '1Q', touch: 'Q2', end: '9'}, 0, 'bezier');
-
       //make cuff from 9 to C
       let pointC = status.pattern.points['C'];
       let point9C = makeTouchPoint(status, point9, pointC, 4, 0.15, false);
       status = registerPoint(status, point9C, '9C');
       //set the curve from 9 to C
-      //status = setCurve(status, {start: 'N', touch: '1', end: '1Q'}, 0, 'bezier');
       status = setCurve(status, { start: 'N', g1: '1',g2: 'Q', end: '9'}, [0.17, 0.67] );
-
-      setLine(status, 'R', 'A');
 
       //how long is the sleeve?
       let pointK = status.pattern.points['K'];
