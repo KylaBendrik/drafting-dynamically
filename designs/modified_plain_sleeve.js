@@ -325,7 +325,7 @@ const steps = [
     }
   },
   {
-    description: (status) => { return `Shape the seams K-G-F2-E, N-1-Q-9, and R-A-M-C` },
+    description: (status) => { return `Shape the seams K-G-F2-E, N-1-Q-9, and R-M-C` },
     action: (status) => {
       //add in point 1, beneath N and to the right of G
       console.log(status.pattern.points);
@@ -337,10 +337,7 @@ const steps = [
       //set the curves
       status = setCurve(status, { s: 'K', g1: 'G', g2: 'F2', e: 'E' }, [0.18, 0.62]);
       status = setCurve(status, { s: 'N', g1: '1', g2: 'Q', e: '9' }, [0.16, 0.65]);
-      status = setCurve(status, { s: 'A', g: 'M', e: 'C' });
-
-      //set line from R to A
-      status = setLine(status, 'R', 'A');
+      status = setCurve(status, { s: 'R', g: 'M', e: 'C' });
 
       //this is the last step, so let's add the size labels
       //find a good place for the labels

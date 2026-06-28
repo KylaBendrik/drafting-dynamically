@@ -265,18 +265,8 @@ const steps = [
       let pointM = setPoint(pointF.x + elbow / 2, pointF.y);
 
       status = registerPoint(status, pointM, 'M');
-
-      //make points AM and CM, 1/3 of the way from A to M and C to M
-      let pointA = status.pattern.points['A'];
-      let pointC = status.pattern.points['C'];
-      let pointAM = makeTouchPoint(status, pointM, pointA, 4, 0.25, true);
-      let pointCM = makeTouchPoint(status, pointC, pointM, 3, 0.25, true);
-      status = registerPoints(status, { 'AM': pointAM, 'CM': pointCM });
-
+      
       status = setCurve(status, { s: 'R', g: 'M', e: 'C' });
-      //status = setCurve(status, { start: 'AM', touch: 'M', end: 'CM' });
-      status = setLine(status, 'A', 'AM');
-      status = setLine(status, 'C', 'CM');
       return status;
     }
   },

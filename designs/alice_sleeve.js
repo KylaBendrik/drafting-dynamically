@@ -381,7 +381,7 @@ const steps = [
     }
 },
   {
-    description: (status) => { return `Shape the seams K-G-F2-E, N-1-Q-9, and R-A-M-C` },
+    description: (status) => { return `Shape the seams K-G-F2-E, N-1-Q-9, and R-M-C` },
     action: (status) => {
       //add in point 1, beneath N and to the right of G
       console.log(status.pattern.points);
