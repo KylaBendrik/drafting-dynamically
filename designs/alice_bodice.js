@@ -27,7 +27,7 @@ import {
     title: 'The Alice Dress - Bodice',
     source: {
       link: 'https://youtube.com/playlist?list=PLZByZ9HlQcCKq3uJ8MjaXbjN1poxS_H8y&si=ZT5c6spRpksh4s8v',
-      label: 'The Alice Bodice'
+      label: 'The Alice Dress - Video Series'
     },
     designer: 'Kyla Bendrik'
   }

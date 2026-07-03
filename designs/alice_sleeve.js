@@ -26,7 +26,7 @@ const design_info = {
   title: 'The Alice Dress - Sleeve',
   source: {
     link: 'https://youtube.com/playlist?list=PLZByZ9HlQcCKq3uJ8MjaXbjN1poxS_H8y&si=ZT5c6spRpksh4s8v',
-    label: 'The Alice Dress - Sleeve',
+    label: 'The Alice Dress - Video Series',
   },
   designer: 'Kyla Bendrik',
 }
