@@ -16,16 +16,16 @@ import {symington_31400} from './symington_31400.js';
 // then Keystone designs (alphabetically)
 const designs = [
   alice_bodice,
-  alice_skirt,
-  //symington_31400,
-  alice_sleeve,
   alice_collar,
+  alice_sleeve,
+  alice_skirt,
   keystone_bodice,
   modified_plain_sleeve,
   keystone_skirt,
   keystone_single,
   keystone_collars,
   keystone_plain_sleeve,
+  //symington_31400,
 ].map((design) => {
   return {
     label: design.design_info.title,
