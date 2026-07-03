@@ -24,7 +24,7 @@ import {
 } from '../pattern.js';
 
 const design_info = {
-  title: 'Alice - Collar',
+  title: 'The Alice Dress - Collar',
   source: {
     link: 'https://www.youtube.com/playlist?list=PLZByZ9HlQcCKq3uJ8MjaXbjN1poxS_H8y',
     label: 'The Alice Dress - Video Series',
