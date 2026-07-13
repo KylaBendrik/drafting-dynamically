@@ -527,7 +527,7 @@ const steps = [
       }
     },
     {
-      description: (_status) => { return `Create the underarm and side back seam from 12 to 17, touching just left of L, widening to no more than 1/4" between L and 17, and meeting again at 17.`},
+      description: (_status) => { return `Create the underarm and side back seam from 12 to 17, touching just left of L, widening to no more than 1/4" between L and 17 (default is 1/8" left, 1/4" right), and meeting again at 17.`},
       action: (status) => {
         let pointL = status.pattern.points['L'];
         let point17 = status.pattern.points['17'];
@@ -544,6 +544,11 @@ const steps = [
         
         let pointL2_17 = setPointAlongLine(status, pointL2, point17, midDist);
         status.pattern.points['L2_17'] = pointL2_17;
+
+        let left = inchesToPrecision(status, 1/8);
+        let right = inchesToPrecision(status, 1/4);
+
+        let pointL2_17_l = setPoint(pointL2_17.x + left, pointL2_17.y, {});
 
         status = setCurve(status, {start: '12', touch: 'L2', end: '17'}, 0.4);
         status = setCurve(status, {start: '12r', touch: 'L2', end: '17'}, 0.4);
