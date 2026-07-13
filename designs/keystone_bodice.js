@@ -446,7 +446,7 @@ const steps = [
       }
     },
     {
-      description: (status) => { return `Measure from C to D, and from 16 to H. Subtract from this, 1/2 the waist measure ${printMeasure(status.measurements.waist, 1 / 2)}, to get the amount of space to give the darts.` },
+      description: (status) => { return `Measure from C to D, and from 16 to H. Subtract from this, 1/2 the waist measure ${printMeasure(status.measurements.waist, 1 / 2)}, to get the amount of space to give the darts. Then remove an extra 1/2" for the under arm seam.` },
       action: (status) => {
         let pointC = status.pattern.points['C'];
         let pointD = status.pattern.points['D'];
@@ -457,7 +457,7 @@ const steps = [
         let dist16H = distPointToPoint(point16, pointH);
         let waist = parseFloat(status.measurements.waist.value) / 2 * status.precision;
         let space = ((distCD + dist16H) - waist);
-        //reduce space by 1/2 inch
+        //reduce space by 1/2 inch for the underarm
         space = space - inchesToPrecision(status, 1/2);
         //divide space into 4 parts, giving the distance for each side of the dart
         let dist = space / 4;
