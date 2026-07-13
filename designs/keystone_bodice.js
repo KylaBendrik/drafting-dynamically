@@ -540,19 +540,23 @@ const steps = [
         status.pattern.points['L2'] = pointL2;
 
         //create the width points between L2 and 17
-        let midDist = toInches(distPointToPoint(pointL2, point17) / 2);
-        console.log(midDist, "midDist")
+        let midDist = toInches(status, distPointToPoint(pointL2, point17) * 0.4);
+        console.log("midDist: ", midDist)
         
-        let pointL2_17 = setPointAlongLine(status, point17, pointL2, midDist);
+        let pointL2_17 = setPointAlongLine(status, point17, pointL2, midDist, {}, false);
         status.pattern.points['L2_17'] = pointL2_17;
 
-        // let left = inchesToPrecision(status, 1/8);
-        // let right = inchesToPrecision(status, 1/4);
+        let left = inchesToPrecision(status, 1/8);
+        let right = inchesToPrecision(status, 1/4);
 
-        // let pointL2_17_l = setPoint(pointL2_17.x + left, pointL2_17.y, {});
+        let pointL2_17_l = setPoint(pointL2_17.x - left, pointL2_17.y, {}, false);
 
-        status = setCurve(status, {start: '12', touch: 'L2', end: '17'}, 0.4);
-        status = setCurve(status, {start: '12r', touch: 'L2', end: '17'}, 0.4);
+        let pointL2_17_r = setPoint(pointL2_17.x + right, pointL2_17.y, {}, false);
+
+        status = registerPoints(status, {'L2_17_l': pointL2_17_l, 'L2_17_r': pointL2_17_r})
+
+        status = setCurve(status, {start: '12', g1: 'L2', g2: 'L2_17_l', end: '17'}, [0.2, 0.67]);
+        status = setCurve(status, {start: '12r', g1: 'L2', g2: 'L2_17_r', end: '17'}, [0.2, 0.67]);
 
         return status;
       }
