@@ -1,10 +1,10 @@
 import {
   inchesToPrecision,
+  toInches,
   registerPoints,
   registerPoint,
-  registerLabel,
-  registerTwoPartLabel,
   registerLabels,
+  seeDist,
   setPoint,
   setLine,
   setPointLineY,
@@ -543,6 +543,7 @@ const steps = [
         let midDist = toInches(distPointToPoint(pointL2, point17) / 2);
         
         let pointL2_17 = setPointAlongLine(status, pointL2, point17, midDist);
+        status.pattern.points['L2_17'] = pointL2_17;
 
         status = setCurve(status, {start: '12', touch: 'L2', end: '17'}, 0.4);
         status = setCurve(status, {start: '12r', touch: 'L2', end: '17'}, 0.4);
