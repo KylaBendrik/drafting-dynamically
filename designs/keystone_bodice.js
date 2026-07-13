@@ -502,7 +502,7 @@ const steps = [
       }
     },
     {
-      description: (_status) => { return `From point 17, go up to the armhole to find point 12`},
+      description: (_status) => { return `From point 17, go up to the armhole to find point 12, touching just left of L. At 12, nip a slight amount (1/4") to the right`},
       action: (status) => {
         let point14 = status.pattern.points['14'];
         let pointZ = status.pattern.points['Z'];
@@ -511,7 +511,7 @@ const steps = [
         status.pattern.points['12'] = makeTouchPoint(status, point14, pointZ, 2, 0.4);
         let point12 = status.pattern.points['12'];
 
-        //find point 12r, 1/2 inch right of 12
+        //find point 12r, 1/4 inch right of 12
         status.pattern.points['12r'] = setPoint(point12.x + inchesToPrecision(status, 1/4), point12.y, {}, false);
         let point12r = status.pattern.points['12r'];
         let point8z = status.pattern.points['8z'];
@@ -538,6 +538,11 @@ const steps = [
         status = setLine(status, '12r', '17', 'dashed');
         let pointL2 = setPointLineY(status, point12r, point17, pointL.y);
         status.pattern.points['L2'] = pointL2;
+
+        //create the width points between L2 and 17
+        let midDist = toInches(distPointToPoint(pointL2, point17) / 2);
+        
+        let pointL2_17 = setPointAlongLine(status, pointL2, point17, midDist);
 
         status = setCurve(status, {start: '12', touch: 'L2', end: '17'}, 0.4);
         status = setCurve(status, {start: '12r', touch: 'L2', end: '17'}, 0.4);
