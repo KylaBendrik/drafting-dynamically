@@ -541,14 +541,15 @@ const steps = [
 
         //create the width points between L2 and 17
         let midDist = toInches(distPointToPoint(pointL2, point17) / 2);
+        console.log(midDist, "midDist")
         
-        let pointL2_17 = setPointAlongLine(status, pointL2, point17, midDist);
+        let pointL2_17 = setPointAlongLine(status, point17, pointL2, midDist);
         status.pattern.points['L2_17'] = pointL2_17;
 
-        let left = inchesToPrecision(status, 1/8);
-        let right = inchesToPrecision(status, 1/4);
+        // let left = inchesToPrecision(status, 1/8);
+        // let right = inchesToPrecision(status, 1/4);
 
-        let pointL2_17_l = setPoint(pointL2_17.x + left, pointL2_17.y, {});
+        // let pointL2_17_l = setPoint(pointL2_17.x + left, pointL2_17.y, {});
 
         status = setCurve(status, {start: '12', touch: 'L2', end: '17'}, 0.4);
         status = setCurve(status, {start: '12r', touch: 'L2', end: '17'}, 0.4);
